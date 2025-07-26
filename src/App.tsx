@@ -24,6 +24,10 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 
+// Admin
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -54,6 +58,19 @@ const App = () => {
               <Route path="/profile" element={<Profile />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<div className="p-8 text-center">Products Management - Coming Soon</div>} />
+                <Route path="categories" element={<div className="p-8 text-center">Categories Management - Coming Soon</div>} />
+                <Route path="orders" element={<div className="p-8 text-center">Orders Management - Coming Soon</div>} />
+                <Route path="customers" element={<div className="p-8 text-center">Customers Management - Coming Soon</div>} />
+                <Route path="analytics" element={<div className="p-8 text-center">Analytics - Coming Soon</div>} />
+                <Route path="bestsellers" element={<div className="p-8 text-center">Best Sellers Management - Coming Soon</div>} />
+                <Route path="settings" element={<div className="p-8 text-center">Settings - Coming Soon</div>} />
+              </Route>
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

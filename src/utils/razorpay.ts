@@ -21,6 +21,7 @@ export interface RazorpayOptions {
   };
   notes: {
     address: string;
+    [key: string]: string;
   };
   theme: {
     color: string;
@@ -172,8 +173,6 @@ export const initiateRazorpayPayment = async (
       },
       notes: {
         address: `${orderData.deliveryAddress.plotNumber || ''} ${orderData.deliveryAddress.buildingName || ''}, ${orderData.deliveryAddress.street || ''}, ${orderData.deliveryAddress.address}`.trim(),
-        pincode: orderData.deliveryAddress.pincode || '',
-        landmark: orderData.deliveryAddress.landmark || '',
       },
       theme: {
         color: '#dc2626', // Red color matching the app theme

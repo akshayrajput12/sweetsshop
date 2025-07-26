@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, Search } from 'lucide-react';
+import { ShoppingCart, User, Menu, Search, MapPin } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useLocation } from '../hooks/useLocation';
 import { motion } from 'framer-motion';
 
 const Header = () => {
   const { cartItems, toggleCart, isAuthenticated, user } = useStore();
   const navigate = useNavigate();
+  const userLocation = useLocation();
   
   const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -26,6 +28,14 @@ const Header = () => {
             </div>
             <span className="heading-md text-primary">MeatE</span>
           </Link>
+
+          {/* Location Display */}
+          <div className="hidden md:flex items-center space-x-2 text-sm">
+            <MapPin className="w-4 h-4 text-red-500" />
+            <span className="text-muted-foreground">
+              {userLocation.loading ? 'Detecting...' : userLocation.city}
+            </span>
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
