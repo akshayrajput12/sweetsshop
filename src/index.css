@@ -2,41 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* MeatE Design System - Premium Meat E-commerce Platform */
 
 @layer base {
   :root {
+    /* Core Brand Colors */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 0 0% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 20%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Meat Red */
+    --primary: 8 94% 47%;
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 8 94% 42%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Dark Gray */
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Accent - Golden Yellow */
+    --accent: 48 96% 58%;
+    --accent-foreground: 0 0% 20%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Neutral Grays */
+    --muted: 0 0% 97.5%;
+    --muted-foreground: 0 0% 45%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Success & Error */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* UI Elements */
+    --border: 0 0% 90%;
+    --input: 0 0% 100%;
+    --ring: 8 94% 47%;
 
-    --radius: 0.5rem;
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(8 94% 47% / 0.1), hsl(48 96% 58% / 0.1));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 98%));
+
+    /* Shadows */
+    --shadow-soft: 0 2px 8px hsl(0 0% 0% / 0.08);
+    --shadow-medium: 0 4px 16px hsl(0 0% 0% / 0.12);
+    --shadow-large: 0 8px 24px hsl(0 0% 0% / 0.16);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +117,60 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-inter;
+  }
+}
+
+@layer components {
+  /* Typography System */
+  .heading-xl {
+    @apply font-merriweather font-bold text-4xl md:text-5xl lg:text-6xl leading-tight;
+  }
+
+  .heading-lg {
+    @apply font-inter font-semibold text-2xl md:text-3xl lg:text-4xl leading-tight;
+  }
+
+  .heading-md {
+    @apply font-inter font-medium text-lg md:text-xl lg:text-2xl leading-normal;
+  }
+
+  .body-text {
+    @apply font-inter font-normal text-sm md:text-base leading-relaxed;
+  }
+
+  .caption {
+    @apply font-inter font-normal text-xs leading-normal;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-soft hover:shadow-medium;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary hover:bg-secondary/90 text-secondary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200;
+  }
+
+  .btn-outline {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-medium px-6 py-3 rounded-lg transition-all duration-200;
+  }
+
+  /* Card Styles */
+  .card-elevated {
+    @apply bg-card rounded-xl shadow-soft hover:shadow-medium transition-all duration-200;
+  }
+
+  .card-product {
+    @apply card-elevated p-4 group cursor-pointer;
+  }
+
+  /* Gradient Backgrounds */
+  .bg-hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .bg-card-gradient {
+    background: var(--gradient-card);
   }
 }
