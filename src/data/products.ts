@@ -92,6 +92,46 @@ export const products: Product[] = [
     inStock: true,
     slug: 'jumbo-shrimp',
   },
+  {
+    id: '7',
+    name: 'Premium Chicken Thigh Boneless',
+    price: 266,
+    originalPrice: 350,
+    image: chickenImage,
+    category: 'Chicken',
+    weight: '450g',
+    pieces: '2-5 Pieces',
+    rating: 4.8,
+    serves: 5,
+    description: 'Licious Chicken Thigh (Boneless) is a juicy cut that doesn\'t dry out easily. These equally-sized boneless pieces ensure uniform cooking. Since they are among the meatiest portions of the bird, they can easily be slow-cooked or grilled.',
+    nutrition: 'High in protein, iron, and vitamin B12. Approximately 127 calories per 100g.',
+    nutritionalInfo: {
+      totalEnergy: '127 KCal',
+      carbohydrate: '0 g',
+      fat: '4.5 g',
+      protein: '21.6 g'
+    },
+    marketingInfo: {
+      marketedBy: 'Delightful Gourmet Pvt Ltd.',
+      address: 'Manjusha Infotech Center No 11/1,12/1 Tower A, Ground Floor, Amarjyothi Layout,',
+      city: 'Intermediate Ring Road, Domlur,',
+      state: 'Bengaluru-560071, Karnataka.',
+      fssaiLicense: 'FSSAI Lic. No. 10019043002895'
+    },
+    features: {
+      humanlyRaised: true,
+      handSelected: true,
+      temperatureControlled: true,
+      artisanalCut: true,
+      hygienicallyVacuumPacked: true,
+      netWeightOfPreppedMeat: true,
+      qualityAndFoodsafetyChecks: true,
+      antibioticResidueFree: true
+    },
+    storageInstructions: 'Licious meats are chilled between 0-4°C to maintain freshness. Do not freeze.',
+    inStock: true,
+    slug: 'premium-chicken-thigh-boneless',
+  },
 ];
 
 export const categories = [

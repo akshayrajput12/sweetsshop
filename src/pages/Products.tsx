@@ -132,9 +132,9 @@ const Products = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <ProductCard 
+              <ProductCard
                 product={product}
-                onViewDetail={() => navigate(`/product/${product.id}`)}
+                onViewDetail={() => navigate(`/product/${product.slug}`)}
               />
             </motion.div>
           ))}

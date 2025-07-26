@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Plus, Star } from 'lucide-react';
 import { Product } from '../store/useStore';
 import { useStore } from '../store/useStore';
+import { formatPrice } from '../utils/currency';
 
 interface ProductCardProps {
   product: Product;
@@ -81,11 +82,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail }) => {
         <div className="flex items-center justify-between pt-2">
           <div className="flex items-center space-x-2">
             <span className="heading-md font-semibold text-primary">
-              ${product.price}
+              {formatPrice(product.price)}
             </span>
             {product.originalPrice && (
               <span className="body-text text-muted-foreground line-through">
-                ${product.originalPrice}
+                {formatPrice(product.originalPrice)}
               </span>
             )}
           </div>

@@ -1,5 +1,32 @@
 import { create } from 'zustand';
 
+export interface NutritionalInfo {
+  totalEnergy: string;
+  carbohydrate: string;
+  fat: string;
+  protein: string;
+}
+
+export interface MarketingInfo {
+  marketedBy: string;
+  address: string;
+  city: string;
+  state: string;
+  fssaiLicense: string;
+}
+
+export interface ProductFeatures {
+  humanlyRaised?: boolean;
+  handSelected?: boolean;
+  temperatureControlled?: boolean;
+  artisanalCut?: boolean;
+  hygienicallyVacuumPacked?: boolean;
+  netWeightOfPreppedMeat?: boolean;
+  qualityAndFoodsafetyChecks?: boolean;
+  mixOfOffalOrgans?: boolean;
+  antibioticResidueFree?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -12,8 +39,13 @@ export interface Product {
   rating?: number;
   description?: string;
   nutrition?: string;
+  nutritionalInfo?: NutritionalInfo;
+  marketingInfo?: MarketingInfo;
+  features?: ProductFeatures;
+  storageInstructions?: string;
   inStock: boolean;
   slug: string;
+  serves?: number;
 }
 
 export interface CartItem extends Product {

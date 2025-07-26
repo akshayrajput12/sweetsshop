@@ -1,12 +1,14 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
-import { ArrowLeft, Star, Plus, Minus, ShoppingCart, Heart } from 'lucide-react';
+import { ArrowLeft, Star, Plus, Minus, ShoppingCart, Heart, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useStore } from '@/store/useStore';
 import { formatPrice, calculateDiscount } from '@/utils/currency';
+import ProductCard from '@/components/ProductCard';
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -34,196 +36,297 @@ const ProductDetail = () => {
     }
   };
 
-  const discountPercentage = product.originalPrice 
+  const discountPercentage = product.originalPrice
     ? calculateDiscount(product.originalPrice, product.price)
     : 0;
 
+  // Get related products (same category, excluding current product)
+  const relatedProducts = products
+    .filter(p => p.category === product.category && p.id !== product.id)
+    .slice(0, 5);
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6">
       {/* Breadcrumb */}
-      <div className="flex items-center space-x-2 mb-6">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => navigate(-1)}
-          className="p-0 h-auto"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-muted-foreground">{product.category}</span>
-        <span className="text-muted-foreground">/</span>
-        <span className="font-medium">{product.name}</span>
+      <div className="flex items-center space-x-2 mb-6 text-sm">
+        <Link to="/" className="text-blue-600 hover:underline">Home</Link>
+        <span className="text-gray-400">/</span>
+        <Link to="/products" className="text-blue-600 hover:underline">BestPicks</Link>
+        <span className="text-gray-400">/</span>
+        <span className="text-gray-600">{product.name}</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Product Image */}
         <div className="space-y-4">
-          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-            <img 
-              src={product.image} 
+          <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+            <img
+              src={product.image}
               alt={product.name}
               className="w-full h-full object-cover"
             />
+            {/* Licious Badge */}
+            <div className="absolute top-4 left-4 bg-white rounded-full p-2 shadow-md">
+              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">L</span>
+              </div>
+            </div>
+            {/* Navigation arrows */}
+            <button className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md">
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
         {/* Product Info */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
-            <Badge variant="secondary" className="mb-2">
+            <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+            <Badge variant="secondary" className="mb-4">
               {product.category}
             </Badge>
-            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-            
-            {/* Rating */}
-            {product.rating && (
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 fill-primary text-primary" />
-                  <span className="ml-1 font-medium">{product.rating}</span>
-                </div>
-                <span className="text-muted-foreground">(128 reviews)</span>
+
+            {/* Product Details */}
+            <div className="flex items-center space-x-6 text-sm text-gray-600 mb-4">
+              <div className="flex items-center space-x-1">
+                <span className="font-medium">{product.weight}</span>
               </div>
-            )}
+              {product.pieces && (
+                <div className="flex items-center space-x-1">
+                  <span className="font-medium">{product.pieces}</span>
+                </div>
+              )}
+              {product.serves && (
+                <div className="flex items-center space-x-1">
+                  <span className="font-medium">Serves {product.serves}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            <p className="text-gray-700 mb-4 leading-relaxed">
+              {product.description}
+            </p>
+
+            <button className="text-blue-600 text-sm font-medium mb-6">
+              Read more
+            </button>
 
             {/* Price */}
             <div className="flex items-center space-x-3 mb-4">
-              <span className="text-3xl font-bold text-primary">
+              <span className="text-3xl font-bold text-black">
                 {formatPrice(product.price)}
               </span>
               {product.originalPrice && (
                 <>
-                  <span className="text-lg text-muted-foreground line-through">
-                    {formatPrice(product.originalPrice)}
+                  <span className="text-lg text-gray-500 line-through">
+                    MRP {formatPrice(product.originalPrice)}
                   </span>
-                  <Badge variant="destructive">
-                    {discountPercentage}% OFF
+                  <Badge variant="destructive" className="bg-red-500">
+                    {discountPercentage}% off
                   </Badge>
                 </>
               )}
             </div>
 
-            {/* Weight & Pieces */}
-            <div className="flex items-center space-x-4 text-muted-foreground mb-6">
-              <span>Weight: {product.weight}</span>
-              {product.pieces && <span>• {product.pieces}</span>}
+            <p className="text-xs text-gray-500 mb-4">(incl. of all taxes)</p>
+
+            {/* Safety Message */}
+            <div className="flex items-center space-x-2 text-red-600 text-sm mb-6">
+              <span>🔒</span>
+              <span className="font-medium">Only the Safest Chicken!</span>
             </div>
 
-            {/* Stock Status */}
-            <div className="mb-6">
-              {product.inStock ? (
-                <Badge variant="default" className="bg-green-100 text-green-800">
-                  In Stock
-                </Badge>
-              ) : (
-                <Badge variant="destructive">
-                  Out of Stock
-                </Badge>
-              )}
+            {/* Delivery Info */}
+            <div className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
+              <Clock className="w-4 h-4" />
+              <span>Today in 30 mins</span>
             </div>
           </div>
 
-          {/* Quantity Selector */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="font-medium">Quantity:</span>
-                  <div className="flex items-center border rounded-lg">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="px-4 py-2 font-medium">{quantity}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setQuantity(quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm text-muted-foreground">Total</div>
-                  <div className="font-bold text-lg">
-                    {formatPrice(product.price * quantity)}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex space-x-3">
-            <Button 
-              className="flex-1" 
-              size="lg"
-              onClick={handleAddToCart}
-              disabled={!product.inStock}
-            >
-              <ShoppingCart className="h-5 w-5 mr-2" />
-              Add to Cart
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => setIsFavorite(!isFavorite)}
-            >
-              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
-            </Button>
-          </div>
-
-          {/* Product Details Accordion */}
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="description">
-              <AccordionTrigger>Description</AccordionTrigger>
-              <AccordionContent>
-                <p className="text-muted-foreground">{product.description}</p>
-              </AccordionContent>
-            </AccordionItem>
-            
-            {product.nutrition && (
-              <AccordionItem value="nutrition">
-                <AccordionTrigger>Nutrition Information</AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-muted-foreground">{product.nutrition}</p>
-                </AccordionContent>
-              </AccordionItem>
-            )}
-            
-            <AccordionItem value="storage">
-              <AccordionTrigger>Storage Instructions</AccordionTrigger>
-              <AccordionContent>
-                <div className="text-muted-foreground space-y-2">
-                  <p>• Store in refrigerator at 0-4°C</p>
-                  <p>• Use within 3 days of delivery</p>
-                  <p>• Keep raw meat separate from other foods</p>
-                  <p>• Do not refreeze once thawed</p>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="delivery">
-              <AccordionTrigger>Delivery Information</AccordionTrigger>
-              <AccordionContent>
-                <div className="text-muted-foreground space-y-2">
-                  <p>• Free delivery on orders above ₹999</p>
-                  <p>• Same day delivery available</p>
-                  <p>• Delivered in temperature-controlled packaging</p>
-                  <p>• 100% freshness guarantee</p>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          {/* Add Button */}
+          <Button
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-3 text-lg font-medium"
+            onClick={handleAddToCart}
+            disabled={!product.inStock}
+          >
+            Add +
+          </Button>
         </div>
       </div>
+
+      {/* Product Information Tabs */}
+      <div className="mb-8">
+        <Tabs defaultValue="what-you-get" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="what-you-get">What you get</TabsTrigger>
+            <TabsTrigger value="sourcing">Sourcing</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="what-you-get" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Left Column - Features */}
+              <div className="space-y-4">
+                {product.features && (
+                  <>
+                    {product.features.humanlyRaised && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Chicken humanely raised in restricted bio-security zones</span>
+                      </div>
+                    )}
+                    {product.features.handSelected && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Hand selected after age and weight calibration</span>
+                      </div>
+                    )}
+                    {product.features.temperatureControlled && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Temperature controlled Between 4°C-8°C</span>
+                      </div>
+                    )}
+                    {product.features.artisanalCut && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Artisanal cut</span>
+                      </div>
+                    )}
+                    {product.features.antibioticResidueFree && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Antibiotic residue Free</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Right Column - Features */}
+              <div className="space-y-4">
+                {product.features && (
+                  <>
+                    {product.features.artisanalCut && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Artisanal Cuts</span>
+                      </div>
+                    )}
+                    {product.features.hygienicallyVacuumPacked && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Hygienically vacuum-packed</span>
+                      </div>
+                    )}
+                    {product.features.netWeightOfPreppedMeat && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Net weight of prepped meat only</span>
+                      </div>
+                    )}
+                    {product.features.qualityAndFoodsafetyChecks && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">150+ quality and foodsafety Checks</span>
+                      </div>
+                    )}
+                    {product.features.mixOfOffalOrgans && (
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm">Mix of Offal Organs</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Licious Box Image */}
+            <div className="mt-8 flex justify-center">
+              <div className="w-64 h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                <img
+                  src={product.image}
+                  alt="Licious packaging"
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="sourcing" className="mt-6">
+            <div className="space-y-6">
+              {/* Nutritional Information */}
+              {product.nutritionalInfo && (
+                <div>
+                  <h3 className="font-semibold mb-4">Nutritional Information (Approx Values per 100 g)</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <div className="text-sm text-gray-600">Total Energy</div>
+                      <div className="font-medium">{product.nutritionalInfo.totalEnergy}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Carbohydrate</div>
+                      <div className="font-medium">{product.nutritionalInfo.carbohydrate}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Fat</div>
+                      <div className="font-medium">{product.nutritionalInfo.fat}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-600">Protein</div>
+                      <div className="font-medium">{product.nutritionalInfo.protein}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Storage Instructions */}
+              {product.storageInstructions && (
+                <div>
+                  <p className="text-sm text-gray-700">{product.storageInstructions}</p>
+                </div>
+              )}
+
+              {/* Marketing Information */}
+              {product.marketingInfo && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Marketed By:</h3>
+                  <div className="text-sm text-gray-700">
+                    <p>{product.marketingInfo.marketedBy}</p>
+                    <p>{product.marketingInfo.address}</p>
+                    <p>{product.marketingInfo.city}</p>
+                    <p>{product.marketingInfo.state}</p>
+                    <p className="mt-2">{product.marketingInfo.fssaiLicense}</p>
+                  </div>
+                  <button className="text-blue-600 text-sm font-medium">
+                    Read Less
+                  </button>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* You may also like section */}
+      {relatedProducts.length > 0 && (
+        <div>
+          <h2 className="text-xl font-bold mb-6">You may also like</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {relatedProducts.map((relatedProduct) => (
+              <ProductCard
+                key={relatedProduct.id}
+                product={relatedProduct}
+                onViewDetail={() => navigate(`/product/${relatedProduct.slug}`)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
