@@ -162,7 +162,7 @@
   }
 
   .card-product {
-    @apply card-elevated p-4 group cursor-pointer;
+    @apply card-elevated p-4 cursor-pointer;
   }
 
   /* Gradient Backgrounds */
