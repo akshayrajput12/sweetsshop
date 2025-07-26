@@ -27,6 +27,13 @@ import Footer from "./components/Footer";
 // Admin
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminProducts from "./pages/admin/Products";
+import AdminCategories from "./pages/admin/Categories";
+import AdminOrders from "./pages/admin/Orders";
+import AdminCustomers from "./pages/admin/Customers";
+import AdminAnalytics from "./pages/admin/Analytics";
+import AdminBestSellers from "./pages/admin/BestSellers";
+import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -62,13 +69,13 @@ const App = () => {
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
-                <Route path="products" element={<div className="p-8 text-center">Products Management - Coming Soon</div>} />
-                <Route path="categories" element={<div className="p-8 text-center">Categories Management - Coming Soon</div>} />
-                <Route path="orders" element={<div className="p-8 text-center">Orders Management - Coming Soon</div>} />
-                <Route path="customers" element={<div className="p-8 text-center">Customers Management - Coming Soon</div>} />
-                <Route path="analytics" element={<div className="p-8 text-center">Analytics - Coming Soon</div>} />
-                <Route path="bestsellers" element={<div className="p-8 text-center">Best Sellers Management - Coming Soon</div>} />
-                <Route path="settings" element={<div className="p-8 text-center">Settings - Coming Soon</div>} />
+                <Route path="products" element={<AdminProducts />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="customers" element={<AdminCustomers />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="bestsellers" element={<AdminBestSellers />} />
+                <Route path="settings" element={<AdminSettings />} />
               </Route>
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
