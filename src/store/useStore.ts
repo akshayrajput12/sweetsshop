@@ -13,6 +13,7 @@ export interface Product {
   description?: string;
   nutrition?: string;
   inStock: boolean;
+  slug: string;
 }
 
 export interface CartItem extends Product {
