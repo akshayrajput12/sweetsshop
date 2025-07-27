@@ -88,7 +88,7 @@ const CartSidebar = () => {
                           {item.name}
                         </h4>
                         <p className="caption text-muted-foreground">
-                          {item.weight} • ${item.price}
+                          {item.weight} • ₹{item.price}
                         </p>
                         
                         <div className="flex items-center space-x-2 mt-2">
@@ -130,15 +130,15 @@ const CartSidebar = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between body-text">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between body-text">
                     <span>Tax</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span>₹{tax.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between heading-md font-semibold pt-2 border-t">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>₹{total.toFixed(2)}</span>
                   </div>
                 </div>
 

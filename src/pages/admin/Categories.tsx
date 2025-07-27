@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,7 @@ interface Category {
 }
 
 const AdminCategories = () => {
+  const navigate = useNavigate();
   // Sample categories data
   const categories: Category[] = [
     {
@@ -82,7 +84,7 @@ const AdminCategories = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Categories</h1>
-        <Button>
+        <Button onClick={() => navigate('/admin/categories/add')}>
           <Plus className="w-4 h-4 mr-2" />
           Add Category
         </Button>
@@ -179,7 +181,11 @@ const AdminCategories = () => {
                   <TableCell>{category.createdAt}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => navigate(`/admin/categories/edit/${category.id}`)}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="sm" className="text-red-600">

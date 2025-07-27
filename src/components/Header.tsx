@@ -30,10 +30,15 @@ const Header = () => {
           </Link>
 
           {/* Location Display */}
-          <div className="hidden md:flex items-center space-x-2 text-sm">
+          <div className="flex items-center space-x-2 text-sm">
             <MapPin className="w-4 h-4 text-red-500" />
             <span className="text-muted-foreground">
-              {userLocation.loading ? 'Detecting...' : userLocation.city}
+              <span className="hidden sm:inline">
+                {userLocation.loading ? 'Detecting...' : userLocation.city}
+              </span>
+              <span className="sm:hidden">
+                {userLocation.loading ? '...' : userLocation.city.split(',')[0]}
+              </span>
             </span>
           </div>
 

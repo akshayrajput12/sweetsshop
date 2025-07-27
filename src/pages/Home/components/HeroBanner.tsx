@@ -64,13 +64,13 @@ const HeroBanner = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}
           >
-            <div className="text-center">
-              <p className="caption text-muted-foreground">Starting from</p>
-              <div className="flex items-center space-x-2">
-                <span className="heading-md line-through text-muted-foreground">$29.99</span>
-                <span className="heading-lg font-bold text-primary">$19.99</span>
+              <div className="text-center">
+                <p className="caption text-muted-foreground">Starting from</p>
+                <div className="flex items-center space-x-2">
+                  <span className="heading-md line-through text-muted-foreground">₹499</span>
+                  <span className="heading-lg font-bold text-primary">₹299</span>
+                </div>
               </div>
-            </div>
           </motion.div>
         </motion.div>
 

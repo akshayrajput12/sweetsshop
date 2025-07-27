@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import ScrollToTop from "@/components/ScrollToTop";
 import { useEffect } from "react";
 import { useStore } from "./store/useStore";
 import { products } from "./data/products";
@@ -33,6 +34,10 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminCustomers from "./pages/admin/Customers";
 import AdminAnalytics from "./pages/admin/Analytics";
 import AdminBestSellers from "./pages/admin/BestSellers";
+import ProductForm from "./pages/admin/ProductForm";
+import CategoryForm from "./pages/admin/CategoryForm";
+import CouponForm from "./pages/admin/CouponForm";
+import AdminCoupons from "./pages/admin/Coupons";
 import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
@@ -60,11 +65,18 @@ const AppContent = () => {
           <Route index element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="categories" element={<AdminCategories />} />
+          <Route path="coupons" element={<AdminCoupons />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="customers" element={<AdminCustomers />} />
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="bestsellers" element={<AdminBestSellers />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="products/add" element={<ProductForm />} />
+          <Route path="products/edit/:id" element={<ProductForm isEdit={true} />} />
+          <Route path="categories/add" element={<CategoryForm />} />
+          <Route path="categories/edit/:id" element={<CategoryForm isEdit={true} />} />
+          <Route path="coupons/add" element={<CouponForm />} />
+          <Route path="coupons/edit/:id" element={<CouponForm isEdit={true} />} />
         </Route>
 
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -92,6 +104,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <AppContent />
         </BrowserRouter>
       </TooltipProvider>
