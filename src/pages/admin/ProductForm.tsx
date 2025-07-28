@@ -69,6 +69,10 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
     antibioticResidueFree: product?.features?.antibioticResidueFree || false
   });
 
+  // Dynamic custom features
+  const [customFeatures, setCustomFeatures] = useState<{[key: string]: boolean}>({});
+  const [newFeatureName, setNewFeatureName] = useState('');
+
   const categories = ['Chicken', 'Beef', 'Seafood', 'Pork', 'Lamb', 'Ready to Cook'];
 
   const generateSlug = (name: string) => {
@@ -90,6 +94,26 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
 
   const handleFeatureChange = (feature: keyof ProductFeatures, checked: boolean) => {
     setFeatures(prev => ({ ...prev, [feature]: checked }));
+  };
+
+  const addCustomFeature = () => {
+    if (newFeatureName.trim() && !customFeatures.hasOwnProperty(newFeatureName.trim())) {
+      const featureKey = newFeatureName.trim().toLowerCase().replace(/\s+/g, '');
+      setCustomFeatures(prev => ({ ...prev, [featureKey]: true }));
+      setNewFeatureName('');
+    }
+  };
+
+  const removeCustomFeature = (featureKey: string) => {
+    setCustomFeatures(prev => {
+      const newFeatures = { ...prev };
+      delete newFeatures[featureKey];
+      return newFeatures;
+    });
+  };
+
+  const handleCustomFeatureChange = (featureKey: string, checked: boolean) => {
+    setCustomFeatures(prev => ({ ...prev, [featureKey]: checked }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +180,7 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
       slug: formData.slug || generateSlug(formData.name!),
       nutritionalInfo,
       marketingInfo,
-      features,
+      features: { ...features, ...customFeatures },
       images: images,
       isBestSeller
     };
@@ -378,20 +402,82 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
             <CardHeader>
               <CardTitle>Product Features</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(features).map(([key, value]) => (
-                  <div key={key} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={key}
-                      checked={value}
-                      onCheckedChange={(checked) => handleFeatureChange(key as keyof ProductFeatures, checked as boolean)}
+            <CardContent className="space-y-6">
+              {/* Default Features */}
+              <div>
+                <h4 className="font-medium mb-3">Default Features</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(features).map(([key, value]) => (
+                    <div key={key} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={key}
+                        checked={value}
+                        onCheckedChange={(checked) => handleFeatureChange(key as keyof ProductFeatures, checked as boolean)}
+                      />
+                      <Label htmlFor={key} className="text-sm">
+                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Features */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Custom Features</h4>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      placeholder="Enter feature name"
+                      value={newFeatureName}
+                      onChange={(e) => setNewFeatureName(e.target.value)}
+                      className="w-48"
+                      onKeyPress={(e) => e.key === 'Enter' && addCustomFeature()}
                     />
-                    <Label htmlFor={key} className="text-sm">
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                    </Label>
+                    <Button
+                      type="button"
+                      onClick={addCustomFeature}
+                      size="sm"
+                      disabled={!newFeatureName.trim()}
+                    >
+                      Add Feature
+                    </Button>
                   </div>
-                ))}
+                </div>
+
+                {Object.keys(customFeatures).length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(customFeatures).map(([key, value]) => (
+                      <div key={key} className="flex items-center justify-between p-2 border rounded">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`custom-${key}`}
+                            checked={value}
+                            onCheckedChange={(checked) => handleCustomFeatureChange(key, checked as boolean)}
+                          />
+                          <Label htmlFor={`custom-${key}`} className="text-sm">
+                            {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                          </Label>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeCustomFeature(key)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {Object.keys(customFeatures).length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4 border-2 border-dashed rounded">
+                    No custom features added yet. Add features specific to your product.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
