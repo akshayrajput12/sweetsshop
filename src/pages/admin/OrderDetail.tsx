@@ -1,0 +1,403 @@
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, User, CreditCard, Phone, Mail } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface OrderItem {
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  quantity: number;
+  weight: string;
+}
+
+interface OrderDetail {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  items: OrderItem[];
+  subtotal: number;
+  deliveryFee: number;
+  tax: number;
+  total: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'failed';
+  paymentMethod: string;
+  shippingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    pincode: string;
+    landmark?: string;
+  };
+  orderDate: string;
+  deliveryDate?: string;
+  trackingNumber?: string;
+  notes?: string;
+}
+
+const AdminOrderDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  // Sample order data
+  const [order] = useState<OrderDetail>({
+    id: 'ORD001',
+    customerName: 'Rajesh Kumar',
+    customerEmail: 'rajesh@example.com',
+    customerPhone: '+91 98765 43210',
+    items: [
+      {
+        id: '1',
+        name: 'Chicken Breast Boneless',
+        image: '/api/placeholder/80/80',
+        price: 350,
+        quantity: 2,
+        weight: '500g'
+      },
+      {
+        id: '2',
+        name: 'Fresh Prawns',
+        image: '/api/placeholder/80/80',
+        price: 450,
+        quantity: 1,
+        weight: '250g'
+      },
+      {
+        id: '3',
+        name: 'Mutton Curry Cut',
+        image: '/api/placeholder/80/80',
+        price: 450,
+        quantity: 1,
+        weight: '500g'
+      }
+    ],
+    subtotal: 1250,
+    deliveryFee: 0,
+    tax: 62.5,
+    total: 1312.5,
+    status: 'processing',
+    paymentStatus: 'paid',
+    paymentMethod: 'UPI',
+    shippingAddress: {
+      street: '123, ABC Apartment, XYZ Road',
+      city: 'Mumbai',
+      state: 'Maharashtra',
+      pincode: '400001',
+      landmark: 'Near City Mall'
+    },
+    orderDate: '2024-01-26T10:30:00Z',
+    deliveryDate: '2024-01-27T18:00:00Z',
+    trackingNumber: 'TRK123456789',
+    notes: 'Please call before delivery'
+  });
+
+  const [currentStatus, setCurrentStatus] = useState(order.status);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'delivered':
+        return 'bg-green-100 text-green-800';
+      case 'shipped':
+        return 'bg-blue-100 text-blue-800';
+      case 'processing':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'pending':
+        return 'bg-orange-100 text-orange-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const updateOrderStatus = (newStatus: string) => {
+    setCurrentStatus(newStatus as any);
+    // Here you would typically make an API call to update the order status
+    console.log('Updating order status to:', newStatus);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" onClick={() => navigate('/admin/orders')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Orders
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">Order #{order.id}</h1>
+            <p className="text-muted-foreground">
+              Placed on {formatDate(order.orderDate)}
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-3">
+          <Badge className={getStatusColor(currentStatus)}>
+            {currentStatus}
+          </Badge>
+          <Badge className={getPaymentStatusColor(order.paymentStatus)}>
+            {order.paymentStatus}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Order Items */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Items ({order.items.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {order.items.map((item) => (
+                  <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-medium">{item.name}</h3>
+                      <p className="text-sm text-muted-foreground">{item.weight}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">₹{item.price} × {item.quantity}</p>
+                      <p className="text-sm text-muted-foreground">
+                        ₹{item.price * item.quantity}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Separator className="my-4" />
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>₹{order.subtotal.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Fee</span>
+                  <span>{order.deliveryFee === 0 ? 'Free' : `₹${order.deliveryFee}`}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Tax</span>
+                  <span>₹{order.tax.toLocaleString('en-IN')}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>₹{order.total.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <div>
+                    <p className="font-medium">Order Placed</p>
+                    <p className="text-sm text-muted-foreground">{formatDate(order.orderDate)}</p>
+                  </div>
+                </div>
+                
+                {currentStatus !== 'pending' && (
+                  <div className="flex items-center space-x-3">
+                    <Package className="w-5 h-5 text-blue-500" />
+                    <div>
+                      <p className="font-medium">Order Confirmed</p>
+                      <p className="text-sm text-muted-foreground">Processing your order</p>
+                    </div>
+                  </div>
+                )}
+
+                {['shipped', 'delivered'].includes(currentStatus) && (
+                  <div className="flex items-center space-x-3">
+                    <Truck className="w-5 h-5 text-blue-500" />
+                    <div>
+                      <p className="font-medium">Order Shipped</p>
+                      <p className="text-sm text-muted-foreground">
+                        Tracking: {order.trackingNumber}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {currentStatus === 'delivered' && order.deliveryDate && (
+                  <div className="flex items-center space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <div>
+                      <p className="font-medium">Order Delivered</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDate(order.deliveryDate)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Update Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Update Order Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Select value={currentStatus} onValueChange={updateOrderStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          {/* Customer Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <User className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">{order.customerName}</p>
+                  <p className="text-sm text-muted-foreground">Customer</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Mail className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">{order.customerEmail}</p>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <Phone className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">{order.customerPhone}</p>
+                  <p className="text-sm text-muted-foreground">Phone</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Shipping Address */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Shipping Address</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-4 h-4 text-muted-foreground mt-1" />
+                <div className="space-y-1">
+                  <p className="font-medium">{order.customerName}</p>
+                  <p className="text-sm">{order.shippingAddress.street}</p>
+                  <p className="text-sm">
+                    {order.shippingAddress.city}, {order.shippingAddress.state}
+                  </p>
+                  <p className="text-sm">{order.shippingAddress.pincode}</p>
+                  {order.shippingAddress.landmark && (
+                    <p className="text-sm text-muted-foreground">
+                      Landmark: {order.shippingAddress.landmark}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <CreditCard className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">{order.paymentMethod}</p>
+                  <p className="text-sm text-muted-foreground">Payment Method</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">₹{order.total.toLocaleString('en-IN')}</p>
+                  <p className="text-sm text-muted-foreground">Amount Paid</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          {order.notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Special Instructions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm">{order.notes}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminOrderDetail;

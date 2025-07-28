@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { Product, ProductFeatures, NutritionalInfo, MarketingInfo } from '@/store/useStore';
 import { ArrowLeft, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +38,9 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
     rating: product?.rating || 4.5,
     slug: product?.slug || ''
   });
+
+  const [images, setImages] = useState<string[]>(product?.image ? [product.image] : []);
+  const [isBestSeller, setIsBestSeller] = useState(false);
 
   const [nutritionalInfo, setNutritionalInfo] = useState<NutritionalInfo>({
     totalEnergy: product?.nutritionalInfo?.totalEnergy || '',
@@ -88,6 +92,40 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
     setFeatures(prev => ({ ...prev, [feature]: checked }));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newImages: string[] = [];
+      for (let i = 0; i < Math.min(files.length, 10 - images.length); i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          newImages.push(result);
+          if (newImages.length === Math.min(files.length, 10 - images.length)) {
+            setImages(prev => [...prev, ...newImages]);
+            if (newImages.length > 0) {
+              handleInputChange('image', newImages[0]);
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => {
+      const newImages = prev.filter((_, i) => i !== index);
+      if (newImages.length > 0) {
+        handleInputChange('image', newImages[0]);
+      } else {
+        handleInputChange('image', '');
+      }
+      return newImages;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -113,12 +151,14 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
       serves: Number(formData.serves) || 1,
       storageInstructions: formData.storageInstructions,
       inStock: formData.inStock!,
-      image: formData.image || '/api/placeholder/300/300',
+      image: images[0] || '/api/placeholder/300/300',
       rating: Number(formData.rating) || 4.5,
       slug: formData.slug || generateSlug(formData.name!),
       nutritionalInfo,
       marketingInfo,
-      features
+      features,
+      images: images,
+      isBestSeller
     };
 
     console.log(isEdit ? 'Updating product:' : 'Creating product:', productData);
@@ -311,13 +351,24 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="inStock"
-                  checked={formData.inStock}
-                  onCheckedChange={(checked) => handleInputChange('inStock', checked)}
-                />
-                <Label htmlFor="inStock">In Stock</Label>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="inStock"
+                    checked={formData.inStock}
+                    onCheckedChange={(checked) => handleInputChange('inStock', checked)}
+                  />
+                  <Label htmlFor="inStock">In Stock</Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isBestSeller"
+                    checked={isBestSeller}
+                    onCheckedChange={(checked) => setIsBestSeller(checked as boolean)}
+                  />
+                  <Label htmlFor="isBestSeller">Mark as Best Seller</Label>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -348,48 +399,67 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Image */}
+          {/* Images */}
           <Card>
             <CardHeader>
-              <CardTitle>Product Image</CardTitle>
+              <CardTitle>Product Images (Max 10)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="image">Image URL</Label>
-                <Input
-                  id="image"
-                  value={formData.image}
-                  onChange={(e) => handleInputChange('image', e.target.value)}
-                  placeholder="Enter image URL"
+                <Label htmlFor="images">Upload Images</Label>
+                <input
+                  id="images"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('images')?.click()}
+                  disabled={images.length >= 10}
+                  className="w-full"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Images ({images.length}/10)
+                </Button>
               </div>
               
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500">
-                  Drag & drop an image or click to browse
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  PNG, JPG up to 10MB
-                </p>
+              <div className="grid grid-cols-2 gap-2">
+                {images.map((image, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={image}
+                      alt={`Product ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-1 right-1 h-6 w-6 p-0"
+                      onClick={() => removeImage(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                    {index === 0 && (
+                      <Badge className="absolute bottom-1 left-1 text-xs">Primary</Badge>
+                    )}
+                  </div>
+                ))}
               </div>
 
-              {formData.image && (
-                <div className="relative">
-                  <img
-                    src={formData.image}
-                    alt="Product preview"
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={() => handleInputChange('image', '')}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+              {images.length === 0 && (
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500">
+                    Upload product images
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PNG, JPG up to 10MB each, max 10 images
+                  </p>
                 </div>
               )}
             </CardContent>

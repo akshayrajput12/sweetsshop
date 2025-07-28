@@ -39,6 +39,7 @@ import CategoryForm from "./pages/admin/CategoryForm";
 import CouponForm from "./pages/admin/CouponForm";
 import AdminCoupons from "./pages/admin/Coupons";
 import AdminSettings from "./pages/admin/Settings";
+import AdminOrderDetail from "./pages/admin/OrderDetail";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const AppContent = () => {
           <Route path="categories/edit/:id" element={<CategoryForm isEdit={true} />} />
           <Route path="coupons/add" element={<CouponForm />} />
           <Route path="coupons/edit/:id" element={<CouponForm isEdit={true} />} />
+          <Route path="orders/:id" element={<AdminOrderDetail />} />
         </Route>
 
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
