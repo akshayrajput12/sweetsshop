@@ -15,13 +15,13 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useStore } from '@/store/useStore';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useStore();
+  const { user, profile, signOut } = useAuth();
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -36,7 +36,7 @@ const AdminLayout = () => {
   ];
 
   const handleLogout = () => {
-    logout();
+    signOut();
     navigate('/auth');
   };
 
@@ -103,12 +103,12 @@ const AdminLayout = () => {
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                   <span className="text-primary-foreground text-sm font-medium">
-                    {user?.name?.charAt(0) || 'A'}
+                    {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'A'}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {user?.name || 'Admin User'}
+                    {profile?.full_name || 'Admin User'}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
                     {user?.email || 'admin@example.com'}

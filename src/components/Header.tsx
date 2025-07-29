@@ -15,9 +15,12 @@ import {
 
 const Header = () => {
   const { cartItems, toggleCart } = useStore();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, signOut, profile } = useAuth();
   const navigate = useNavigate();
   const userLocation = useLocation();
+  
+  // Debug logging
+  console.log('Header - User:', user?.email, 'Profile:', profile, 'isAdmin:', isAdmin);
   
   const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
