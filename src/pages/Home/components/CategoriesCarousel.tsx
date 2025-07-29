@@ -1,20 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../../store/useStore';
 import { useNavigate } from 'react-router-dom';
-
-const categories = [
-  { name: 'Chicken', icon: '🐔', color: 'bg-orange-100 text-orange-600' },
-  { name: 'Beef', icon: '🥩', color: 'bg-red-100 text-red-600' },
-  { name: 'Seafood', icon: '🐟', color: 'bg-blue-100 text-blue-600' },
-  { name: 'Pork', icon: '🐷', color: 'bg-pink-100 text-pink-600' },
-  { name: 'Lamb', icon: '🐑', color: 'bg-green-100 text-green-600' },
-  { name: 'Ready to Cook', icon: '🍳', color: 'bg-purple-100 text-purple-600' },
-];
+import { supabase } from '@/integrations/supabase/client';
 
 const CategoriesCarousel = () => {
   const { setSelectedCategory } = useStore();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
@@ -65,25 +79,47 @@ const CategoriesCarousel = () => {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {categories.map((category) => (
-            <motion.button
-              key={category.name}
-              variants={itemVariants}
-              className="group"
-              onClick={() => handleCategoryClick(category.name)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="card-elevated p-6 text-center hover:shadow-medium transition-all duration-200">
-                <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-3xl ${category.color} group-hover:scale-110 transition-transform duration-200`}>
-                  {category.icon}
+          {loading ? (
+            // Loading skeleton
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="animate-pulse">
+                <div className="card-elevated p-6 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted"></div>
+                  <div className="h-4 bg-muted rounded w-3/4 mx-auto"></div>
                 </div>
-                <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                  {category.name}
-                </h3>
               </div>
-            </motion.button>
-          ))}
+            ))
+          ) : (
+            categories.map((category: any) => (
+              <motion.button
+                key={category.id}
+                variants={itemVariants}
+                className="group"
+                onClick={() => handleCategoryClick(category.name)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="card-elevated p-6 text-center hover:shadow-medium transition-all duration-200">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center overflow-hidden">
+                    {category.image_url ? (
+                      <img 
+                        src={category.image_url} 
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-primary/10 flex items-center justify-center text-2xl">
+                        {category.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
+                    {category.name}
+                  </h3>
+                </div>
+              </motion.button>
+            ))
+          )}
         </motion.div>
 
         {/* Promotional Banner */}

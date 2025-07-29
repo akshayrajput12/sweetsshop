@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Filter, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Table, 
   TableBody, 
@@ -20,95 +22,99 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-interface AdminProduct {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  stock: number;
-  status: 'active' | 'inactive' | 'out-of-stock';
-  image: string;
-  rating: number;
-  sales: number;
-  createdAt: string;
-}
-
 const AdminProducts = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(['all']);
+  const [loading, setLoading] = useState(true);
 
-  // Sample product data
-  const products: AdminProduct[] = [
-    {
-      id: '1',
-      name: 'Premium Chicken Thigh Boneless',
-      category: 'Chicken',
-      price: 285,
-      stock: 50,
-      status: 'active',
-      image: '/src/assets/product-chicken.jpg',
-      rating: 4.5,
-      sales: 145,
-      createdAt: '2024-01-15'
-    },
-    {
-      id: '2',
-      name: 'Premium Ribeye Steak',
-      category: 'Beef',
-      price: 3799,
-      stock: 25,
-      status: 'active',
-      image: '/src/assets/product-steak.jpg',
-      rating: 4.8,
-      sales: 89,
-      createdAt: '2024-01-10'
-    },
-    {
-      id: '3',
-      name: 'Atlantic Salmon Fillet',
-      category: 'Seafood',
-      price: 2699,
-      stock: 0,
-      status: 'out-of-stock',
-      image: '/src/assets/product-seafood.jpg',
-      rating: 4.7,
-      sales: 67,
-      createdAt: '2024-01-08'
-    },
-    {
-      id: '4',
-      name: 'Free-Range Chicken Breast',
-      category: 'Chicken',
-      price: 399,
-      stock: 75,
-      status: 'active',
-      image: '/src/assets/product-chicken.jpg',
-      rating: 4.6,
-      sales: 156,
-      createdAt: '2024-01-12'
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories(name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const categories = ['all', 'Chicken', 'Beef', 'Seafood', 'Pork', 'Lamb'];
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('is_active', true);
 
-  const filteredProducts = products.filter(product => {
+      if (error) throw error;
+      const categoryNames = data?.map(cat => cat.name) || [];
+      setCategories(['all', ...categoryNames]);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Product deleted successfully",
+      });
+      
+      fetchProducts();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const filteredProducts = products.filter((product: any) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
+    const matchesCategory = filterCategory === 'all' || product.categories?.name === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800';
-      case 'out-of-stock':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getStatusColor = (product: any) => {
+    if (product.stock_quantity <= 0) return 'bg-red-100 text-red-800';
+    if (!product.is_active) return 'bg-gray-100 text-gray-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getStatus = (product: any) => {
+    if (product.stock_quantity <= 0) return 'out-of-stock';
+    if (!product.is_active) return 'inactive';
+    return 'active';
   };
 
   return (
@@ -169,55 +175,73 @@ const AdminProducts = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="flex items-center space-x-3">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-12 h-12 rounded object-cover"
-                    />
-                    <div>
-                      <p className="font-medium">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">ID: {product.id}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>₹{product.price}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(product.status)}>
-                      {product.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>⭐ {product.rating}</TableCell>
-                  <TableCell>{product.sales}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          ⋮
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {loading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell><div className="h-4 bg-muted rounded animate-pulse"></div></TableCell>
+                    <TableCell><div className="h-4 bg-muted rounded animate-pulse"></div></TableCell>
+                    <TableCell><div className="h-4 bg-muted rounded animate-pulse"></div></TableCell>
+                    <TableCell><div className="h-4 bg-muted rounded animate-pulse"></div></TableCell>
+                    <TableCell><div className="h-4 bg-muted rounded animate-pulse"></div></TableCell>
+                    <TableCell><div className="h-4 bg-muted rounded animate-pulse"></div></TableCell>
+                    <TableCell><div className="h-4 bg-muted rounded animate-pulse"></div></TableCell>
+                    <TableCell><div className="h-4 bg-muted rounded animate-pulse"></div></TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                filteredProducts.map((product: any) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="flex items-center space-x-3">
+                      <img 
+                        src={product.images?.[0] || '/placeholder.svg'} 
+                        alt={product.name}
+                        className="w-12 h-12 rounded object-cover"
+                      />
+                      <div>
+                        <p className="font-medium">{product.name}</p>
+                        <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{product.categories?.name || 'Unknown'}</TableCell>
+                    <TableCell>₹{product.price}</TableCell>
+                    <TableCell>{product.stock_quantity}</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(product)}>
+                        {getStatus(product)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>⭐ {product.rating || 'N/A'}</TableCell>
+                    <TableCell>{product.sales || 0}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            ⋮
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => navigate(`/product/${product.sku || product.id}`)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/admin/products/edit/${product.id}`)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => handleDelete(product.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
