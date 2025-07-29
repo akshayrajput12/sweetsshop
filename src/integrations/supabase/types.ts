@@ -14,7 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          address_details: Json
+          created_at: string
+          customer_info: Json
+          delivery_fee: number
+          delivery_location: Json
+          discount: number
+          id: string
+          items: Json
+          order_number: string
+          order_status: string
+          payment_method: string
+          payment_status: string
+          porter_status: string | null
+          porter_task_id: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          subtotal: number
+          tax: number
+          total: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address_details: Json
+          created_at?: string
+          customer_info: Json
+          delivery_fee?: number
+          delivery_location: Json
+          discount?: number
+          id?: string
+          items: Json
+          order_number: string
+          order_status?: string
+          payment_method: string
+          payment_status?: string
+          porter_status?: string | null
+          porter_task_id?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          subtotal: number
+          tax?: number
+          total: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address_details?: Json
+          created_at?: string
+          customer_info?: Json
+          delivery_fee?: number
+          delivery_location?: Json
+          discount?: number
+          id?: string
+          items?: Json
+          order_number?: string
+          order_status?: string
+          payment_method?: string
+          payment_status?: string
+          porter_status?: string | null
+          porter_task_id?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
