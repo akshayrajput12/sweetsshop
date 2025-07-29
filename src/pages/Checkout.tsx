@@ -11,6 +11,8 @@ import { formatPrice } from '@/utils/currency';
 import { initiateRazorpayPayment, OrderData } from '@/utils/razorpay';
 import LocationPicker from '@/components/LocationPicker';
 import Stepper from '@/components/Stepper';
+import { porterService, createPorterOrderFromCheckout } from '@/utils/porter';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -127,59 +129,206 @@ const Checkout = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (paymentMethod === 'cod') {
-      // Handle Cash on Delivery
-      clearCart();
+    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
       toast({
-        title: "Order placed successfully!",
-        description: "Your order will be delivered with Cash on Delivery option.",
+        title: "Missing Information",
+        description: "Please fill in all required customer information.",
+        variant: "destructive",
       });
-      navigate('/');
-    } else {
-      // Handle Online Payment with Razorpay
-      if (!deliveryLocation) {
+      return;
+    }
+
+    if (!deliveryLocation) {
+      toast({
+        title: "Missing Location",
+        description: "Please select a delivery location.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!addressDetails.plotNumber || !addressDetails.street || !addressDetails.pincode) {
+      toast({
+        title: "Missing Address",
+        description: "Please provide your complete address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      // Generate unique order number
+      const orderNumber = `MF${Date.now()}${Math.floor(Math.random() * 1000)}`;
+      
+      const completeAddress = `${addressDetails.plotNumber}, ${addressDetails.buildingName ? addressDetails.buildingName + ', ' : ''}${addressDetails.street}, ${addressDetails.landmark ? 'Near ' + addressDetails.landmark + ', ' : ''}${deliveryLocation.address}, ${addressDetails.pincode}`;
+      
+      if (paymentMethod === 'cod') {
+        // Handle Cash on Delivery - Save to DB first, then create Porter order
+        const orderData = {
+          order_number: orderNumber,
+          customer_info: customerInfo as any,
+          delivery_location: deliveryLocation as any,
+          address_details: {
+            ...addressDetails,
+            complete_address: completeAddress
+          } as any,
+          items: cartItems.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            weight: item.weight,
+            image: item.image,
+            category: item.category || 'meat'
+          })) as any,
+          subtotal: subtotal,
+          tax: tax,
+          delivery_fee: deliveryFee,
+          discount: discount,
+          total: total,
+          payment_method: 'cod',
+          payment_status: 'pending',
+          order_status: 'placed'
+        };
+
+        // Save order to database
+        const { data: savedOrder, error: dbError } = await supabase
+          .from('orders')
+          .insert([orderData])
+          .select()
+          .single();
+
+        if (dbError) {
+          throw new Error(`Database error: ${dbError.message}`);
+        }
+
+        // Create Porter delivery order
+        const porterOrderData = createPorterOrderFromCheckout(
+          orderNumber,
+          customerInfo,
+          deliveryLocation,
+          { ...addressDetails, address: completeAddress },
+          cartItems,
+          total,
+          paymentMethod
+        );
+
+        const porterResponse = await porterService.createDeliveryOrder(porterOrderData);
+
+        // Update order with Porter task ID
+        await supabase
+          .from('orders')
+          .update({ 
+            porter_task_id: porterResponse.task_id,
+            porter_status: porterResponse.status 
+          })
+          .eq('id', savedOrder.id);
+
         toast({
-          title: "Error",
-          description: "Please select a delivery location.",
-          variant: "destructive",
+          title: "Order Placed Successfully!",
+          description: `Your order #${orderNumber} has been placed. Estimated delivery: ${porterResponse.estimated_delivery_time}`,
         });
-        return;
-      }
+        
+        clearCart();
+        navigate('/');
+      } else {
+        // Handle online payment with Razorpay
+        const razorpayOrderData: OrderData = {
+          orderId: orderNumber,
+          amount: Math.round(total),
+          currency: 'INR',
+          items: cartItems,
+          customerInfo,
+          deliveryAddress: {
+            ...deliveryLocation,
+            ...addressDetails
+          }
+        };
 
-      setIsProcessingPayment(true);
-
-      const completeAddress = {
-        ...deliveryLocation!,
-        plotNumber: addressDetails.plotNumber,
-        buildingName: addressDetails.buildingName,
-        street: addressDetails.street,
-        landmark: addressDetails.landmark,
-        pincode: addressDetails.pincode,
-        addressType: addressDetails.addressType,
-        saveAs: addressDetails.saveAs
-      };
-
-      const orderData: OrderData = {
-        orderId: `ORDER_${Date.now()}`,
-        amount: Math.round(total),
-        currency: 'INR',
-        items: cartItems,
-        customerInfo,
-        deliveryAddress: completeAddress
-      };
-
-      try {
         await initiateRazorpayPayment(
-          orderData,
-          (response) => {
-            // Payment successful
-            clearCart();
-            toast({
-              title: "Payment Successful!",
-              description: `Payment ID: ${response.razorpay_payment_id}`,
-            });
-            navigate('/');
-            setIsProcessingPayment(false);
+          razorpayOrderData,
+          async (response) => {
+            try {
+              // Payment successful - Save to DB and create Porter order
+              const orderData = {
+                order_number: orderNumber,
+                customer_info: customerInfo as any,
+                delivery_location: deliveryLocation as any,
+                address_details: {
+                  ...addressDetails,
+                  complete_address: completeAddress
+                } as any,
+                items: cartItems.map(item => ({
+                  id: item.id,
+                  name: item.name,
+                  price: item.price,
+                  quantity: item.quantity,
+                  weight: item.weight,
+                  image: item.image,
+                  category: item.category || 'meat'
+                })) as any,
+                subtotal: subtotal,
+                tax: tax,
+                delivery_fee: deliveryFee,
+                discount: discount,
+                total: total,
+                payment_method: 'online',
+                payment_status: 'paid',
+                order_status: 'confirmed',
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id
+              };
+
+              // Save order to database
+              const { data: savedOrder, error: dbError } = await supabase
+                .from('orders')
+                .insert([orderData])
+                .select()
+                .single();
+
+              if (dbError) {
+                throw new Error(`Database error: ${dbError.message}`);
+              }
+
+              // Create Porter delivery order
+              const porterOrderData = createPorterOrderFromCheckout(
+                orderNumber,
+                customerInfo,
+                deliveryLocation,
+                { ...addressDetails, address: completeAddress },
+                cartItems,
+                total,
+                'online'
+              );
+
+              const porterResponse = await porterService.createDeliveryOrder(porterOrderData);
+
+              // Update order with Porter task ID
+              await supabase
+                .from('orders')
+                .update({ 
+                  porter_task_id: porterResponse.task_id,
+                  porter_status: porterResponse.status 
+                })
+                .eq('id', savedOrder.id);
+
+              toast({
+                title: "Payment Successful!",
+                description: `Order #${orderNumber} confirmed. Estimated delivery: ${porterResponse.estimated_delivery_time}`,
+              });
+              
+              clearCart();
+              navigate('/');
+            } catch (error) {
+              console.error('Post-payment processing error:', error);
+              toast({
+                title: "Order Processing Error",
+                description: "Payment successful but order processing failed. Please contact support.",
+                variant: "destructive",
+              });
+            }
           },
           (error) => {
             // Payment failed
@@ -189,18 +338,18 @@ const Checkout = () => {
               description: error.message || "Something went wrong with the payment.",
               variant: "destructive",
             });
-            setIsProcessingPayment(false);
           }
         );
-      } catch (error) {
-        console.error('Order creation error:', error);
-        toast({
-          title: "Error",
-          description: "Failed to create order. Please try again.",
-          variant: "destructive",
-        });
-        setIsProcessingPayment(false);
       }
+    } catch (error) {
+      console.error('Order creation error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
