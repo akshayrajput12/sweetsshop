@@ -405,7 +405,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_real_razorpay_order: {
+        Args: { order_data: Json }
+        Returns: {
+          order_id: string
+          amount: number
+          currency: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
