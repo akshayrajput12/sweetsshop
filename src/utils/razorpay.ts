@@ -77,45 +77,46 @@ export const loadRazorpayScript = (): Promise<boolean> => {
   });
 };
 
-// Create order on backend (mock implementation)
+// Create real order using Supabase edge function
 export const createRazorpayOrder = async (orderData: OrderData): Promise<{
   id: string;
   amount: number;
   currency: string;
 }> => {
-  // In a real application, this would be an API call to your backend
-  // For demo purposes, we'll simulate the order creation
+  const { supabase } = await import('@/integrations/supabase/client');
   
-  const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  return {
-    id: orderId,
-    amount: orderData.amount * 100, // Razorpay expects amount in paise
-    currency: orderData.currency
-  };
+  const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
+    body: { orderData }
+  });
+
+  if (error) {
+    throw new Error(`Failed to create Razorpay order: ${error.message}`);
+  }
+
+  if (!data || data.error) {
+    throw new Error(data?.error || 'Failed to create Razorpay order');
+  }
+
+  return data;
 };
 
-// Verify payment on backend (mock implementation)
+// Verify payment using Supabase edge function
 export const verifyRazorpayPayment = async (
   paymentId: string,
   orderId: string,
   signature: string
 ): Promise<{ success: boolean; message: string }> => {
-  // In a real application, this would verify the payment signature on your backend
-  // For demo purposes, we'll simulate successful verification
+  const { supabase } = await import('@/integrations/supabase/client');
   
-  console.log('Verifying payment:', { paymentId, orderId, signature });
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  return {
-    success: true,
-    message: 'Payment verified successfully'
-  };
+  const { data, error } = await supabase.functions.invoke('verify-razorpay-payment', {
+    body: { paymentId, orderId, signature }
+  });
+
+  if (error) {
+    throw new Error(`Failed to verify payment: ${error.message}`);
+  }
+
+  return data || { success: false, message: 'Payment verification failed' };
 };
 
 // Initialize Razorpay payment
@@ -134,8 +135,8 @@ export const initiateRazorpayPayment = async (
     // Create order
     const order = await createRazorpayOrder(orderData);
 
-    // Get Razorpay key from environment
-    const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    // Get Razorpay key from environment variable
+    const razorpayKey = 'rzp_test_key'; // This should be your actual test/live key
     if (!razorpayKey) {
       throw new Error('Razorpay key not configured');
     }
@@ -145,7 +146,7 @@ export const initiateRazorpayPayment = async (
       key: razorpayKey,
       amount: order.amount,
       currency: order.currency,
-      name: import.meta.env.VITE_APP_NAME || 'Meat Feast',
+      name: 'Meat Feast',
       description: `Order for ${orderData.items.length} items`,
       order_id: order.id,
       handler: async (response: RazorpayResponse) => {

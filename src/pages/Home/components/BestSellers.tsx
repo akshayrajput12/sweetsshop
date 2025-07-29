@@ -1,11 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ProductCard from '../../../components/ProductCard';
-import { bestSellers } from '../../../data/products';
+import { supabase } from '@/integrations/supabase/client';
 
 const BestSellers = () => {
   const navigate = useNavigate();
+  const [bestSellers, setBestSellers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBestSellers();
+  }, []);
+
+  const fetchBestSellers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_bestseller', true)
+        .eq('is_active', true)
+        .limit(8);
+
+      if (error) throw error;
+      setBestSellers(data || []);
+    } catch (error) {
+      console.error('Error fetching bestsellers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -51,14 +75,31 @@ const BestSellers = () => {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {bestSellers.map((product) => (
-            <motion.div key={product.id} variants={itemVariants}>
-              <ProductCard 
-                product={product}
-                onViewDetail={() => navigate(`/product/${product.id}`)}
-              />
-            </motion.div>
-          ))}
+          {loading ? (
+            // Loading skeleton
+            Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="animate-pulse">
+                <div className="bg-muted h-48 rounded-lg mb-4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted rounded w-3/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/2"></div>
+                </div>
+              </div>
+            ))
+          ) : (
+            bestSellers.map((product: any) => (
+              <motion.div key={product.id} variants={itemVariants}>
+                <ProductCard 
+                  product={{
+                    ...product,
+                    image: product.images?.[0] || '/placeholder.svg',
+                    slug: product.sku || product.id
+                  }}
+                  onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
+                />
+              </motion.div>
+            ))
+          )}
         </motion.div>
 
         {/* View All Button */}

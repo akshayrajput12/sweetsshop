@@ -1,18 +1,21 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Filter, Grid, List, Search } from 'lucide-react';
 import { useStore } from '../store/useStore';
-import { products, categories } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import ProductFiltersComponent, { ProductFilters } from '../components/ProductFilters';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Products = () => {
   const { selectedCategory, setSelectedCategory } = useStore();
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(['All']);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<ProductFilters>({
     categories: [],
     priceRange: [0, 5000],
@@ -22,80 +25,85 @@ const Products = () => {
   });
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      const categoryNames = data?.map(cat => cat.name) || [];
+      setCategories(['All', ...categoryNames]);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
     // Apply category filter
     if (selectedCategory !== 'All') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+      filtered = filtered.filter((product: any) => product.category?.name === selectedCategory);
     }
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(product =>
+      filtered = filtered.filter((product: any) =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+        product.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Apply filters
     if (filters.categories.length > 0) {
-      filtered = filtered.filter(product => 
-        filters.categories.includes(product.category)
+      filtered = filtered.filter((product: any) => 
+        filters.categories.includes(product.category?.name)
       );
     }
 
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000) {
-      filtered = filtered.filter(product => 
+      filtered = filtered.filter((product: any) => 
         product.price >= filters.priceRange[0] && 
         product.price <= filters.priceRange[1]
       );
     }
 
-    if (filters.features.length > 0) {
-      filtered = filtered.filter(product => {
-        if (!product.features) return false;
-        return filters.features.some(feature => {
-          switch (feature) {
-            case 'Antibiotic Residue Free':
-              return product.features?.antibioticResidueFree;
-            case 'Artisanal Cut':
-              return product.features?.artisanalCut;
-            case 'Temperature Controlled':
-              return product.features?.temperatureControlled;
-            case 'Vacuum Packed':
-              return product.features?.hygienicallyVacuumPacked;
-            case 'Free Range':
-              return product.features?.humanlyRaised;
-            default:
-              return false;
-          }
-        });
-      });
-    }
-
-    if (filters.rating > 0) {
-      filtered = filtered.filter(product => 
-        (product.rating || 0) >= filters.rating
-      );
-    }
-
     if (filters.inStock) {
-      filtered = filtered.filter(product => product.inStock);
+      filtered = filtered.filter((product: any) => product.stock_quantity > 0);
     }
 
     return filtered;
   }, [products, selectedCategory, searchTerm, filters]);
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+  const sortedProducts = [...filteredProducts].sort((a: any, b: any) => {
     switch (sortBy) {
       case 'price-low':
         return a.price - b.price;
       case 'price-high':
         return b.price - a.price;
-      case 'rating':
-        return (b.rating || 0) - (a.rating || 0);
       default:
         return a.name.localeCompare(b.name);
     }
@@ -220,19 +228,37 @@ const Products = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              {sortedProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                >
-                  <ProductCard
-                    product={product}
-                    onViewDetail={() => navigate(`/product/${product.slug}`)}
-                  />
-                </motion.div>
-              ))}
+              {loading ? (
+                // Loading skeleton
+                Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="animate-pulse">
+                    <div className="bg-muted h-48 rounded-lg mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-4 bg-muted rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                sortedProducts.map((product: any, index) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <ProductCard
+                      product={{
+                        ...product,
+                        image: product.images?.[0] || '/placeholder.svg',
+                        slug: product.sku || product.id,
+                        category: product.category?.name || 'Unknown'
+                      }}
+                      onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
+                    />
+                  </motion.div>
+                ))
+              )}
             </motion.div>
           </div>
         </div>

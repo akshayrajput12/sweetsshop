@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Package, MapPin, Settings, ExternalLink } from 'lucide-react';
+import AddressManager from '@/components/AddressManager';
 
 export default function Profile() {
   const { user, profile, signOut } = useAuth();
@@ -241,34 +242,7 @@ export default function Profile() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {addresses.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MapPin className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No addresses saved</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {addresses.map((address: any) => (
-                      <div key={address.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-semibold">{address.name}</p>
-                            <p className="text-sm">{address.phone}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {address.address_line_1}, {address.address_line_2 && `${address.address_line_2}, `}
-                              {address.city}, {address.state} - {address.pincode}
-                            </p>
-                            {address.is_default && (
-                              <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-                                Default
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <AddressManager />
               </CardContent>
             </Card>
           </TabsContent>
