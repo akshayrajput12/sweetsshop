@@ -1,293 +1,299 @@
-import { useState } from 'react';
-import { User, Mail, Phone, MapPin, Settings, Package, Heart, CreditCard } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { useStore } from '@/store/useStore';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2, User, Package, MapPin, Settings, ExternalLink } from 'lucide-react';
 
-const Profile = () => {
-  const { user, logout } = useStore();
+export default function Profile() {
+  const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
-  
+  const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [addresses, setAddresses] = useState([]);
   const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: '+91 98765 43210',
-    address: '123 Food Street, Mumbai, Maharashtra 400001'
+    full_name: profile?.full_name || '',
+    phone: profile?.phone || '',
   });
 
-  const orders = [
-    {
-      id: 'ORD-001',
-      date: '2024-01-15',
-      status: 'Delivered',
-      total: 2499,
-      items: 3
-    },
-    {
-      id: 'ORD-002',
-      date: '2024-01-10',
-      status: 'Processing',
-      total: 1899,
-      items: 2
-    },
-    {
-      id: 'ORD-003',
-      date: '2024-01-05',
-      status: 'Delivered',
-      total: 3299,
-      items: 4
+  useEffect(() => {
+    if (user) {
+      fetchOrders();
+      fetchAddresses();
     }
-  ];
+  }, [user]);
 
-  const addresses = [
-    {
-      id: 1,
-      type: 'Home',
-      address: '123 Food Street, Mumbai, Maharashtra 400001',
-      isDefault: true
-    },
-    {
-      id: 2,
-      type: 'Office',
-      address: '456 Business Park, Andheri, Mumbai, Maharashtra 400053',
-      isDefault: false
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setOrders(data || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
     }
-  ];
+  };
 
-  const handleSaveProfile = () => {
+  const fetchAddresses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('is_default', { ascending: false });
+
+      if (error) throw error;
+      setAddresses(data || []);
+    } catch (error) {
+      console.error('Error fetching addresses:', error);
+    }
+  };
+
+  const updateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
     toast({
-      title: "Profile updated!",
-      description: "Your profile information has been saved.",
+      title: "Signed Out",
+      description: "You have been signed out successfully.",
     });
   };
 
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
+  const getOrderStatusColor = (status: string) => {
+    switch (status) {
+      case 'delivered': return 'text-green-600';
+      case 'confirmed': return 'text-blue-600';
+      case 'placed': return 'text-orange-600';
+      case 'cancelled': return 'text-red-600';
+      default: return 'text-gray-600';
+    }
   };
-
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Please log in to view your profile</h1>
-        <Button>Sign In</Button>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center mb-6">
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <User className="h-10 w-10 text-primary" />
-                </div>
-                <h3 className="font-bold text-lg">{user.name}</h3>
-                <p className="text-muted-foreground">{user.email}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Account Settings
-                </Button>
-                <Button variant="ghost" className="w-full justify-start">
-                  <Package className="h-4 w-4 mr-2" />
-                  Order History
-                </Button>
-                <Button variant="ghost" className="w-full justify-start">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Addresses
-                </Button>
-                <Button variant="ghost" className="w-full justify-start">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Wishlist
-                </Button>
-                <Button variant="ghost" className="w-full justify-start">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Payment Methods
-                </Button>
-              </div>
-              
-              <Separator className="my-4" />
-              
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                onClick={handleLogout}
-              >
-                Logout
-              </Button>
-            </CardContent>
-          </Card>
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">My Profile</h1>
+          <p className="text-muted-foreground">Manage your account and view your orders</p>
         </div>
 
-        {/* Main Content */}
-        <div className="lg:col-span-3">
-          <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="orders">Orders</TabsTrigger>
-              <TabsTrigger value="addresses">Addresses</TabsTrigger>
-              <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Orders
+            </TabsTrigger>
+            <TabsTrigger value="addresses" className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Addresses
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Profile Tab */}
-            <TabsContent value="profile">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input
-                        id="name"
-                        value={profileData.name}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={profileData.email}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                      />
-                    </div>
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+                <CardDescription>
+                  Update your personal information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={updateProfile} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="bg-muted"
+                    />
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address</Label>
-                      <Input
-                        id="address"
-                        value={profileData.address}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, address: e.target.value }))}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <Input
+                      id="full_name"
+                      value={profileData.full_name}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, full_name: e.target.value }))}
+                      placeholder="Enter your full name"
+                    />
                   </div>
-                  
-                  <Button onClick={handleSaveProfile}>Save Changes</Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                  <Button type="submit" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update Profile
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Orders Tab */}
-            <TabsContent value="orders">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order History</CardTitle>
-                </CardHeader>
-                <CardContent>
+          <TabsContent value="orders">
+            <Card>
+              <CardHeader>
+                <CardTitle>Order History</CardTitle>
+                <CardDescription>
+                  View your past orders and track current ones
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {orders.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No orders found</p>
+                  </div>
+                ) : (
                   <div className="space-y-4">
-                    {orders.map((order) => (
+                    {orders.map((order: any) => (
                       <div key={order.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <h3 className="font-semibold">{order.id}</h3>
+                            <p className="font-semibold">Order #{order.order_number}</p>
                             <p className="text-sm text-muted-foreground">
-                              Ordered on {new Date(order.date).toLocaleDateString()}
+                              {new Date(order.created_at).toLocaleDateString()}
                             </p>
                           </div>
-                          <Badge 
-                            variant={order.status === 'Delivered' ? 'default' : 'secondary'}
-                          >
-                            {order.status}
-                          </Badge>
+                          <div className="text-right">
+                            <p className="font-semibold">₹{order.total}</p>
+                            <p className={`text-sm capitalize ${getOrderStatusColor(order.order_status)}`}>
+                              {order.order_status}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm">{order.items} items</p>
-                          <p className="font-bold">₹{order.total.toLocaleString('en-IN')}</p>
+                        <div className="flex gap-2">
+                          {order.tracking_url && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={order.tracking_url} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                Track Order
+                              </a>
+                            </Button>
+                          )}
+                          {order.porter_task_id && (
+                            <span className="text-xs bg-muted px-2 py-1 rounded">
+                              Porter ID: {order.porter_task_id}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Addresses Tab */}
-            <TabsContent value="addresses">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    Saved Addresses
-                    <Button size="sm">Add New Address</Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+          <TabsContent value="addresses">
+            <Card>
+              <CardHeader>
+                <CardTitle>Saved Addresses</CardTitle>
+                <CardDescription>
+                  Manage your delivery addresses
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {addresses.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MapPin className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No addresses saved</p>
+                  </div>
+                ) : (
                   <div className="space-y-4">
-                    {addresses.map((address) => (
+                    {addresses.map((address: any) => (
                       <div key={address.id} className="border rounded-lg p-4">
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h3 className="font-semibold">{address.type}</h3>
-                              {address.isDefault && (
-                                <Badge variant="secondary">Default</Badge>
-                              )}
-                            </div>
-                            <p className="text-muted-foreground">{address.address}</p>
-                          </div>
-                          <div className="space-x-2">
-                            <Button variant="outline" size="sm">Edit</Button>
-                            <Button variant="destructive" size="sm">Delete</Button>
+                            <p className="font-semibold">{address.name}</p>
+                            <p className="text-sm">{address.phone}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {address.address_line_1}, {address.address_line_2 && `${address.address_line_2}, `}
+                              {address.city}, {address.state} - {address.pincode}
+                            </p>
+                            {address.is_default && (
+                              <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+                                Default
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Wishlist Tab */}
-            <TabsContent value="wishlist">
-              <Card>
-                <CardHeader>
-                  <CardTitle>My Wishlist</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Your wishlist is empty</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Save items you love to your wishlist
-                    </p>
-                    <Button>Continue Shopping</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Settings</CardTitle>
+                <CardDescription>
+                  Manage your account preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  variant="destructive" 
+                  onClick={handleSignOut}
+                  className="w-full sm:w-auto"
+                >
+                  Sign Out
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
-};
-
-export default Profile;
+}

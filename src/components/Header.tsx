@@ -1,12 +1,21 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, Search, MapPin } from 'lucide-react';
+import { ShoppingCart, User, Menu, Search, MapPin, LogOut } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from '../hooks/useLocation';
 import { motion } from 'framer-motion';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 
 const Header = () => {
-  const { cartItems, toggleCart, isAuthenticated, user } = useStore();
+  const { cartItems, toggleCart } = useStore();
+  const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const userLocation = useLocation();
   
@@ -84,15 +93,34 @@ const Header = () => {
             </button>
 
             {/* User */}
-            {isAuthenticated ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-primary-foreground text-sm font-medium">
-                    {user?.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <span className="hidden md:block body-text">{user?.name}</span>
-              </div>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors">
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-primary-foreground text-sm font-medium">
+                      {user.email?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="hidden md:block body-text">{user.email}</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <User className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <button 
                 onClick={() => navigate('/auth')}

@@ -1,117 +1,149 @@
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import ScrollToTop from '@/components/ScrollToTop';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import CartSidebar from '@/components/CartSidebar';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import ScrollToTop from "@/components/ScrollToTop";
-import { useEffect } from "react";
-import { useStore } from "./store/useStore";
-import { products } from "./data/products";
+import Index from '@/pages/Index';
+import Products from '@/pages/Products';
+import ProductDetail from '@/pages/ProductDetail';
+import Cart from '@/pages/Cart';
+import Checkout from '@/pages/Checkout';
+import Auth from '@/pages/Auth';
+import Profile from '@/pages/Profile';
+import Contact from '@/pages/Contact';
+import About from '@/pages/About';
+import NotFound from '@/pages/NotFound';
+import AdminLayout from '@/pages/admin/AdminLayout';
+import Dashboard from '@/pages/admin/Dashboard';
+import AdminProducts from '@/pages/admin/Products';
+import ProductForm from '@/pages/admin/ProductForm';
+import Categories from '@/pages/admin/Categories';
+import CategoryForm from '@/pages/admin/CategoryForm';
+import Orders from '@/pages/admin/Orders';
+import OrderDetail from '@/pages/admin/OrderDetail';
+import Customers from '@/pages/admin/Customers';
+import Coupons from '@/pages/admin/Coupons';
+import CouponForm from '@/pages/admin/CouponForm';
+import BestSellers from '@/pages/admin/BestSellers';
+import Analytics from '@/pages/admin/Analytics';
+import Settings from '@/pages/admin/Settings';
 
-// Layout
-import Header from "./components/Header";
-import CartSidebar from "./components/CartSidebar";
+// Protected Route Component
+function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
+  const { user, isAdmin, loading } = useAuth();
 
-// Pages
-import Index from "./pages/Index";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import Auth from "./pages/Auth";
-import Profile from "./pages/Profile";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import NotFound from "./pages/NotFound";
-import Footer from "./components/Footer";
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-// Admin
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminProducts from "./pages/admin/Products";
-import AdminCategories from "./pages/admin/Categories";
-import AdminOrders from "./pages/admin/Orders";
-import AdminCustomers from "./pages/admin/Customers";
-import AdminAnalytics from "./pages/admin/Analytics";
-import AdminBestSellers from "./pages/admin/BestSellers";
-import ProductForm from "./pages/admin/ProductForm";
-import CategoryForm from "./pages/admin/CategoryForm";
-import CouponForm from "./pages/admin/CouponForm";
-import AdminCoupons from "./pages/admin/Coupons";
-import AdminSettings from "./pages/admin/Settings";
-import AdminOrderDetail from "./pages/admin/OrderDetail";
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
 
-const queryClient = new QueryClient();
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 const AppContent = () => {
+  const { user, loading } = useAuth();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
-  return (
-    <div className="min-h-screen bg-background">
-      {!isAdminRoute && <Header />}
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/product/:slug" element={<ProductDetail />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="categories" element={<AdminCategories />} />
-          <Route path="coupons" element={<AdminCoupons />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="customers" element={<AdminCustomers />} />
-          <Route path="analytics" element={<AdminAnalytics />} />
-          <Route path="bestsellers" element={<AdminBestSellers />} />
-          <Route path="settings" element={<AdminSettings />} />
-          <Route path="products/add" element={<ProductForm />} />
-          <Route path="products/edit/:id" element={<ProductForm isEdit={true} />} />
-          <Route path="categories/add" element={<CategoryForm />} />
-          <Route path="categories/edit/:id" element={<CategoryForm isEdit={true} />} />
-          <Route path="coupons/add" element={<CouponForm />} />
-          <Route path="coupons/edit/:id" element={<CouponForm isEdit={true} />} />
-          <Route path="orders/:id" element={<AdminOrderDetail />} />
-        </Route>
-
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      {!isAdminRoute && <Footer />}
-      {!isAdminRoute && <CartSidebar />}
-    </div>
-  );
-};
-
-const App = () => {
-  const setProducts = useStore((state: any) => state.setProducts);
-
-  useEffect(() => {
-    // Initialize products in store
-    if (setProducts) {
-      setProducts(products);
-    }
-  }, [setProducts]);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
+        <ScrollToTop />
+        {!isAdminRoute && <Header />}
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Index />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/product/:slug" element={<ProductDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          
+          {/* Auth routes */}
+          <Route 
+            path="/auth" 
+            element={user ? <Navigate to="/" replace /> : <Auth />} 
+          />
+          
+          {/* Protected routes */}
+          <Route 
+            path="/checkout" 
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Admin routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="products/add" element={<ProductForm />} />
+            <Route path="products/edit/:id" element={<ProductForm isEdit={true} />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="categories/add" element={<CategoryForm />} />
+            <Route path="categories/edit/:id" element={<CategoryForm isEdit={true} />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="orders/:id" element={<OrderDetail />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="coupons" element={<Coupons />} />
+            <Route path="coupons/add" element={<CouponForm />} />
+            <Route path="coupons/edit/:id" element={<CouponForm isEdit={true} />} />
+            <Route path="bestsellers" element={<BestSellers />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        {!isAdminRoute && <Footer />}
+        {!isAdminRoute && <CartSidebar />}
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <AppContent />
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+      </div>
+    </TooltipProvider>
   );
 };
 
-export default App;
+export default function App() {
+  return <AppContent />;
+}
