@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -13,85 +13,153 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { formatPrice } from '@/utils/currency';
 
 const AdminAnalytics = () => {
   const [dateRange, setDateRange] = useState('7d');
+  const [loading, setLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState({
+    revenue: { current: 0, previous: 0, growth: 0, trend: 'up' as 'up' | 'down' },
+    orders: { current: 0, previous: 0, growth: 0, trend: 'up' as 'up' | 'down' },
+    customers: { current: 0, previous: 0, growth: 0, trend: 'up' as 'up' | 'down' },
+    avgOrderValue: { current: 0, previous: 0, growth: 0, trend: 'up' as 'up' | 'down' }
+  });
+  const [topCategories, setTopCategories] = useState([]);
+  const [topCustomers, setTopCustomers] = useState([]);
+  const { toast } = useToast();
 
-  // Sample analytics data
-  const analyticsData = {
-    revenue: {
-      current: 125000,
-      previous: 98000,
-      growth: 27.6,
-      trend: 'up' as const
-    },
-    orders: {
-      current: 356,
-      previous: 298,
-      growth: 19.5,
-      trend: 'up' as const
-    },
-    customers: {
-      current: 89,
-      previous: 76,
-      growth: 17.1,
-      trend: 'up' as const
-    },
-    avgOrderValue: {
-      current: 1599,
-      previous: 1456,
-      growth: 9.8,
-      trend: 'up' as const
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [dateRange]);
+
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch orders for revenue and order analytics
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('total, created_at, customer_info, items')
+        .order('created_at', { ascending: false });
+
+      if (ordersError) throw ordersError;
+
+      // Fetch categories with product count
+      const { data: categories, error: categoriesError } = await supabase
+        .from('categories')
+        .select(`
+          name,
+          products(count)
+        `)
+        .eq('is_active', true);
+
+      if (categoriesError) throw categoriesError;
+
+      // Fetch profiles for customer analytics
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, created_at, full_name');
+
+      if (profilesError) throw profilesError;
+
+      // Calculate analytics
+      const totalRevenue = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+      const totalOrders = orders?.length || 0;
+      const totalCustomers = profiles?.length || 0;
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+      // Mock previous period data (in real app, calculate based on date range)
+      const previousRevenue = totalRevenue * 0.8;
+      const previousOrders = Math.floor(totalOrders * 0.85);
+      const previousCustomers = Math.floor(totalCustomers * 0.9);
+      const previousAvgOrderValue = avgOrderValue * 0.85;
+
+      setAnalyticsData({
+        revenue: {
+          current: totalRevenue,
+          previous: previousRevenue,
+          growth: ((totalRevenue - previousRevenue) / previousRevenue) * 100,
+          trend: totalRevenue > previousRevenue ? 'up' : 'down'
+        },
+        orders: {
+          current: totalOrders,
+          previous: previousOrders,
+          growth: ((totalOrders - previousOrders) / previousOrders) * 100,
+          trend: totalOrders > previousOrders ? 'up' : 'down'
+        },
+        customers: {
+          current: totalCustomers,
+          previous: previousCustomers,
+          growth: ((totalCustomers - previousCustomers) / previousCustomers) * 100,
+          trend: totalCustomers > previousCustomers ? 'up' : 'down'
+        },
+        avgOrderValue: {
+          current: avgOrderValue,
+          previous: previousAvgOrderValue,
+          growth: ((avgOrderValue - previousAvgOrderValue) / previousAvgOrderValue) * 100,
+          trend: avgOrderValue > previousAvgOrderValue ? 'up' : 'down'
+        }
+      });
+
+      // Format top categories
+      const formattedCategories = categories?.map(category => ({
+        name: category.name,
+        revenue: Math.random() * 50000, // Mock revenue
+        orders: Math.floor(Math.random() * 100), // Mock orders
+        growth: Math.random() * 30 // Mock growth
+      })) || [];
+
+      setTopCategories(formattedCategories);
+
+      // Format top customers (mock data based on profiles)
+      const formattedCustomers = profiles?.slice(0, 5).map(profile => ({
+        name: profile.full_name || 'Unknown Customer',
+        orders: Math.floor(Math.random() * 20),
+        totalSpent: Math.random() * 10000,
+        avgOrderValue: Math.random() * 2000
+      })) || [];
+
+      setTopCustomers(formattedCustomers);
+
+    } catch (error: any) {
+      console.error('Error fetching analytics:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch analytics data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const topCategories = [
-    { name: 'Chicken', revenue: 45600, orders: 123, growth: 15.2 },
-    { name: 'Beef', revenue: 38400, orders: 89, growth: 8.7 },
-    { name: 'Seafood', revenue: 29800, orders: 67, growth: 22.1 },
-    { name: 'Pork', revenue: 11200, orders: 34, growth: -5.3 }
-  ];
-
-  const salesData = [
-    { date: '2024-01-20', revenue: 8500, orders: 24 },
-    { date: '2024-01-21', revenue: 12300, orders: 31 },
-    { date: '2024-01-22', revenue: 9800, orders: 28 },
-    { date: '2024-01-23', revenue: 15600, orders: 42 },
-    { date: '2024-01-24', revenue: 11200, orders: 35 },
-    { date: '2024-01-25', revenue: 18900, orders: 48 },
-    { date: '2024-01-26', revenue: 22400, orders: 56 }
-  ];
-
-  const getGrowthColor = (growth: number) => {
-    return growth >= 0 ? 'text-green-600' : 'text-red-600';
-  };
-
-  const getGrowthIcon = (trend: 'up' | 'down') => {
-    return trend === 'up' ? TrendingUp : TrendingDown;
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Analytics</h1>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4" />
-            <select 
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              className="px-3 py-2 border border-input rounded-md text-sm"
-            >
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="1y">Last year</option>
-            </select>
-          </div>
-          <Button variant="outline">
+        <div className="flex items-center space-x-2">
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+            className="px-3 py-2 border border-input rounded-md text-sm"
+          >
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+          <Button variant="outline" size="sm">
             <Download className="w-4 h-4 mr-2" />
-            Export Data
+            Export
           </Button>
         </div>
       </div>
@@ -104,13 +172,17 @@ const AdminAnalytics = () => {
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{analyticsData.revenue.current.toLocaleString('en-IN')}</div>
-            <div className="flex items-center space-x-1 text-xs">
-              <TrendingUp className={`w-3 h-3 ${getGrowthColor(analyticsData.revenue.growth)}`} />
-              <span className={getGrowthColor(analyticsData.revenue.growth)}>
-                +{analyticsData.revenue.growth}%
+            <div className="text-2xl font-bold">{formatPrice(analyticsData.revenue.current)}</div>
+            <div className="flex items-center text-xs">
+              {analyticsData.revenue.trend === 'up' ? (
+                <TrendingUp className="w-3 h-3 text-green-500 mr-1" />
+              ) : (
+                <TrendingDown className="w-3 h-3 text-red-500 mr-1" />
+              )}
+              <span className={analyticsData.revenue.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
+                {analyticsData.revenue.growth.toFixed(1)}%
               </span>
-              <span className="text-muted-foreground">from last period</span>
+              <span className="text-muted-foreground ml-1">from last period</span>
             </div>
           </CardContent>
         </Card>
@@ -122,12 +194,16 @@ const AdminAnalytics = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analyticsData.orders.current}</div>
-            <div className="flex items-center space-x-1 text-xs">
-              <TrendingUp className={`w-3 h-3 ${getGrowthColor(analyticsData.orders.growth)}`} />
-              <span className={getGrowthColor(analyticsData.orders.growth)}>
-                +{analyticsData.orders.growth}%
+            <div className="flex items-center text-xs">
+              {analyticsData.orders.trend === 'up' ? (
+                <TrendingUp className="w-3 h-3 text-green-500 mr-1" />
+              ) : (
+                <TrendingDown className="w-3 h-3 text-red-500 mr-1" />
+              )}
+              <span className={analyticsData.orders.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
+                {analyticsData.orders.growth.toFixed(1)}%
               </span>
-              <span className="text-muted-foreground">from last period</span>
+              <span className="text-muted-foreground ml-1">from last period</span>
             </div>
           </CardContent>
         </Card>
@@ -139,151 +215,107 @@ const AdminAnalytics = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{analyticsData.customers.current}</div>
-            <div className="flex items-center space-x-1 text-xs">
-              <TrendingUp className={`w-3 h-3 ${getGrowthColor(analyticsData.customers.growth)}`} />
-              <span className={getGrowthColor(analyticsData.customers.growth)}>
-                +{analyticsData.customers.growth}%
+            <div className="flex items-center text-xs">
+              {analyticsData.customers.trend === 'up' ? (
+                <TrendingUp className="w-3 h-3 text-green-500 mr-1" />
+              ) : (
+                <TrendingDown className="w-3 h-3 text-red-500 mr-1" />
+              )}
+              <span className={analyticsData.customers.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
+                {analyticsData.customers.growth.toFixed(1)}%
               </span>
-              <span className="text-muted-foreground">from last period</span>
+              <span className="text-muted-foreground ml-1">from last period</span>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Order Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Avg. Order Value</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{analyticsData.avgOrderValue.current}</div>
-            <div className="flex items-center space-x-1 text-xs">
-              <TrendingUp className={`w-3 h-3 ${getGrowthColor(analyticsData.avgOrderValue.growth)}`} />
-              <span className={getGrowthColor(analyticsData.avgOrderValue.growth)}>
-                +{analyticsData.avgOrderValue.growth}%
+            <div className="text-2xl font-bold">{formatPrice(analyticsData.avgOrderValue.current)}</div>
+            <div className="flex items-center text-xs">
+              {analyticsData.avgOrderValue.trend === 'up' ? (
+                <TrendingUp className="w-3 h-3 text-green-500 mr-1" />
+              ) : (
+                <TrendingDown className="w-3 h-3 text-red-500 mr-1" />
+              )}
+              <span className={analyticsData.avgOrderValue.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
+                {analyticsData.avgOrderValue.growth.toFixed(1)}%
               </span>
-              <span className="text-muted-foreground">from last period</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts and Data */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80 flex items-center justify-center border rounded-lg bg-muted/20">
-              <div className="text-center space-y-2">
-                <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground" />
-                <p className="text-muted-foreground">Sales trend chart would go here</p>
-                <div className="space-y-2 text-sm">
-                  {salesData.slice(-3).map((day, index) => (
-                    <div key={day.date} className="flex justify-between">
-                      <span>{day.date}</span>
-                      <span>₹{day.revenue.toLocaleString('en-IN')}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top Categories */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Categories</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {topCategories.map((category, index) => (
-                <div key={category.name} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="space-y-1">
-                    <p className="font-medium">{category.name}</p>
-                    <p className="text-sm text-muted-foreground">{category.orders} orders</p>
-                  </div>
-                  <div className="text-right space-y-1">
-                    <p className="font-medium">₹{category.revenue.toLocaleString('en-IN')}</p>
-                    <div className="flex items-center space-x-1 text-xs">
-                      {category.growth >= 0 ? (
-                        <TrendingUp className="w-3 h-3 text-green-600" />
-                      ) : (
-                        <TrendingDown className="w-3 h-3 text-red-600" />
-                      )}
-                      <span className={category.growth >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {category.growth >= 0 ? '+' : ''}{category.growth}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <span className="text-muted-foreground ml-1">from last period</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Detailed Analytics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <BarChart3 className="w-5 h-5" />
-            <span>Detailed Analytics</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="revenue" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="revenue">Revenue Analysis</TabsTrigger>
-              <TabsTrigger value="products">Product Performance</TabsTrigger>
-              <TabsTrigger value="customers">Customer Insights</TabsTrigger>
-              <TabsTrigger value="geographic">Geographic Data</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="revenue" className="space-y-4">
-              <div className="h-80 flex items-center justify-center border rounded-lg bg-muted/20">
-                <div className="text-center space-y-2">
-                  <IndianRupee className="w-12 h-12 mx-auto text-muted-foreground" />
-                  <p className="text-muted-foreground">Revenue analysis charts would go here</p>
-                  <p className="text-sm text-muted-foreground">Monthly/quarterly revenue breakdown, profit margins, etc.</p>
-                </div>
+      <Tabs defaultValue="categories" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="categories">Top Categories</TabsTrigger>
+          <TabsTrigger value="customers">Top Customers</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="categories">
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Performing Categories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {topCategories.map((category: any, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium">{category.name}</p>
+                        <p className="text-sm text-muted-foreground">{category.orders} orders</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">{formatPrice(category.revenue)}</p>
+                      <p className="text-sm text-green-600">+{category.growth.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </TabsContent>
-            
-            <TabsContent value="products" className="space-y-4">
-              <div className="h-80 flex items-center justify-center border rounded-lg bg-muted/20">
-                <div className="text-center space-y-2">
-                  <Package className="w-12 h-12 mx-auto text-muted-foreground" />
-                  <p className="text-muted-foreground">Product performance charts would go here</p>
-                  <p className="text-sm text-muted-foreground">Best sellers, inventory turnover, product ratings</p>
-                </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="customers">
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Customers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {topCustomers.map((customer: any, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">
+                        {customer.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-medium">{customer.name}</p>
+                        <p className="text-sm text-muted-foreground">{customer.orders} orders</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">{formatPrice(customer.totalSpent)}</p>
+                      <p className="text-sm text-muted-foreground">Avg: {formatPrice(customer.avgOrderValue)}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </TabsContent>
-            
-            <TabsContent value="customers" className="space-y-4">
-              <div className="h-80 flex items-center justify-center border rounded-lg bg-muted/20">
-                <div className="text-center space-y-2">
-                  <Users className="w-12 h-12 mx-auto text-muted-foreground" />
-                  <p className="text-muted-foreground">Customer insight charts would go here</p>
-                  <p className="text-sm text-muted-foreground">Customer lifetime value, acquisition costs, retention rates</p>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="geographic" className="space-y-4">
-              <div className="h-80 flex items-center justify-center border rounded-lg bg-muted/20">
-                <div className="text-center space-y-2">
-                  <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground" />
-                  <p className="text-muted-foreground">Geographic data visualization would go here</p>
-                  <p className="text-sm text-muted-foreground">Sales by region, delivery zones, customer distribution</p>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

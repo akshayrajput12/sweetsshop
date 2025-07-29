@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,8 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Category {
   id: string;
@@ -25,60 +27,83 @@ interface Category {
 
 const AdminCategories = () => {
   const navigate = useNavigate();
-  // Sample categories data
-  const categories: Category[] = [
-    {
-      id: '1',
-      name: 'Chicken',
-      description: 'Fresh chicken products including breasts, thighs, and whole chicken',
-      productCount: 15,
-      status: 'active',
-      createdAt: '2024-01-15',
-      image: '/src/assets/product-chicken.jpg'
-    },
-    {
-      id: '2',
-      name: 'Beef',
-      description: 'Premium beef cuts including steaks, ground beef, and roasts',
-      productCount: 12,
-      status: 'active',
-      createdAt: '2024-01-10',
-      image: '/src/assets/product-steak.jpg'
-    },
-    {
-      id: '3',
-      name: 'Seafood',
-      description: 'Fresh seafood including fish, prawns, and shellfish',
-      productCount: 8,
-      status: 'active',
-      createdAt: '2024-01-08',
-      image: '/src/assets/product-seafood.jpg'
-    },
-    {
-      id: '4',
-      name: 'Pork',
-      description: 'Quality pork products including chops, bacon, and sausages',
-      productCount: 6,
-      status: 'inactive',
-      createdAt: '2024-01-05',
-      image: '/src/assets/product-chicken.jpg'
-    },
-    {
-      id: '5',
-      name: 'Lamb',
-      description: 'Tender lamb cuts for special occasions',
-      productCount: 4,
-      status: 'active',
-      createdAt: '2024-01-03',
-      image: '/src/assets/product-steak.jpg'
-    }
-  ];
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const getStatusColor = (status: string) => {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800' 
-      : 'bg-gray-100 text-gray-800';
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch categories with product count
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select(`
+          *,
+          products(count)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (categoriesError) throw categoriesError;
+
+      const formattedCategories = categoriesData?.map(category => ({
+        id: category.id,
+        name: category.name,
+        description: category.description || '',
+        productCount: category.products?.length || 0,
+        status: category.is_active ? 'active' as const : 'inactive' as const,
+        createdAt: new Date(category.created_at).toLocaleDateString(),
+        image: category.image_url || '/placeholder.svg'
+      })) || [];
+
+      setCategories(formattedCategories);
+    } catch (error: any) {
+      console.error('Error fetching categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch categories",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Category deleted successfully",
+      });
+      
+      fetchCategories();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -90,7 +115,7 @@ const AdminCategories = () => {
         </Button>
       </div>
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -99,12 +124,21 @@ const AdminCategories = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{categories.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {categories.filter(c => c.status === 'active').length} active
-            </p>
           </CardContent>
         </Card>
-
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Categories</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {categories.filter(cat => cat.status === 'active').length}
+            </div>
+          </CardContent>
+        </Card>
+        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -114,20 +148,6 @@ const AdminCategories = () => {
             <div className="text-2xl font-bold">
               {categories.reduce((sum, cat) => sum + cat.productCount, 0)}
             </div>
-            <p className="text-xs text-muted-foreground">Across all categories</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(categories.reduce((sum, cat) => sum + cat.productCount, 0) / categories.length)}
-            </div>
-            <p className="text-xs text-muted-foreground">Per category</p>
           </CardContent>
         </Card>
       </div>
@@ -160,11 +180,10 @@ const AdminCategories = () => {
                     />
                     <div>
                       <p className="font-medium">{category.name}</p>
-                      <p className="text-sm text-muted-foreground">ID: {category.id}</p>
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-xs">
-                    <p className="text-sm text-muted-foreground truncate">
+                  <TableCell>
+                    <p className="text-sm text-muted-foreground max-w-xs truncate">
                       {category.description}
                     </p>
                   </TableCell>
@@ -174,21 +193,28 @@ const AdminCategories = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(category.status)}>
+                    <Badge 
+                      variant={category.status === 'active' ? 'default' : 'secondary'}
+                    >
                       {category.status}
                     </Badge>
                   </TableCell>
                   <TableCell>{category.createdAt}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => navigate(`/admin/categories/edit/${category.id}`)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(category.id)}
+                        className="text-red-600 hover:text-red-800"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>

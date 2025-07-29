@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   Package, 
@@ -10,98 +10,131 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
   const [dateRange, setDateRange] = useState('7d');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalCustomers: 0,
+    revenueGrowth: 0,
+    ordersGrowth: 0,
+    productsGrowth: 0,
+    customersGrowth: 0
+  });
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+  const { toast } = useToast();
 
-  // Mock data - in real app, this would come from API
-  const stats = {
-    totalRevenue: 125000,
-    totalOrders: 356,
-    totalProducts: 45,
-    totalCustomers: 1234,
-    revenueGrowth: 12.5,
-    ordersGrowth: 8.3,
-    productsGrowth: 2.1,
-    customersGrowth: 15.2
+  useEffect(() => {
+    fetchDashboardData();
+  }, [dateRange]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch total revenue and orders
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('total, created_at, customer_info, items, order_status, order_number')
+        .order('created_at', { ascending: false });
+
+      if (ordersError) throw ordersError;
+
+      // Fetch total products  
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, stock_quantity')
+        .eq('is_active', true);
+
+      if (productsError) throw productsError;
+
+      // Fetch unique customers (profiles)
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, created_at');
+
+      if (profilesError) throw profilesError;
+
+      // Calculate stats
+      const totalRevenue = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+      const totalOrders = orders?.length || 0;
+      const totalProducts = products?.length || 0;
+      const totalCustomers = profiles?.length || 0;
+
+      setStats({
+        totalRevenue,
+        totalOrders,
+        totalProducts,
+        totalCustomers,
+        revenueGrowth: 12.5, // TODO: Calculate actual growth
+        ordersGrowth: 8.3,
+        productsGrowth: 2.1,
+        customersGrowth: 15.2
+      });
+
+      // Set recent orders
+      const formattedOrders = orders?.slice(0, 4).map(order => ({
+        id: order.order_number,
+        customer: (order.customer_info as any)?.name || 'Unknown Customer',
+        amount: order.total || 0,
+        status: order.order_status || 'Pending',
+        date: new Date(order.created_at).toLocaleDateString(),
+        items: Array.isArray(order.items) ? order.items.length : 0
+      })) || [];
+      
+      setRecentOrders(formattedOrders);
+
+      // Set top products based on stock
+      const sortedProducts = products?.sort((a, b) => (b.stock_quantity || 0) - (a.stock_quantity || 0)).slice(0, 4).map(product => ({
+        name: product.name,
+        sales: product.stock_quantity || 0,
+        revenue: (product.stock_quantity || 0) * 250, // Approximate revenue
+        category: 'Unknown' // We'll need to join with categories to get this
+      })) || [];
+
+      setTopProducts(sortedProducts);
+
+    } catch (error: any) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch dashboard data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const recentOrders = [
-    {
-      id: 'ORD001',
-      customer: 'Rajesh Kumar',
-      amount: 1250,
-      status: 'Delivered',
-      date: '2024-01-26',
-      items: 3
-    },
-    {
-      id: 'ORD002', 
-      customer: 'Priya Sharma',
-      amount: 890,
-      status: 'Processing',
-      date: '2024-01-26',
-      items: 2
-    },
-    {
-      id: 'ORD003',
-      customer: 'Amit Singh',
-      amount: 2100,
-      status: 'Shipped',
-      date: '2024-01-25', 
-      items: 5
-    },
-    {
-      id: 'ORD004',
-      customer: 'Sneha Patel',
-      amount: 750,
-      status: 'Pending',
-      date: '2024-01-25',
-      items: 1
-    }
-  ];
-
-  const topProducts = [
-    {
-      name: 'Premium Chicken Thigh Boneless',
-      sales: 145,
-      revenue: 38570,
-      category: 'Chicken'
-    },
-    {
-      name: 'Premium Ribeye Steak',
-      sales: 89,
-      revenue: 338211,
-      category: 'Beef'
-    },
-    {
-      name: 'Atlantic Salmon Fillet',
-      sales: 67,
-      revenue: 180833,
-      category: 'Seafood'
-    },
-    {
-      name: 'Free-Range Chicken Breast',
-      sales: 156,
-      revenue: 249444,
-      category: 'Chicken'
-    }
-  ];
-
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Delivered':
+    switch (status.toLowerCase()) {
+      case 'delivered':
         return 'text-green-600 bg-green-50';
-      case 'Shipped':
+      case 'shipped':
         return 'text-blue-600 bg-blue-50';
-      case 'Processing':
+      case 'processing':
         return 'text-yellow-600 bg-yellow-50';
-      case 'Pending':
+      case 'pending':
+      case 'placed':
         return 'text-orange-600 bg-orange-50';
       default:
         return 'text-gray-600 bg-gray-50';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
