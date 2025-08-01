@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,154 +6,210 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Product, ProductFeatures, NutritionalInfo, MarketingInfo } from '@/store/useStore';
 import { ArrowLeft, Upload, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Product {
+  id?: string;
+  name: string;
+  price: number;
+  original_price?: number;
+  category_id?: string;
+  weight?: string;
+  description?: string;
+  stock_quantity?: number;
+  is_active?: boolean;
+  is_bestseller?: boolean;
+  images?: string[];
+  features?: any;
+  nutritional_info?: any;
+  sku?: string;
+}
 
 interface ProductFormProps {
   product?: Product;
   isEdit?: boolean;
 }
 
-const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
+const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
   
-  const [formData, setFormData] = useState<Partial<Product>>({
-    name: product?.name || '',
-    price: product?.price || 0,
-    originalPrice: product?.originalPrice || 0,
-    category: product?.category || '',
-    weight: product?.weight || '',
-    pieces: product?.pieces || '',
-    description: product?.description || '',
-    nutrition: product?.nutrition || '',
-    serves: product?.serves || 1,
-    storageInstructions: product?.storageInstructions || '',
-    inStock: product?.inStock ?? true,
-    image: product?.image || '',
-    rating: product?.rating || 4.5,
-    slug: product?.slug || ''
+  const [formData, setFormData] = useState<Product>({
+    name: '',
+    price: 0,
+    original_price: 0,
+    category_id: '',
+    weight: '',
+    description: '',
+    stock_quantity: 0,
+    is_active: true,
+    is_bestseller: false,
+    sku: ''
   });
 
-  const [images, setImages] = useState<string[]>(product?.image ? [product.image] : []);
-  const [isBestSeller, setIsBestSeller] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
 
-  const [nutritionalInfo, setNutritionalInfo] = useState<NutritionalInfo>({
-    totalEnergy: product?.nutritionalInfo?.totalEnergy || '',
-    carbohydrate: product?.nutritionalInfo?.carbohydrate || '',
-    fat: product?.nutritionalInfo?.fat || '',
-    protein: product?.nutritionalInfo?.protein || ''
+  const [nutritionalInfo, setNutritionalInfo] = useState({
+    totalEnergy: '',
+    carbohydrate: '',
+    fat: '',
+    protein: ''
   });
 
-  const [marketingInfo, setMarketingInfo] = useState<MarketingInfo>({
-    marketedBy: product?.marketingInfo?.marketedBy || '',
-    address: product?.marketingInfo?.address || '',
-    city: product?.marketingInfo?.city || '',
-    state: product?.marketingInfo?.state || '',
-    fssaiLicense: product?.marketingInfo?.fssaiLicense || ''
+  const [features, setFeatures] = useState({
+    humanlyRaised: false,
+    handSelected: false,
+    temperatureControlled: false,
+    artisanalCut: false,
+    hygienicallyVacuumPacked: false,
+    netWeightOfPreppedMeat: false,
+    qualityAndFoodsafetyChecks: false,
+    mixOfOffalOrgans: false,
+    antibioticResidueFree: false
   });
 
-  const [features, setFeatures] = useState<ProductFeatures>({
-    humanlyRaised: product?.features?.humanlyRaised || false,
-    handSelected: product?.features?.handSelected || false,
-    temperatureControlled: product?.features?.temperatureControlled || false,
-    artisanalCut: product?.features?.artisanalCut || false,
-    hygienicallyVacuumPacked: product?.features?.hygienicallyVacuumPacked || false,
-    netWeightOfPreppedMeat: product?.features?.netWeightOfPreppedMeat || false,
-    qualityAndFoodsafetyChecks: product?.features?.qualityAndFoodsafetyChecks || false,
-    mixOfOffalOrgans: product?.features?.mixOfOffalOrgans || false,
-    antibioticResidueFree: product?.features?.antibioticResidueFree || false
-  });
+  useEffect(() => {
+    fetchCategories();
+    if (id && isEdit) {
+      fetchProduct();
+    } else if (propProduct) {
+      setFormData(propProduct);
+      setImages(propProduct.images || []);
+    }
+  }, [id, isEdit, propProduct]);
 
-  // Dynamic custom features
-  const [customFeatures, setCustomFeatures] = useState<{[key: string]: boolean}>({});
-  const [newFeatureName, setNewFeatureName] = useState('');
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
 
-  const categories = ['Chicken', 'Beef', 'Seafood', 'Pork', 'Lamb', 'Ready to Cook'];
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
+  const fetchProduct = async () => {
+    if (!id) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      
+      setFormData(data);
+      setImages(data.images || []);
+      if (data.nutritional_info && typeof data.nutritional_info === 'object') {
+        setNutritionalInfo(data.nutritional_info as any);
+      }
+      if (data.features && typeof data.features === 'object') {
+        setFeatures({ ...features, ...(data.features as any) });
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch product details.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: keyof Product, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-      ...(field === 'name' && { slug: generateSlug(value) })
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFeatureChange = (feature: keyof ProductFeatures, checked: boolean) => {
-    setFeatures(prev => ({ ...prev, [feature]: checked }));
-  };
+  const uploadImage = async (file: File): Promise<string | null> => {
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
 
-  const addCustomFeature = () => {
-    if (newFeatureName.trim() && !customFeatures.hasOwnProperty(newFeatureName.trim())) {
-      const featureKey = newFeatureName.trim().toLowerCase().replace(/\s+/g, '');
-      setCustomFeatures(prev => ({ ...prev, [featureKey]: true }));
-      setNewFeatureName('');
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploadingImage(false);
     }
   };
 
-  const removeCustomFeature = (featureKey: string) => {
-    setCustomFeatures(prev => {
-      const newFeatures = { ...prev };
-      delete newFeatures[featureKey];
-      return newFeatures;
-    });
-  };
-
-  const handleCustomFeatureChange = (featureKey: string, checked: boolean) => {
-    setCustomFeatures(prev => ({ ...prev, [featureKey]: checked }));
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      const newImages: string[] = [];
-      for (let i = 0; i < Math.min(files.length, 10 - images.length); i++) {
-        const file = files[i];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          newImages.push(result);
-          if (newImages.length === Math.min(files.length, 10 - images.length)) {
-            setImages(prev => [...prev, ...newImages]);
-            if (newImages.length > 0) {
-              handleInputChange('image', newImages[0]);
-            }
-          }
-        };
-        reader.readAsDataURL(file);
+    if (!files) return;
+
+    const newImages: string[] = [];
+    for (let i = 0; i < Math.min(files.length, 10 - images.length); i++) {
+      const file = files[i];
+      const imageUrl = await uploadImage(file);
+      if (imageUrl) {
+        newImages.push(imageUrl);
       }
+    }
+
+    if (newImages.length > 0) {
+      setImages(prev => [...prev, ...newImages]);
     }
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => {
-      const newImages = prev.filter((_, i) => i !== index);
-      if (newImages.length > 0) {
-        handleInputChange('image', newImages[0]);
-      } else {
-        handleInputChange('image', '');
-      }
-      return newImages;
-    });
+  const removeImage = async (index: number) => {
+    const imageUrl = images[index];
+    
+    try {
+      // Extract file path from URL for deletion
+      const url = new URL(imageUrl);
+      const pathParts = url.pathname.split('/');
+      const filePath = pathParts.slice(pathParts.indexOf('products')).join('/');
+      
+      await supabase.storage
+        .from('product-images')
+        .remove([filePath]);
+    } catch (error) {
+      console.error('Error removing image:', error);
+    }
+
+    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.category || !formData.price) {
+    if (!formData.name || !formData.category_id || !formData.price) {
       toast({
         title: "Missing required fields",
         description: "Please fill in name, category, and price.",
@@ -162,38 +218,67 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
       return;
     }
 
-    const productData: Product = {
-      id: product?.id || `prod_${Date.now()}`,
-      name: formData.name!,
-      price: Number(formData.price),
-      originalPrice: Number(formData.originalPrice) || Number(formData.price),
-      category: formData.category!,
-      weight: formData.weight!,
-      pieces: formData.pieces,
-      description: formData.description,
-      nutrition: formData.nutrition,
-      serves: Number(formData.serves) || 1,
-      storageInstructions: formData.storageInstructions,
-      inStock: formData.inStock!,
-      image: images[0] || '/api/placeholder/300/300',
-      rating: Number(formData.rating) || 4.5,
-      slug: formData.slug || generateSlug(formData.name!),
-      nutritionalInfo,
-      marketingInfo,
-      features: { ...features, ...customFeatures },
-      images: images,
-      isBestSeller
-    };
+    setLoading(true);
+    try {
+      const productData = {
+        name: formData.name,
+        price: Number(formData.price),
+        original_price: Number(formData.original_price) || Number(formData.price),
+        category_id: formData.category_id,
+        weight: formData.weight,
+        description: formData.description,
+        stock_quantity: Number(formData.stock_quantity) || 0,
+        is_active: formData.is_active,
+        is_bestseller: formData.is_bestseller,
+        images: images,
+        features: features,
+        nutritional_info: nutritionalInfo,
+        sku: formData.sku
+      };
 
-    console.log(isEdit ? 'Updating product:' : 'Creating product:', productData);
-    
-    toast({
-      title: isEdit ? "Product updated!" : "Product created!",
-      description: `${productData.name} has been ${isEdit ? 'updated' : 'added'} successfully.`,
-    });
-    
-    navigate('/admin/products');
+      if (isEdit && id) {
+        const { error } = await supabase
+          .from('products')
+          .update({
+            ...productData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('products')
+          .insert(productData);
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: isEdit ? "Product updated!" : "Product created!",
+        description: `${formData.name} has been ${isEdit ? 'updated' : 'added'} successfully.`,
+      });
+      
+      navigate('/admin/products');
+    } catch (error) {
+      console.error('Error saving product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save product. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading && isEdit) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -230,16 +315,16 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
                 <div className="space-y-2">
                   <Label htmlFor="category">Category *</Label>
                   <Select
-                    value={formData.category}
-                    onValueChange={(value) => handleInputChange('category', value)}
+                    value={formData.category_id}
+                    onValueChange={(value) => handleInputChange('category_id', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -248,12 +333,12 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="slug">URL Slug</Label>
+                <Label htmlFor="sku">SKU</Label>
                 <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => handleInputChange('slug', e.target.value)}
-                  placeholder="product-url-slug"
+                  id="sku"
+                  value={formData.sku}
+                  onChange={(e) => handleInputChange('sku', e.target.value)}
+                  placeholder="Product SKU"
                 />
               </div>
 
@@ -265,28 +350,6 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   placeholder="Enter product description"
                   rows={4}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="nutrition">Nutrition Information</Label>
-                <Textarea
-                  id="nutrition"
-                  value={formData.nutrition}
-                  onChange={(e) => handleInputChange('nutrition', e.target.value)}
-                  placeholder="Enter nutrition information"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="storage">Storage Instructions</Label>
-                <Textarea
-                  id="storage"
-                  value={formData.storageInstructions}
-                  onChange={(e) => handleInputChange('storageInstructions', e.target.value)}
-                  placeholder="Enter storage instructions"
-                  rows={2}
                 />
               </div>
             </CardContent>
@@ -314,12 +377,12 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="originalPrice">Original Price (₹)</Label>
+                  <Label htmlFor="original_price">Original Price (₹)</Label>
                   <Input
-                    id="originalPrice"
+                    id="original_price"
                     type="number"
-                    value={formData.originalPrice}
-                    onChange={(e) => handleInputChange('originalPrice', Number(e.target.value))}
+                    value={formData.original_price}
+                    onChange={(e) => handleInputChange('original_price', Number(e.target.value))}
                     placeholder="0"
                     min="0"
                     step="0.01"
@@ -327,71 +390,45 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="rating">Rating</Label>
+                  <Label htmlFor="stock_quantity">Stock Quantity</Label>
                   <Input
-                    id="rating"
+                    id="stock_quantity"
                     type="number"
-                    value={formData.rating}
-                    onChange={(e) => handleInputChange('rating', Number(e.target.value))}
-                    placeholder="4.5"
+                    value={formData.stock_quantity}
+                    onChange={(e) => handleInputChange('stock_quantity', Number(e.target.value))}
+                    placeholder="0"
                     min="0"
-                    max="5"
-                    step="0.1"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="weight">Weight</Label>
-                  <Input
-                    id="weight"
-                    value={formData.weight}
-                    onChange={(e) => handleInputChange('weight', e.target.value)}
-                    placeholder="e.g., 500g, 1kg"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="pieces">Pieces</Label>
-                  <Input
-                    id="pieces"
-                    value={formData.pieces}
-                    onChange={(e) => handleInputChange('pieces', e.target.value)}
-                    placeholder="e.g., 6-8 pieces"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="serves">Serves</Label>
-                  <Input
-                    id="serves"
-                    type="number"
-                    value={formData.serves}
-                    onChange={(e) => handleInputChange('serves', Number(e.target.value))}
-                    placeholder="1"
-                    min="1"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="weight">Weight</Label>
+                <Input
+                  id="weight"
+                  value={formData.weight}
+                  onChange={(e) => handleInputChange('weight', e.target.value)}
+                  placeholder="e.g., 500g, 1kg"
+                />
               </div>
 
               <div className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    id="inStock"
-                    checked={formData.inStock}
-                    onCheckedChange={(checked) => handleInputChange('inStock', checked)}
+                    id="is_active"
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => handleInputChange('is_active', checked)}
                   />
-                  <Label htmlFor="inStock">In Stock</Label>
+                  <Label htmlFor="is_active">Active</Label>
                 </div>
 
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    id="isBestSeller"
-                    checked={isBestSeller}
-                    onCheckedChange={(checked) => setIsBestSeller(checked as boolean)}
+                    id="is_bestseller"
+                    checked={formData.is_bestseller}
+                    onCheckedChange={(checked) => handleInputChange('is_bestseller', checked)}
                   />
-                  <Label htmlFor="isBestSeller">Mark as Best Seller</Label>
+                  <Label htmlFor="is_bestseller">Mark as Best Seller</Label>
                 </div>
               </div>
             </CardContent>
@@ -403,81 +440,19 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
               <CardTitle>Product Features</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Default Features */}
-              <div>
-                <h4 className="font-medium mb-3">Default Features</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(features).map(([key, value]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={key}
-                        checked={value}
-                        onCheckedChange={(checked) => handleFeatureChange(key as keyof ProductFeatures, checked as boolean)}
-                      />
-                      <Label htmlFor={key} className="text-sm">
-                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom Features */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Custom Features</h4>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      placeholder="Enter feature name"
-                      value={newFeatureName}
-                      onChange={(e) => setNewFeatureName(e.target.value)}
-                      className="w-48"
-                      onKeyPress={(e) => e.key === 'Enter' && addCustomFeature()}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(features).map(([key, value]) => (
+                  <div key={key} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={key}
+                      checked={value}
+                      onCheckedChange={(checked) => setFeatures(prev => ({ ...prev, [key]: checked }))}
                     />
-                    <Button
-                      type="button"
-                      onClick={addCustomFeature}
-                      size="sm"
-                      disabled={!newFeatureName.trim()}
-                    >
-                      Add Feature
-                    </Button>
+                    <Label htmlFor={key} className="text-sm">
+                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                    </Label>
                   </div>
-                </div>
-
-                {Object.keys(customFeatures).length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(customFeatures).map(([key, value]) => (
-                      <div key={key} className="flex items-center justify-between p-2 border rounded">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`custom-${key}`}
-                            checked={value}
-                            onCheckedChange={(checked) => handleCustomFeatureChange(key, checked as boolean)}
-                          />
-                          <Label htmlFor={`custom-${key}`} className="text-sm">
-                            {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                          </Label>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeCustomFeature(key)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {Object.keys(customFeatures).length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4 border-2 border-dashed rounded">
-                    No custom features added yet. Add features specific to your product.
-                  </p>
-                )}
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -505,11 +480,11 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
                   type="button"
                   variant="outline"
                   onClick={() => document.getElementById('images')?.click()}
-                  disabled={images.length >= 10}
+                  disabled={images.length >= 10 || uploadingImage}
                   className="w-full"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Upload Images ({images.length}/10)
+                  {uploadingImage ? 'Uploading...' : `Upload Images (${images.length}/10)`}
                 </Button>
               </div>
               
@@ -527,6 +502,7 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
                       size="sm"
                       className="absolute top-1 right-1 h-6 w-6 p-0"
                       onClick={() => removeImage(index)}
+                      disabled={uploadingImage}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -599,79 +575,19 @@ const ProductForm = ({ product, isEdit = false }: ProductFormProps) => {
             </CardContent>
           </Card>
 
-          {/* Marketing Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Marketing Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="marketedBy">Marketed By</Label>
-                <Input
-                  id="marketedBy"
-                  value={marketingInfo.marketedBy}
-                  onChange={(e) => setMarketingInfo({...marketingInfo, marketedBy: e.target.value})}
-                  placeholder="Company name"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={marketingInfo.address}
-                  onChange={(e) => setMarketingInfo({...marketingInfo, address: e.target.value})}
-                  placeholder="Company address"
-                  rows={2}
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    value={marketingInfo.city}
-                    onChange={(e) => setMarketingInfo({...marketingInfo, city: e.target.value})}
-                    placeholder="City"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    value={marketingInfo.state}
-                    onChange={(e) => setMarketingInfo({...marketingInfo, state: e.target.value})}
-                    placeholder="State"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="fssaiLicense">FSSAI License</Label>
-                <Input
-                  id="fssaiLicense"
-                  value={marketingInfo.fssaiLicense}
-                  onChange={(e) => setMarketingInfo({...marketingInfo, fssaiLicense: e.target.value})}
-                  placeholder="FSSAI license number"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Action Buttons */}
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-2">
-                <Button type="submit" className="w-full">
-                  {isEdit ? 'Update Product' : 'Create Product'}
+                <Button type="submit" className="w-full" disabled={loading || uploadingImage}>
+                  {loading ? 'Saving...' : isEdit ? 'Update Product' : 'Create Product'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full"
                   onClick={() => navigate('/admin/products')}
+                  disabled={loading}
                 >
                   Cancel
                 </Button>

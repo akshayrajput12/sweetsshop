@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,18 +6,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Upload, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Category {
   id: string;
   name: string;
   description: string;
-  status: 'active' | 'inactive';
-  image: string;
-  sortOrder: number;
-  metaTitle?: string;
-  metaDescription?: string;
+  is_active: boolean;
+  image_url: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface CategoryFormProps {
@@ -25,25 +25,129 @@ interface CategoryFormProps {
   isEdit?: boolean;
 }
 
-const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
+const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
   
   const [formData, setFormData] = useState<Partial<Category>>({
-    name: category?.name || '',
-    description: category?.description || '',
-    status: category?.status || 'active',
-    image: category?.image || '',
-    sortOrder: category?.sortOrder || 0,
-    metaTitle: category?.metaTitle || '',
-    metaDescription: category?.metaDescription || ''
+    name: '',
+    description: '',
+    is_active: true,
+    image_url: ''
   });
+
+  const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  useEffect(() => {
+    if (id && isEdit) {
+      fetchCategory();
+    } else if (propCategory) {
+      setFormData({
+        name: propCategory.name,
+        description: propCategory.description,
+        is_active: propCategory.is_active,
+        image_url: propCategory.image_url
+      });
+    }
+  }, [id, isEdit, propCategory]);
+
+  const fetchCategory = async () => {
+    if (!id) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      
+      setFormData({
+        name: data.name,
+        description: data.description,
+        is_active: data.is_active,
+        image_url: data.image_url
+      });
+    } catch (error) {
+      console.error('Error fetching category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch category details.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (field: keyof Category, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const uploadImage = async (file: File): Promise<string | null> => {
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `categories/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('category-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('category-images')
+        .getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const imageUrl = await uploadImage(file);
+    if (imageUrl) {
+      handleInputChange('image_url', imageUrl);
+    }
+  };
+
+  const removeImage = async () => {
+    if (formData.image_url) {
+      try {
+        // Extract file path from URL for deletion
+        const url = new URL(formData.image_url);
+        const pathParts = url.pathname.split('/');
+        const filePath = pathParts.slice(pathParts.indexOf('categories')).join('/');
+        
+        await supabase.storage
+          .from('category-images')
+          .remove([filePath]);
+      } catch (error) {
+        console.error('Error removing image:', error);
+      }
+    }
+    handleInputChange('image_url', '');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.description) {
@@ -55,25 +159,50 @@ const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
       return;
     }
 
-    const categoryData: Category = {
-      id: category?.id || `cat_${Date.now()}`,
-      name: formData.name!,
-      description: formData.description!,
-      status: formData.status as 'active' | 'inactive',
-      image: formData.image || '/api/placeholder/300/200',
-      sortOrder: Number(formData.sortOrder) || 0,
-      metaTitle: formData.metaTitle,
-      metaDescription: formData.metaDescription
-    };
+    setLoading(true);
+    try {
+      if (isEdit && id) {
+        const { error } = await supabase
+          .from('categories')
+          .update({
+            name: formData.name,
+            description: formData.description,
+            is_active: formData.is_active,
+            image_url: formData.image_url,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id);
 
-    console.log(isEdit ? 'Updating category:' : 'Creating category:', categoryData);
-    
-    toast({
-      title: isEdit ? "Category updated!" : "Category created!",
-      description: `${categoryData.name} has been ${isEdit ? 'updated' : 'added'} successfully.`,
-    });
-    
-    navigate('/admin/categories');
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('categories')
+          .insert({
+            name: formData.name,
+            description: formData.description,
+            is_active: formData.is_active,
+            image_url: formData.image_url
+          });
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: isEdit ? "Category updated!" : "Category created!",
+        description: `${formData.name} has been ${isEdit ? 'updated' : 'added'} successfully.`,
+      });
+      
+      navigate('/admin/categories');
+    } catch (error) {
+      console.error('Error saving category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save category. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -122,8 +251,8 @@ const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleInputChange('status', value)}
+                    value={formData.is_active ? 'active' : 'inactive'}
+                    onValueChange={(value) => handleInputChange('is_active', value === 'active')}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -134,49 +263,10 @@ const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="sortOrder">Sort Order</Label>
-                  <Input
-                    id="sortOrder"
-                    type="number"
-                    value={formData.sortOrder}
-                    onChange={(e) => handleInputChange('sortOrder', Number(e.target.value))}
-                    placeholder="0"
-                    min="0"
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="metaTitle">Meta Title</Label>
-                <Input
-                  id="metaTitle"
-                  value={formData.metaTitle}
-                  onChange={(e) => handleInputChange('metaTitle', e.target.value)}
-                  placeholder="SEO meta title"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="metaDescription">Meta Description</Label>
-                <Textarea
-                  id="metaDescription"
-                  value={formData.metaDescription}
-                  onChange={(e) => handleInputChange('metaDescription', e.target.value)}
-                  placeholder="SEO meta description"
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="space-y-6">
@@ -191,17 +281,7 @@ const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
                   id="imageFile"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        const result = e.target?.result as string;
-                        handleInputChange('image', result);
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
+                  onChange={handleImageUpload}
                   className="hidden"
                 />
                 <Button
@@ -209,13 +289,14 @@ const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
                   variant="outline"
                   onClick={() => document.getElementById('imageFile')?.click()}
                   className="w-full"
+                  disabled={uploadingImage}
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Choose Image
+                  {uploadingImage ? 'Uploading...' : 'Choose Image'}
                 </Button>
               </div>
               
-              {!formData.image && (
+              {!formData.image_url && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                   <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500">
@@ -227,10 +308,10 @@ const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
                 </div>
               )}
 
-              {formData.image && (
+              {formData.image_url && (
                 <div className="relative">
                   <img
-                    src={formData.image}
+                    src={formData.image_url}
                     alt="Category preview"
                     className="w-full h-48 object-cover rounded-lg"
                   />
@@ -239,7 +320,8 @@ const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
                     variant="destructive"
                     size="sm"
                     className="absolute top-2 right-2"
-                    onClick={() => handleInputChange('image', '')}
+                    onClick={removeImage}
+                    disabled={uploadingImage}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -251,14 +333,15 @@ const CategoryForm = ({ category, isEdit = false }: CategoryFormProps) => {
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-2">
-                <Button type="submit" className="w-full">
-                  {isEdit ? 'Update Category' : 'Create Category'}
+                <Button type="submit" className="w-full" disabled={loading || uploadingImage}>
+                  {loading ? 'Saving...' : isEdit ? 'Update Category' : 'Create Category'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full"
                   onClick={() => navigate('/admin/categories')}
+                  disabled={loading}
                 >
                   Cancel
                 </Button>

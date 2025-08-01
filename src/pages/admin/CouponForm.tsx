@@ -1,80 +1,96 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ArrowLeft, CalendarIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-
-interface Coupon {
-  id: string;
-  code: string;
-  description: string;
-  type: 'percentage' | 'fixed';
-  value: number;
-  minOrderValue: number;
-  maxDiscountAmount?: number;
-  usageLimit: number;
-  usedCount: number;
-  validFrom: Date;
-  validUntil: Date;
-  status: 'active' | 'inactive' | 'expired';
-  isFirstTimeUser?: boolean;
-  applicableCategories?: string[];
-  excludedProducts?: string[];
-}
+import { supabase } from '@/integrations/supabase/client';
 
 interface CouponFormProps {
-  coupon?: Coupon;
+  coupon?: any;
   isEdit?: boolean;
 }
 
-const CouponForm = ({ coupon, isEdit = false }: CouponFormProps) => {
+const CouponForm = ({ coupon: propCoupon, isEdit = false }: CouponFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
   
-  const [formData, setFormData] = useState<Partial<Coupon>>({
-    code: coupon?.code || '',
-    description: coupon?.description || '',
-    type: coupon?.type || 'percentage',
-    value: coupon?.value || 0,
-    minOrderValue: coupon?.minOrderValue || 0,
-    maxDiscountAmount: coupon?.maxDiscountAmount || 0,
-    usageLimit: coupon?.usageLimit || 0,
-    usedCount: coupon?.usedCount || 0,
-    validFrom: coupon?.validFrom || new Date(),
-    validUntil: coupon?.validUntil || new Date(),
-    status: coupon?.status || 'active',
-    isFirstTimeUser: coupon?.isFirstTimeUser || false,
-    applicableCategories: coupon?.applicableCategories || [],
-    excludedProducts: coupon?.excludedProducts || []
+  const [formData, setFormData] = useState({
+    code: '',
+    description: '',
+    discount_type: 'percentage',
+    discount_value: 0,
+    min_order_amount: 0,
+    max_discount_amount: 0,
+    usage_limit: 0,
+    used_count: 0,
+    valid_from: new Date(),
+    valid_until: new Date(),
+    is_active: true
   });
 
-  const categories = ['Chicken', 'Beef', 'Seafood', 'Pork', 'Lamb', 'Ready to Cook'];
+  const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (field: keyof Coupon, value: any) => {
+  useEffect(() => {
+    if (id && isEdit) {
+      fetchCoupon();
+    }
+  }, [id, isEdit]);
+
+  const fetchCoupon = async () => {
+    if (!id) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      
+      setFormData({
+        ...data,
+        valid_from: new Date(data.valid_from),
+        valid_until: new Date(data.valid_until)
+      });
+    } catch (error) {
+      console.error('Error fetching coupon:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch coupon details.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const generateCouponCode = () => {
-    const prefix = formData.type === 'percentage' ? 'SAVE' : 'GET';
-    const value = formData.value || 10;
+    const prefix = formData.discount_type === 'percentage' ? 'SAVE' : 'GET';
+    const value = formData.discount_value || 10;
     const random = Math.random().toString(36).substring(2, 5).toUpperCase();
     return `${prefix}${value}${random}`;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.code || !formData.description || !formData.value) {
+    if (!formData.code || !formData.description || !formData.discount_value) {
       toast({
         title: "Missing required fields",
         description: "Please fill in code, description, and discount value.",
@@ -83,41 +99,53 @@ const CouponForm = ({ coupon, isEdit = false }: CouponFormProps) => {
       return;
     }
 
-    if (formData.validFrom && formData.validUntil && formData.validFrom >= formData.validUntil) {
+    setLoading(true);
+    try {
+      const couponData = {
+        code: formData.code,
+        description: formData.description,
+        discount_type: formData.discount_type,
+        discount_value: Number(formData.discount_value),
+        min_order_amount: Number(formData.min_order_amount) || 0,
+        max_discount_amount: Number(formData.max_discount_amount) || null,
+        usage_limit: Number(formData.usage_limit) || null,
+        used_count: Number(formData.used_count) || 0,
+        valid_from: formData.valid_from.toISOString(),
+        valid_until: formData.valid_until.toISOString(),
+        is_active: formData.is_active
+      };
+
+      if (isEdit && id) {
+        const { error } = await supabase
+          .from('coupons')
+          .update(couponData)
+          .eq('id', id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('coupons')
+          .insert(couponData);
+
+        if (error) throw error;
+      }
+
       toast({
-        title: "Invalid dates",
-        description: "Valid until date must be after valid from date.",
+        title: isEdit ? "Coupon updated!" : "Coupon created!",
+        description: `Coupon ${formData.code} has been ${isEdit ? 'updated' : 'added'} successfully.`,
+      });
+      
+      navigate('/admin/coupons');
+    } catch (error) {
+      console.error('Error saving coupon:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save coupon. Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    const couponData: Coupon = {
-      id: coupon?.id || `coupon_${Date.now()}`,
-      code: formData.code!,
-      description: formData.description!,
-      type: formData.type as 'percentage' | 'fixed',
-      value: Number(formData.value),
-      minOrderValue: Number(formData.minOrderValue) || 0,
-      maxDiscountAmount: Number(formData.maxDiscountAmount) || 0,
-      usageLimit: Number(formData.usageLimit) || 0,
-      usedCount: Number(formData.usedCount) || 0,
-      validFrom: formData.validFrom!,
-      validUntil: formData.validUntil!,
-      status: formData.status as 'active' | 'inactive' | 'expired',
-      isFirstTimeUser: formData.isFirstTimeUser,
-      applicableCategories: formData.applicableCategories,
-      excludedProducts: formData.excludedProducts
-    };
-
-    console.log(isEdit ? 'Updating coupon:' : 'Creating coupon:', couponData);
-    
-    toast({
-      title: isEdit ? "Coupon updated!" : "Coupon created!",
-      description: `Coupon ${couponData.code} has been ${isEdit ? 'updated' : 'added'} successfully.`,
-    });
-    
-    navigate('/admin/coupons');
   };
 
   return (
@@ -134,7 +162,6 @@ const CouponForm = ({ coupon, isEdit = false }: CouponFormProps) => {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
@@ -162,18 +189,17 @@ const CouponForm = ({ coupon, isEdit = false }: CouponFormProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="discount_type">Discount Type *</Label>
                   <Select
-                    value={formData.status}
-                    onValueChange={(value) => handleInputChange('status', value)}
+                    value={formData.discount_type}
+                    onValueChange={(value) => handleInputChange('discount_type', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="expired">Expired</SelectItem>
+                      <SelectItem value="percentage">Percentage (%)</SelectItem>
+                      <SelectItem value="fixed">Fixed Amount (₹)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -190,117 +216,46 @@ const CouponForm = ({ coupon, isEdit = false }: CouponFormProps) => {
                   required
                 />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Discount Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Discount Configuration</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="type">Discount Type *</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(value) => handleInputChange('type', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="percentage">Percentage (%)</SelectItem>
-                      <SelectItem value="fixed">Fixed Amount (₹)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="value">
-                    Discount Value * {formData.type === 'percentage' ? '(%)' : '(₹)'}
+                  <Label htmlFor="discount_value">
+                    Discount Value * {formData.discount_type === 'percentage' ? '(%)' : '(₹)'}
                   </Label>
                   <Input
-                    id="value"
+                    id="discount_value"
                     type="number"
-                    value={formData.value}
-                    onChange={(e) => handleInputChange('value', Number(e.target.value))}
+                    value={formData.discount_value}
+                    onChange={(e) => handleInputChange('discount_value', Number(e.target.value))}
                     placeholder="0"
                     min="0"
-                    max={formData.type === 'percentage' ? 100 : undefined}
-                    step={formData.type === 'percentage' ? 1 : 0.01}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="minOrderValue">Min Order Value (₹)</Label>
+                  <Label htmlFor="min_order_amount">Min Order Value (₹)</Label>
                   <Input
-                    id="minOrderValue"
+                    id="min_order_amount"
                     type="number"
-                    value={formData.minOrderValue}
-                    onChange={(e) => handleInputChange('minOrderValue', Number(e.target.value))}
+                    value={formData.min_order_amount}
+                    onChange={(e) => handleInputChange('min_order_amount', Number(e.target.value))}
                     placeholder="0"
                     min="0"
                   />
                 </div>
-              </div>
 
-              {formData.type === 'percentage' && (
                 <div className="space-y-2">
-                  <Label htmlFor="maxDiscountAmount">Max Discount Amount (₹)</Label>
+                  <Label htmlFor="usage_limit">Usage Limit</Label>
                   <Input
-                    id="maxDiscountAmount"
+                    id="usage_limit"
                     type="number"
-                    value={formData.maxDiscountAmount}
-                    onChange={(e) => handleInputChange('maxDiscountAmount', Number(e.target.value))}
-                    placeholder="0 (No limit)"
-                    min="0"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Leave 0 for no maximum discount limit
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Usage & Validity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Usage & Validity</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="usageLimit">Usage Limit</Label>
-                  <Input
-                    id="usageLimit"
-                    type="number"
-                    value={formData.usageLimit}
-                    onChange={(e) => handleInputChange('usageLimit', Number(e.target.value))}
+                    value={formData.usage_limit}
+                    onChange={(e) => handleInputChange('usage_limit', Number(e.target.value))}
                     placeholder="0 (Unlimited)"
                     min="0"
                   />
-                  <p className="text-sm text-muted-foreground">
-                    Leave 0 for unlimited usage
-                  </p>
                 </div>
-
-                {isEdit && (
-                  <div className="space-y-2">
-                    <Label htmlFor="usedCount">Used Count</Label>
-                    <Input
-                      id="usedCount"
-                      type="number"
-                      value={formData.usedCount}
-                      onChange={(e) => handleInputChange('usedCount', Number(e.target.value))}
-                      placeholder="0"
-                      min="0"
-                      readOnly
-                    />
-                  </div>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -312,18 +267,18 @@ const CouponForm = ({ coupon, isEdit = false }: CouponFormProps) => {
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
-                          !formData.validFrom && "text-muted-foreground"
+                          !formData.valid_from && "text-muted-foreground"
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.validFrom ? format(formData.validFrom, "PPP") : "Pick a date"}
+                        {formData.valid_from ? format(formData.valid_from, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
-                        selected={formData.validFrom}
-                        onSelect={(date) => handleInputChange('validFrom', date)}
+                        selected={formData.valid_from}
+                        onSelect={(date) => handleInputChange('valid_from', date)}
                         initialFocus
                       />
                     </PopoverContent>
@@ -338,111 +293,41 @@ const CouponForm = ({ coupon, isEdit = false }: CouponFormProps) => {
                         variant="outline"
                         className={cn(
                           "w-full justify-start text-left font-normal",
-                          !formData.validUntil && "text-muted-foreground"
+                          !formData.valid_until && "text-muted-foreground"
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {formData.validUntil ? format(formData.validUntil, "PPP") : "Pick a date"}
+                        {formData.valid_until ? format(formData.valid_until, "PPP") : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
-                        selected={formData.validUntil}
-                        onSelect={(date) => handleInputChange('validUntil', date)}
+                        selected={formData.valid_until}
+                        onSelect={(date) => handleInputChange('valid_until', date)}
                         initialFocus
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isFirstTimeUser"
-                  checked={formData.isFirstTimeUser}
-                  onCheckedChange={(checked) => handleInputChange('isFirstTimeUser', checked)}
-                />
-                <Label htmlFor="isFirstTimeUser">Only for first-time users</Label>
-              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Applicable Categories */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Applicable Categories</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Select categories where this coupon can be applied. Leave empty for all categories.
-              </p>
-              
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <div key={category} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`cat-${category}`}
-                      checked={formData.applicableCategories?.includes(category)}
-                      onCheckedChange={(checked) => {
-                        const current = formData.applicableCategories || [];
-                        const updated = checked
-                          ? [...current, category]
-                          : current.filter(c => c !== category);
-                        handleInputChange('applicableCategories', updated);
-                      }}
-                    />
-                    <Label htmlFor={`cat-${category}`}>{category}</Label>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Coupon Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Coupon Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="text-sm">
-                <strong>Code:</strong> {formData.code || 'Not set'}
-              </div>
-              <div className="text-sm">
-                <strong>Type:</strong> {formData.type === 'percentage' ? 'Percentage' : 'Fixed Amount'}
-              </div>
-              <div className="text-sm">
-                <strong>Value:</strong> {formData.value || 0}{formData.type === 'percentage' ? '%' : '₹'}
-              </div>
-              <div className="text-sm">
-                <strong>Min Order:</strong> ₹{formData.minOrderValue || 0}
-              </div>
-              {formData.type === 'percentage' && formData.maxDiscountAmount && (
-                <div className="text-sm">
-                  <strong>Max Discount:</strong> ₹{formData.maxDiscountAmount}
-                </div>
-              )}
-              <div className="text-sm">
-                <strong>Usage Limit:</strong> {formData.usageLimit || 'Unlimited'}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
           <Card>
             <CardContent className="pt-6">
               <div className="space-y-2">
-                <Button type="submit" className="w-full">
-                  {isEdit ? 'Update Coupon' : 'Create Coupon'}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Saving...' : isEdit ? 'Update Coupon' : 'Create Coupon'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full"
                   onClick={() => navigate('/admin/coupons')}
+                  disabled={loading}
                 >
                   Cancel
                 </Button>
