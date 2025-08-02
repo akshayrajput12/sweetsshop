@@ -46,7 +46,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail }) => {
         )}
 
         {/* Stock Status */}
-        {!product.inStock && (
+        {(product.stock_quantity !== undefined && product.stock_quantity <= 0) && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="text-white font-medium">Out of Stock</span>
           </div>
@@ -93,7 +93,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail }) => {
 
           <motion.button
             onClick={handleAddToCart}
-            disabled={!product.inStock}
+            disabled={product.stock_quantity !== undefined && product.stock_quantity <= 0}
             className="bg-primary hover:bg-primary-hover text-primary-foreground p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

@@ -19,6 +19,9 @@ interface Product {
   original_price?: number;
   category_id?: string;
   weight?: string;
+  pieces?: string;
+  serves?: number;
+  storage_instructions?: string;
   description?: string;
   stock_quantity?: number;
   is_active?: boolean;
@@ -26,6 +29,7 @@ interface Product {
   images?: string[];
   features?: any;
   nutritional_info?: any;
+  marketing_info?: any;
   sku?: string;
 }
 
@@ -49,7 +53,10 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     stock_quantity: 0,
     is_active: true,
     is_bestseller: false,
-    sku: ''
+    sku: '',
+    pieces: '',
+    serves: 0,
+    storage_instructions: ''
   });
 
   const [images, setImages] = useState<string[]>([]);
@@ -74,6 +81,14 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     qualityAndFoodsafetyChecks: false,
     mixOfOffalOrgans: false,
     antibioticResidueFree: false
+  });
+
+  const [marketingInfo, setMarketingInfo] = useState({
+    marketedBy: '',
+    address: '',
+    city: '',
+    state: '',
+    fssaiLicense: ''
   });
 
   useEffect(() => {
@@ -121,6 +136,9 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
       }
       if (data.features && typeof data.features === 'object') {
         setFeatures({ ...features, ...(data.features as any) });
+      }
+      if (data.marketing_info && typeof data.marketing_info === 'object') {
+        setMarketingInfo({ ...marketingInfo, ...(data.marketing_info as any) });
       }
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -233,7 +251,11 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         images: images,
         features: features,
         nutritional_info: nutritionalInfo,
-        sku: formData.sku
+        sku: formData.sku,
+        pieces: formData.pieces,
+        serves: Number(formData.serves) || 0,
+        storage_instructions: formData.storage_instructions,
+        marketing_info: marketingInfo
       };
 
       if (isEdit && id) {
@@ -402,14 +424,38 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight</Label>
-                <Input
-                  id="weight"
-                  value={formData.weight}
-                  onChange={(e) => handleInputChange('weight', e.target.value)}
-                  placeholder="e.g., 500g, 1kg"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="weight">Weight</Label>
+                  <Input
+                    id="weight"
+                    value={formData.weight}
+                    onChange={(e) => handleInputChange('weight', e.target.value)}
+                    placeholder="e.g., 500g, 1kg"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pieces">Pieces</Label>
+                  <Input
+                    id="pieces"
+                    value={formData.pieces}
+                    onChange={(e) => handleInputChange('pieces', e.target.value)}
+                    placeholder="e.g., 8-10 pieces"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="serves">Serves</Label>
+                  <Input
+                    id="serves"
+                    type="number"
+                    value={formData.serves}
+                    onChange={(e) => handleInputChange('serves', Number(e.target.value))}
+                    placeholder="e.g., 2"
+                    min="0"
+                  />
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -571,6 +617,81 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                   onChange={(e) => setNutritionalInfo({...nutritionalInfo, carbohydrate: e.target.value})}
                   placeholder="e.g., 0g"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Storage & Marketing Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="storage_instructions">Storage Instructions</Label>
+                <Textarea
+                  id="storage_instructions"
+                  value={formData.storage_instructions}
+                  onChange={(e) => handleInputChange('storage_instructions', e.target.value)}
+                  placeholder="e.g., Store frozen at -18°C or below"
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold">Marketing Information</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="marketedBy">Marketed By</Label>
+                  <Input
+                    id="marketedBy"
+                    value={marketingInfo.marketedBy}
+                    onChange={(e) => setMarketingInfo({...marketingInfo, marketedBy: e.target.value})}
+                    placeholder="Company name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    value={marketingInfo.address}
+                    onChange={(e) => setMarketingInfo({...marketingInfo, address: e.target.value})}
+                    placeholder="Company address"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={marketingInfo.city}
+                      onChange={(e) => setMarketingInfo({...marketingInfo, city: e.target.value})}
+                      placeholder="City"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input
+                      id="state"
+                      value={marketingInfo.state}
+                      onChange={(e) => setMarketingInfo({...marketingInfo, state: e.target.value})}
+                      placeholder="State"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="fssaiLicense">FSSAI License</Label>
+                  <Input
+                    id="fssaiLicense"
+                    value={marketingInfo.fssaiLicense}
+                    onChange={(e) => setMarketingInfo({...marketingInfo, fssaiLicense: e.target.value})}
+                    placeholder="FSSAI License number"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

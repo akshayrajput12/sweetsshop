@@ -247,6 +247,42 @@ export type Database = {
         }
         Relationships: []
       }
+      product_coupons: {
+        Row: {
+          coupon_id: string
+          created_at: string | null
+          id: string
+          product_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string | null
+          id?: string
+          product_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string | null
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_coupons_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_coupons_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_id: string | null
@@ -257,12 +293,16 @@ export type Database = {
           images: string[] | null
           is_active: boolean | null
           is_bestseller: boolean | null
+          marketing_info: Json | null
           name: string
           nutritional_info: Json | null
           original_price: number | null
+          pieces: string | null
           price: number
+          serves: number | null
           sku: string | null
           stock_quantity: number | null
+          storage_instructions: string | null
           updated_at: string | null
           weight: string | null
         }
@@ -275,12 +315,16 @@ export type Database = {
           images?: string[] | null
           is_active?: boolean | null
           is_bestseller?: boolean | null
+          marketing_info?: Json | null
           name: string
           nutritional_info?: Json | null
           original_price?: number | null
+          pieces?: string | null
           price: number
+          serves?: number | null
           sku?: string | null
           stock_quantity?: number | null
+          storage_instructions?: string | null
           updated_at?: string | null
           weight?: string | null
         }
@@ -293,12 +337,16 @@ export type Database = {
           images?: string[] | null
           is_active?: boolean | null
           is_bestseller?: boolean | null
+          marketing_info?: Json | null
           name?: string
           nutritional_info?: Json | null
           original_price?: number | null
+          pieces?: string | null
           price?: number
+          serves?: number | null
           sku?: string | null
           stock_quantity?: number | null
+          storage_instructions?: string | null
           updated_at?: string | null
           weight?: string | null
         }

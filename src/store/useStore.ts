@@ -44,7 +44,9 @@ export interface Product {
   marketingInfo?: MarketingInfo;
   features?: ProductFeatures;
   storageInstructions?: string;
+  storage_instructions?: string;
   inStock: boolean;
+  stock_quantity?: number;
   slug: string;
   serves?: number;
   isBestSeller?: boolean;

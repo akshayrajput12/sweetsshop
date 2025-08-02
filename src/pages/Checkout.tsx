@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, MapPin, CreditCard, Truck, Tag, User, Phone, Mail, Clock, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { useStore } from '@/store/useStore';
 import { formatPrice } from '@/utils/currency';
 import { initiateRazorpayPayment, OrderData } from '@/utils/razorpay';
 import LocationPicker from '@/components/LocationPicker';
+import AddressManager from '@/components/AddressManager';
 import Stepper from '@/components/Stepper';
 import { porterService, createPorterOrderFromCheckout } from '@/utils/porter';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,9 +23,12 @@ const Checkout = () => {
   const { cartItems, clearCart } = useStore();
   const [currentStep, setCurrentStep] = useState(1);
   const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState('online');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
 
   // Customer Information
   const [customerInfo, setCustomerInfo] = useState({
@@ -59,31 +63,124 @@ const Checkout = () => {
     { id: 'summary', title: 'Order Summary', description: 'Review & confirm' }
   ];
 
+  useEffect(() => {
+    fetchProductCoupons();
+  }, [cartItems]);
+
+  const fetchProductCoupons = async () => {
+    try {
+      const productIds = cartItems.map(item => item.id);
+      
+      if (productIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('product_coupons')
+        .select(`
+          coupon_id,
+          coupons (
+            id,
+            code,
+            description,
+            discount_type,
+            discount_value,
+            min_order_amount,
+            max_discount_amount
+          )
+        `)
+        .in('product_id', productIds);
+
+      if (error) throw error;
+      
+      const coupons = data
+        ?.map(pc => pc.coupons)
+        .filter(c => c !== null)
+        .filter((coupon, index, self) => 
+          index === self.findIndex(c => c.id === coupon.id)
+        ) || [];
+      
+      setAvailableCoupons(coupons);
+    } catch (error) {
+      console.error('Error fetching product coupons:', error);
+    }
+  };
+
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.05;
   const deliveryFee = subtotal >= 999 ? 0 : 49;
   const total = subtotal + tax + deliveryFee - discount;
 
-  const applyCoupon = () => {
-    if (couponCode === 'SAVE10') {
-      setDiscount(subtotal * 0.1);
+  const applyCoupon = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', couponCode.toUpperCase())
+        .eq('is_active', true)
+        .single();
+
+      if (error || !data) {
+        toast({
+          title: "Invalid coupon",
+          description: "Please check your coupon code.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check minimum order amount
+      if (data.min_order_amount && subtotal < data.min_order_amount) {
+        toast({
+          title: "Minimum order not met",
+          description: `Minimum order of ₹${data.min_order_amount} required for this coupon.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check usage limit
+      if (data.usage_limit && data.used_count >= data.usage_limit) {
+        toast({
+          title: "Coupon expired",
+          description: "This coupon has reached its usage limit.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      let discountAmount = 0;
+      if (data.discount_type === 'percentage') {
+        discountAmount = (subtotal * data.discount_value) / 100;
+        if (data.max_discount_amount) {
+          discountAmount = Math.min(discountAmount, data.max_discount_amount);
+        }
+      } else {
+        discountAmount = data.discount_value;
+      }
+
+      setDiscount(discountAmount);
+      setAppliedCoupon(data);
       toast({
         title: "Coupon applied!",
-        description: "You saved 10% on your order.",
+        description: `You saved ₹${discountAmount.toFixed(2)} on your order.`,
       });
-    } else if (couponCode === 'FIRST50') {
-      setDiscount(50);
+    } catch (error) {
+      console.error('Error applying coupon:', error);
       toast({
-        title: "Coupon applied!",
-        description: "You saved ₹50 on your order.",
-      });
-    } else {
-      toast({
-        title: "Invalid coupon",
-        description: "Please check your coupon code.",
+        title: "Error",
+        description: "Failed to apply coupon.",
         variant: "destructive",
       });
     }
+  };
+
+  const removeCoupon = () => {
+    setDiscount(0);
+    setAppliedCoupon(null);
+    setCouponCode('');
+    toast({
+      title: "Coupon removed",
+      description: "Coupon has been removed from your order.",
+    });
   };
 
   const handleNextStep = () => {
@@ -472,13 +569,13 @@ const Checkout = () => {
             </Card>
           )}
 
-          {/* Step 2: Delivery Location */}
+          {/* Step 2: Delivery Address */}
           {currentStep === 2 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <MapPin className="h-5 w-5 mr-2" />
-                  Delivery Location
+                  Delivery Address
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
