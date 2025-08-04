@@ -139,10 +139,16 @@ const AdminCoupons = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Coupons</h1>
-        <Button onClick={() => navigate('/admin/coupons/add')}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Coupon
-        </Button>
+        <div className="flex space-x-2">
+          <Button onClick={() => navigate('/admin/coupons/assign')}>
+            <Tag className="w-4 h-4 mr-2" />
+            Assign Coupons
+          </Button>
+          <Button onClick={() => navigate('/admin/coupons/add')}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Coupon
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

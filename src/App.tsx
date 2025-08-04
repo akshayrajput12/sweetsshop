@@ -28,6 +28,7 @@ import OrderDetail from '@/pages/admin/OrderDetail';
 import Customers from '@/pages/admin/Customers';
 import Coupons from '@/pages/admin/Coupons';
 import CouponForm from '@/pages/admin/CouponForm';
+import CouponAssignment from '@/pages/admin/CouponAssignment';
 import BestSellers from '@/pages/admin/BestSellers';
 import Analytics from '@/pages/admin/Analytics';
 import Settings from '@/pages/admin/Settings';
@@ -128,6 +129,7 @@ const AppContent = () => {
             <Route path="coupons" element={<Coupons />} />
             <Route path="coupons/add" element={<CouponForm />} />
             <Route path="coupons/edit/:id" element={<CouponForm isEdit={true} />} />
+            <Route path="coupons/assign" element={<CouponAssignment />} />
             <Route path="bestsellers" element={<BestSellers />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} />

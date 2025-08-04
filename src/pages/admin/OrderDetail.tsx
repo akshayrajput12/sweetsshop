@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, User, CreditCard, Phone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface OrderItem {
   id: string;
@@ -45,60 +47,71 @@ interface OrderDetail {
 const AdminOrderDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [order, setOrder] = useState<OrderDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentStatus, setCurrentStatus] = useState<string>('');
 
-  // Sample order data
-  const [order] = useState<OrderDetail>({
-    id: 'ORD001',
-    customerName: 'Rajesh Kumar',
-    customerEmail: 'rajesh@example.com',
-    customerPhone: '+91 98765 43210',
-    items: [
-      {
-        id: '1',
-        name: 'Chicken Breast Boneless',
-        image: '/api/placeholder/80/80',
-        price: 350,
-        quantity: 2,
-        weight: '500g'
-      },
-      {
-        id: '2',
-        name: 'Fresh Prawns',
-        image: '/api/placeholder/80/80',
-        price: 450,
-        quantity: 1,
-        weight: '250g'
-      },
-      {
-        id: '3',
-        name: 'Mutton Curry Cut',
-        image: '/api/placeholder/80/80',
-        price: 450,
-        quantity: 1,
-        weight: '500g'
+  useEffect(() => {
+    if (id) {
+      fetchOrderDetail();
+    }
+  }, [id]);
+
+  const fetchOrderDetail = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const customerInfo = data.customer_info as any;
+        const addressDetails = data.address_details as any;
+        const orderItems = data.items as any;
+        
+        const orderDetail: OrderDetail = {
+          id: data.order_number,
+          customerName: customerInfo?.name || 'Unknown Customer',
+          customerEmail: customerInfo?.email || '',
+          customerPhone: customerInfo?.phone || '',
+          items: Array.isArray(orderItems) ? orderItems : [],
+          subtotal: data.subtotal,
+          deliveryFee: data.delivery_fee,
+          tax: data.tax,
+          total: data.total,
+          status: data.order_status as any,
+          paymentStatus: data.payment_status as any,
+          paymentMethod: data.payment_method,
+          shippingAddress: {
+            street: addressDetails?.address_line_1 || '',
+            city: addressDetails?.city || '',
+            state: addressDetails?.state || '',
+            pincode: addressDetails?.pincode || '',
+            landmark: addressDetails?.landmark || ''
+          },
+          orderDate: data.created_at,
+          deliveryDate: data.actual_delivery,
+          trackingNumber: data.tracking_url,
+          notes: data.special_instructions
+        };
+        setOrder(orderDetail);
+        setCurrentStatus(orderDetail.status);
       }
-    ],
-    subtotal: 1250,
-    deliveryFee: 0,
-    tax: 62.5,
-    total: 1312.5,
-    status: 'processing',
-    paymentStatus: 'paid',
-    paymentMethod: 'UPI',
-    shippingAddress: {
-      street: '123, ABC Apartment, XYZ Road',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pincode: '400001',
-      landmark: 'Near City Mall'
-    },
-    orderDate: '2024-01-26T10:30:00Z',
-    deliveryDate: '2024-01-27T18:00:00Z',
-    trackingNumber: 'TRK123456789',
-    notes: 'Please call before delivery'
-  });
-
-  const [currentStatus, setCurrentStatus] = useState(order.status);
+    } catch (error: any) {
+      console.error('Error fetching order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch order details",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -140,11 +153,47 @@ const AdminOrderDetail = () => {
     });
   };
 
-  const updateOrderStatus = (newStatus: string) => {
-    setCurrentStatus(newStatus as any);
-    // Here you would typically make an API call to update the order status
-    console.log('Updating order status to:', newStatus);
+  const updateOrderStatus = async (newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ order_status: newStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCurrentStatus(newStatus);
+      toast({
+        title: "Success",
+        description: "Order status updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-2xl font-bold mb-4">Order not found</h1>
+        <Button onClick={() => navigate('/admin/orders')}>
+          Back to Orders
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
