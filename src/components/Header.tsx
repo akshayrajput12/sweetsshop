@@ -38,7 +38,7 @@ const Header = () => {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">B</span>
             </div>
-            <span className="heading-md text-primary">BukBox</span>
+            <span className="heading-md text-primary">BulkBox</span>
           </Link>
 
           {/* Location Display */}

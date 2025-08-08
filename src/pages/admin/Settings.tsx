@@ -36,8 +36,8 @@ const AdminSettings = () => {
       data?.forEach(setting => {
         try {
           // Parse JSON values, fallback to string if parsing fails
-          settingsObj[setting.key] = typeof setting.value === 'string' 
-            ? JSON.parse(setting.value) 
+          settingsObj[setting.key] = typeof setting.value === 'string'
+            ? JSON.parse(setting.value)
             : setting.value;
         } catch {
           settingsObj[setting.key] = setting.value;
@@ -60,7 +60,7 @@ const AdminSettings = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
-      
+
       // Prepare updates for each setting
       const updates = Object.entries(settings).map(([key, value]) => ({
         key,
@@ -155,7 +155,7 @@ const AdminSettings = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="store_description">Store Description</Label>
                 <Textarea
@@ -165,7 +165,7 @@ const AdminSettings = () => {
                   rows={3}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="store_phone">Phone Number</Label>
@@ -210,7 +210,7 @@ const AdminSettings = () => {
                   onChange={(e) => updateSetting('site_title', e.target.value)}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="site_description">Site Description</Label>
                 <Textarea
@@ -220,7 +220,7 @@ const AdminSettings = () => {
                   rows={2}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="site_keywords">Site Keywords</Label>
                 <Input
@@ -329,9 +329,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('razorpay_enabled', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Cash on Delivery</Label>
@@ -342,9 +342,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('cod_enabled', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>UPI Payments</Label>
@@ -355,9 +355,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('upi_enabled', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Card Payments</Label>
@@ -368,9 +368,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('card_enabled', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Net Banking</Label>
@@ -404,9 +404,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('email_notifications', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>SMS Notifications</Label>
@@ -417,9 +417,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('sms_notifications', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Order Notifications</Label>
@@ -430,9 +430,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('order_notifications', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Low Stock Alerts</Label>
@@ -445,7 +445,7 @@ const AdminSettings = () => {
               </div>
 
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Payment Notifications</Label>
@@ -458,7 +458,7 @@ const AdminSettings = () => {
               </div>
 
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Customer Notifications</Label>
@@ -545,7 +545,7 @@ const AdminSettings = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="cod_charge">Cash on Delivery Charge (₹)</Label>
@@ -649,9 +649,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('enable_two_factor', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-2">
                 <Label htmlFor="session_timeout">Session Timeout (minutes)</Label>
                 <Input
@@ -662,7 +662,7 @@ const AdminSettings = () => {
                   className="w-full md:w-1/2"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password_min_length">Minimum Password Length</Label>
                 <Input
@@ -729,9 +729,9 @@ const AdminSettings = () => {
                   className="w-full md:w-1/2"
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Enable Reviews</Label>
@@ -744,7 +744,7 @@ const AdminSettings = () => {
               </div>
 
               <Separator />
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Enable Ratings</Label>
@@ -755,9 +755,9 @@ const AdminSettings = () => {
                   onCheckedChange={(checked) => updateSetting('enable_ratings', checked)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
                 <select
@@ -790,7 +790,7 @@ const AdminSettings = () => {
                 <Input placeholder="Enter Google Maps API Key" className="mb-2" />
                 <Button variant="outline" size="sm">Configure</Button>
               </div>
-              
+
               <div className="p-4 border rounded-lg">
                 <h3 className="font-medium mb-2">Razorpay Payment Gateway</h3>
                 <p className="text-sm text-muted-foreground mb-3">For processing payments</p>
@@ -800,14 +800,14 @@ const AdminSettings = () => {
                 </div>
                 <Button variant="outline" size="sm">Configure</Button>
               </div>
-              
+
               <div className="p-4 border rounded-lg">
                 <h3 className="font-medium mb-2">SMS Gateway</h3>
                 <p className="text-sm text-muted-foreground mb-3">For sending order notifications</p>
                 <Input placeholder="SMS API Key" className="mb-2" />
                 <Button variant="outline" size="sm">Configure</Button>
               </div>
-              
+
               <div className="p-4 border rounded-lg">
                 <h3 className="font-medium mb-2">Email Service (SMTP)</h3>
                 <p className="text-sm text-muted-foreground mb-3">For sending email notifications</p>

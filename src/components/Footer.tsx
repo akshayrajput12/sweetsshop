@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-primary">BukBox</h3>
+            <h3 className="text-2xl font-bold text-primary">BulkBox</h3>
             <p className="text-gray-300">
               Your ultimate bulk shopping destination. Buy everything in bulk at wholesale prices. 
               Trusted by thousands of businesses and families across India.
@@ -69,7 +69,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-gray-300">support@bukbox.com</span>
+                <span className="text-gray-300">support@bulkbox.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <MapPin className="h-4 w-4 text-primary mt-1" />
@@ -85,7 +85,7 @@ const Footer = () => {
         <div className="border-t border-gray-700 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300 text-sm">
-              © 2024 BukBox. All rights reserved.
+              © 2024 BulkBox. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-300 hover:text-primary text-sm transition-colors">

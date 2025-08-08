@@ -1,7 +1,7 @@
 -- =====================================================
--- BUKBOX COMPLETE DATABASE MIGRATION
+-- BULKBOX COMPLETE DATABASE MIGRATION
 -- =====================================================
--- This migration creates the complete database schema for BukBox
+-- This migration creates the complete database schema for BulkBox
 -- A comprehensive bulk shopping e-commerce platform
 -- 
 -- Version: 3.0 (Complete Analysis-Based Migration)
@@ -257,7 +257,7 @@ DECLARE
   receipt_id TEXT;
 BEGIN
   -- Generate unique receipt ID for Razorpay
-  receipt_id := 'BUKBOX_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 8);
+  receipt_id := 'BULKBOX_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 8);
   
   RETURN receipt_id;
 END;
@@ -565,7 +565,7 @@ CREATE POLICY "Admins can delete coupon images" ON storage.objects FOR DELETE
 USING (bucket_id = 'coupon-images' AND public.is_admin());
 
 -- =====================================================
--- INITIAL DATA FOR BUKBOX
+-- INITIAL DATA FOR BULKBOX
 -- =====================================================
 
 -- Insert default categories for bulk shopping with images
@@ -615,10 +615,10 @@ SELECT
   true,
   100,
   'BULK-RICE-25KG',
-  '{"material": "Premium Basmati Rice", "origin": "Punjab, India", "brand": "BukBox Premium", "certification": "FSSAI Approved", "weight_per_unit": "25kg", "dimensions": "45x30x15 cm"}'::jsonb,
+  '{"material": "Premium Basmati Rice", "origin": "Punjab, India", "brand": "BulkBox Premium", "certification": "FSSAI Approved", "weight_per_unit": "25kg", "dimensions": "45x30x15 cm"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800', 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800'],
   'Store in a cool, dry place away from direct sunlight. Keep in airtight container after opening.',
-  '{"marketedBy": "BukBox Premium Foods Pvt Ltd", "address": "Plot 123, Industrial Area", "city": "Mumbai", "state": "Maharashtra", "fssaiLicense": "12345678901234"}'::jsonb
+  '{"marketedBy": "BulkBox Premium Foods Pvt Ltd", "address": "Plot 123, Industrial Area", "city": "Mumbai", "state": "Maharashtra", "fssaiLicense": "12345678901234"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -634,10 +634,10 @@ SELECT
   true,
   75,
   'BULK-OIL-15L',
-  '{"material": "Refined Sunflower Oil", "origin": "India", "brand": "BukBox Commercial", "certification": "FSSAI Approved", "weight_per_unit": "15L", "dimensions": "25x25x35 cm"}'::jsonb,
+  '{"material": "Refined Sunflower Oil", "origin": "India", "brand": "BulkBox Commercial", "certification": "FSSAI Approved", "weight_per_unit": "15L", "dimensions": "25x25x35 cm"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800', 'https://images.unsplash.com/photo-1615485925763-4d5b8c2b2c1e?w=800'],
   'Store in cool, dry place. Avoid direct sunlight. Use within 12 months of opening.',
-  '{"marketedBy": "BukBox Oils & Edibles Ltd", "address": "Industrial Estate, Sector 5", "city": "Pune", "state": "Maharashtra", "fssaiLicense": "98765432109876"}'::jsonb
+  '{"marketedBy": "BulkBox Oils & Edibles Ltd", "address": "Industrial Estate, Sector 5", "city": "Pune", "state": "Maharashtra", "fssaiLicense": "98765432109876"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -652,10 +652,10 @@ SELECT
   '["Energy Efficient", "Bulk Pack", "Bulk Discount Available", "Premium Quality", "Long Lasting", "Eco Friendly"]'::jsonb,
   50,
   'BULK-LED-50PC',
-  '{"material": "LED with Aluminum Heat Sink", "dimensions": "Standard E27 Base", "warranty": "2 years", "certification": "BIS Approved", "weight_per_unit": "50g per bulb", "brand": "BukBox Electronics"}'::jsonb,
+  '{"material": "LED with Aluminum Heat Sink", "dimensions": "Standard E27 Base", "warranty": "2 years", "certification": "BIS Approved", "weight_per_unit": "50g per bulb", "brand": "BulkBox Electronics"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800', 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800', 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800'],
   'Store in original packaging until use. Avoid moisture and extreme temperatures.',
-  '{"marketedBy": "BukBox Electronics Pvt Ltd", "address": "Tech Park, Phase 2", "city": "Bangalore", "state": "Karnataka", "fssaiLicense": null}'::jsonb
+  '{"marketedBy": "BulkBox Electronics Pvt Ltd", "address": "Tech Park, Phase 2", "city": "Bangalore", "state": "Karnataka", "fssaiLicense": null}'::jsonb
 FROM public.categories c WHERE c.name = 'Electronics'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -672,7 +672,7 @@ SELECT
   false,
   80,
   'BULK-FLOUR-20KG',
-  '{"material": "Whole Wheat Flour", "origin": "Rajasthan, India", "brand": "BukBox Naturals", "certification": "Organic Certified", "weight_per_unit": "20kg"}'::jsonb,
+  '{"material": "Whole Wheat Flour", "origin": "Rajasthan, India", "brand": "BulkBox Naturals", "certification": "Organic Certified", "weight_per_unit": "20kg"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800', 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800'],
   'Store in airtight container in cool, dry place. Use within 6 months for best quality.'
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
@@ -689,7 +689,7 @@ SELECT
   '["Bulk Pack", "Commercial Grade", "Bulk Discount Available", "Premium Quality", "Smooth Writing"]'::jsonb,
   120,
   'BULK-PENS-100PC',
-  '{"material": "Plastic with Metal Tip", "brand": "BukBox Stationery", "warranty": "6 months", "dimensions": "14cm length"}'::jsonb,
+  '{"material": "Plastic with Metal Tip", "brand": "BulkBox Stationery", "warranty": "6 months", "dimensions": "14cm length"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800', 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800']
 FROM public.categories c WHERE c.name = 'Office Supplies'
 ON CONFLICT (sku) DO NOTHING;
@@ -708,9 +708,9 @@ ON CONFLICT (code) DO NOTHING;
 -- Insert comprehensive default settings
 INSERT INTO public.settings (key, value, description, category, is_public) VALUES
   -- General Store Settings
-  ('store_name', '"BukBox"', 'Store name displayed to customers', 'general', true),
+  ('store_name', '"BulkBox"', 'Store name displayed to customers', 'general', true),
   ('store_description', '"Your ultimate bulk shopping destination with wholesale prices on everything you need"', 'Store description', 'general', true),
-  ('store_email', '"contact@bukbox.com"', 'Store contact email', 'general', true),
+  ('store_email', '"contact@bulkbox.com"', 'Store contact email', 'general', true),
   ('store_phone', '"+91 98765 43210"', 'Store contact phone', 'general', true),
   ('store_address', '"Mumbai, Maharashtra, India"', 'Store address', 'general', true),
   ('store_logo', '"https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"', 'Store logo URL', 'general', true),
@@ -772,7 +772,7 @@ INSERT INTO public.settings (key, value, description, category, is_public) VALUE
   ('netbanking_enabled', 'true', 'Enable net banking', 'payment', true),
   
   -- SEO Settings
-  ('site_title', '"BukBox - Bulk Shopping at Wholesale Prices"', 'Site title for SEO', 'seo', true),
+  ('site_title', '"BulkBox - Bulk Shopping at Wholesale Prices"', 'Site title for SEO', 'seo', true),
   ('site_description', '"Shop bulk products at wholesale prices. Perfect for businesses, restaurants, and bulk buyers. Free delivery on orders above ₹1000."', 'Site meta description', 'seo', true),
   ('site_keywords', '"bulk shopping, wholesale prices, bulk groceries, bulk electronics, business supplies"', 'Site meta keywords', 'seo', true),
   
@@ -839,6 +839,6 @@ NOTIFY pgrst, 'reload schema';
 -- =====================================================
 -- MIGRATION COMPLETE
 -- =====================================================
--- BukBox database schema has been successfully created
+-- BulkBox database schema has been successfully created
 -- with all necessary tables, policies, functions, and initial data
 -- =====================================================

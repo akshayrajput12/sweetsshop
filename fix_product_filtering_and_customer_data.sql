@@ -1,4 +1,4 @@
--- Fix Product Filtering and Customer Data Issues in BukBox Database
+-- Fix Product Filtering and Customer Data Issues in BulkBox Database
 -- Run this script in Supabase SQL Editor to fix existing data problems
 
 -- 1. Ensure all products have proper category relationships
