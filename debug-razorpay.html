@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Razorpay Integration (No Edge Functions)</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <h1>Debug Razorpay Integration (Client-Side Only)</h1>
+    <button onclick="testClientSideOrder()">Test Client-Side Order</button>
+    <button onclick="testDirectPayment()">Test Direct Payment</button>
+    
+    <div id="output"></div>
+
+    <script>
+        const RAZORPAY_KEY = 'rzp_test_VQFNVRmGhGhGhG'; // Replace with your actual key
+
+        function log(message) {
+            const output = document.getElementById('output');
+            output.innerHTML += '<p>' + JSON.stringify(message, null, 2) + '</p>';
+            console.log(message);
+        }
+
+        function testClientSideOrder() {
+            try {
+                log('Testing client-side order creation...');
+                
+                // Generate order ID like the utility function does
+                const timestamp = Date.now();
+                const randomString = Math.random().toString(36).substring(2, 9);
+                const orderId = `BULKBOX_${timestamp}_${randomString}`;
+                const amount = 100 * 100; // ₹100 in paise
+                
+                const order = {
+                    id: orderId,
+                    amount: amount,
+                    currency: 'INR'
+                };
+                
+                log('Client-side order created:');
+                log(order);
+                
+            } catch (error) {
+                log('Error creating client-side order:');
+                log(error.message);
+            }
+        }
+
+        function testDirectPayment() {
+            try {
+                log('Testing direct Razorpay payment...');
+                
+                // Create client-side order
+                const timestamp = Date.now();
+                const randomString = Math.random().toString(36).substring(2, 9);
+                const orderId = `BULKBOX_${timestamp}_${randomString}`;
+                const amount = 100 * 100; // ₹100 in paise
+                
+                log('Created order for payment:', { orderId, amount });
+
+                // Direct payment options (no pre-created Razorpay order)
+                const options = {
+                    key: RAZORPAY_KEY,
+                    amount: amount,
+                    currency: 'INR',
+                    name: 'BulkBox Test',
+                    description: 'Test direct payment without Edge Functions',
+                    handler: function(response) {
+                        log('Payment successful:');
+                        log(response);
+                        
+                        // Client-side verification
+                        const paymentData = {
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: orderId, // Our generated order ID
+                            razorpay_signature: response.razorpay_signature || 'client_side_payment'
+                        };
+                        
+                        // Basic validation
+                        if (response.razorpay_payment_id && response.razorpay_payment_id.startsWith('pay_')) {
+                            log('Payment verification successful (client-side):');
+                            log(paymentData);
+                            log('✅ Order can now be saved to database');
+                        } else {
+                            log('❌ Payment verification failed - invalid payment ID');
+                        }
+                    },
+                    prefill: {
+                        name: 'Test User',
+                        email: 'test@bulkbox.com',
+                        contact: '9999999999'
+                    },
+                    notes: {
+                        order_id: orderId,
+                        customer_name: 'Test User',
+                        test_mode: 'true'
+                    },
+                    theme: {
+                        color: '#dc2626'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            log('Payment modal dismissed by user');
+                        }
+                    },
+                    retry: {
+                        enabled: true,
+                        max_count: 3
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (error) {
+                log('Error testing direct payment:');
+                log(error.message);
+            }
+        }
+    </script>
+</body>
+</html>

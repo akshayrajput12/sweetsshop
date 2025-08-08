@@ -84,6 +84,11 @@ RAZORPAY_KEY_SECRET=your_razorpay_key_secret
    -- Copy entire content from:
    -- supabase/migrations/20250208000000_bulkbox_complete_migration.sql
    ```
+4. If you have an existing database, also run the additional migration:
+   ```sql
+   -- Copy entire content from:
+   -- supabase/migrations/20250208000002_add_cod_fee_column.sql
+   ```
 
 ### 5. Start Development
 ```bash

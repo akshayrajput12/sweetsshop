@@ -44,7 +44,6 @@ export default function Profile() {
 
   const fetchOrders = async () => {
     try {
-      console.log('Fetching orders for user:', user?.id);
       
       // First try to get orders with user_id
       let { data, error } = await supabase
@@ -60,7 +59,6 @@ export default function Profile() {
 
       // If no orders found with user_id, try to find orders by email (fallback for old orders)
       if (!data || data.length === 0) {
-        console.log('No orders found with user_id, trying email fallback...');
         const { data: emailOrders, error: emailError } = await supabase
           .from('orders')
           .select('*')
@@ -69,11 +67,8 @@ export default function Profile() {
 
         if (!emailError && emailOrders) {
           data = emailOrders;
-          console.log('Found orders by email:', emailOrders);
         }
       }
-      
-      console.log('Orders fetched:', data);
       setOrders(data || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -105,8 +100,6 @@ export default function Profile() {
     setLoading(true);
 
     try {
-      console.log('Updating profile with data:', profileData);
-      console.log('User ID:', user?.id);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -121,8 +114,6 @@ export default function Profile() {
         console.error('Profile update error:', error);
         throw error;
       }
-
-      console.log('Profile updated successfully:', data);
 
       toast({
         title: "Profile Updated",

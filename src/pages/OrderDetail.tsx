@@ -28,6 +28,7 @@ interface OrderDetail {
   items: OrderItem[];
   subtotal: number;
   deliveryFee: number;
+  codFee: number;
   tax: number;
   discount: number;
   total: number;
@@ -109,6 +110,7 @@ const UserOrderDetail = () => {
           items: Array.isArray(orderItems) ? orderItems : [],
           subtotal: data.subtotal,
           deliveryFee: data.delivery_fee,
+          codFee: data.cod_fee || 0,
           tax: data.tax,
           discount: data.discount || 0,
           total: data.total,
@@ -278,29 +280,80 @@ const UserOrderDetail = () => {
 
                 <Separator className="my-4" />
 
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>₹{order.subtotal.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Delivery Fee</span>
-                    <span>{order.deliveryFee === 0 ? 'Free' : `₹${order.deliveryFee}`}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax</span>
-                    <span>₹{order.tax.toLocaleString('en-IN')}</span>
-                  </div>
-                  {order.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount {order.couponCode && `(${order.couponCode})`}</span>
-                      <span>-₹{order.discount.toLocaleString('en-IN')}</span>
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm">Item Total ({order.items.length} items)</span>
+                      <span className="text-sm">₹{order.subtotal.toLocaleString('en-IN')}</span>
                     </div>
-                  )}
+                    
+                    <div className="flex justify-between">
+                      <span className="text-sm">Delivery Fee</span>
+                      <span className="text-sm">
+                        {order.deliveryFee === 0 ? (
+                          <span className="text-green-600 font-medium">FREE</span>
+                        ) : (
+                          `₹${order.deliveryFee.toLocaleString('en-IN')}`
+                        )}
+                      </span>
+                    </div>
+
+                    {order.codFee > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-sm">COD Fee</span>
+                        <span className="text-sm">₹{order.codFee.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between">
+                      <span className="text-sm">Tax & Charges</span>
+                      <span className="text-sm">₹{order.tax.toLocaleString('en-IN')}</span>
+                    </div>
+
+                    {order.discount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span className="text-sm">
+                          Discount {order.couponCode && (
+                            <span className="font-medium">({order.couponCode})</span>
+                          )}
+                        </span>
+                        <span className="text-sm font-medium">-₹{order.discount.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+                  </div>
+
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>₹{order.total.toLocaleString('en-IN')}</span>
+                  
+                  <div className="flex justify-between items-center font-bold text-lg">
+                    <span>Total Amount</span>
+                    <span className="text-primary">₹{order.total.toLocaleString('en-IN')}</span>
+                  </div>
+
+                  {/* Payment Method Info */}
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CreditCard className="w-4 h-4 text-gray-600" />
+                        <span className="text-sm font-medium">
+                          {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}
+                        </span>
+                      </div>
+                      <Badge className={getPaymentStatusColor(order.paymentStatus)}>
+                        {order.paymentStatus}
+                      </Badge>
+                    </div>
+                    
+                    {order.paymentMethod === 'cod' && order.paymentStatus === 'pending' && (
+                      <p className="text-xs text-gray-600 mt-2">
+                        Please keep ₹{order.total.toLocaleString('en-IN')} ready for delivery
+                      </p>
+                    )}
+                    
+                    {order.razorpayPaymentId && (
+                      <p className="text-xs text-gray-600 mt-2">
+                        Payment ID: {order.razorpayPaymentId}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>

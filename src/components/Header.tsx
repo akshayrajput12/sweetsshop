@@ -19,9 +19,6 @@ const Header = () => {
   const navigate = useNavigate();
   const userLocation = useLocation();
   
-  // Debug logging
-  console.log('Header - User:', user?.email, 'Profile:', profile, 'isAdmin:', isAdmin);
-  
   const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (

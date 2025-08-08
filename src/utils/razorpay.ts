@@ -81,24 +81,22 @@ export const loadRazorpayScript = (): Promise<boolean> => {
   });
 };
 
-// Create order using Razorpay's direct integration
+// Create order for client-side Razorpay integration (no Edge Functions)
 export const createRazorpayOrder = async (orderData: OrderData): Promise<{
   id: string;
   amount: number;
   currency: string;
 }> => {
   try {
-    // Since we can't expose the secret key on client-side, we'll use a different approach
-    // We'll create the order directly in the Razorpay checkout without pre-creating it
-    
+    // Generate a unique order ID for tracking
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 9);
-    const orderId = `BUK_${timestamp}_${randomString}`;
+    const orderId = `BULKBOX_${timestamp}_${randomString}`;
     
     const amount = Math.round(orderData.amount * 100); // Convert to paise
     
     // Log order creation for debugging
-    console.log('Creating Razorpay order:', {
+    console.log('Creating client-side order:', {
       orderId,
       amount,
       currency: orderData.currency,
@@ -117,16 +115,13 @@ export const createRazorpayOrder = async (orderData: OrderData): Promise<{
   }
 };
 
-// Verify payment using client-side signature verification
+// Verify payment using client-side validation (no Edge Functions)
 export const verifyRazorpayPayment = async (
   paymentId: string,
   orderId: string,
   signature: string
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    // For client-side verification, we'll use a simplified approach
-    // In a production environment, you should verify this on your backend
-    
     // Basic validation - check if all required fields are present
     if (!paymentId || !orderId || !signature) {
       return {
@@ -135,20 +130,19 @@ export const verifyRazorpayPayment = async (
       };
     }
 
-    // Check if payment ID and order ID follow Razorpay format
-    const paymentIdPattern = /^pay_[A-Za-z0-9]{14}$/;
-    const orderIdPattern = /^order_[A-Za-z0-9]{14}$/;
-    
-    if (!paymentIdPattern.test(paymentId) || !orderIdPattern.test(orderId)) {
+    // Validate payment ID format (Razorpay payment IDs start with 'pay_')
+    if (!paymentId.startsWith('pay_') || paymentId.length < 18) {
       return {
         success: false,
-        message: 'Invalid payment or order ID format'
+        message: 'Invalid payment ID format'
       };
     }
 
-    // For client-side implementation, we'll trust Razorpay's callback
+    // For client-side integration without Edge Functions, we trust Razorpay's callback
     // since the payment was processed through their secure checkout
-    console.log('Payment verification successful:', {
+    // In production, you should implement server-side verification
+    
+    console.log('Payment verification (client-side):', {
       paymentId,
       orderId,
       signature: signature.substring(0, 10) + '...' // Log partial signature for debugging
@@ -189,27 +183,27 @@ export const initiateRazorpayPayment = async (
       throw new Error('Razorpay key not configured');
     }
 
-    // Razorpay options for direct payment (without pre-created order)
+    // Razorpay options for client-side integration (no pre-created order)
     const options: any = {
       key: razorpayKey,
       amount: order.amount,
       currency: order.currency,
-      name: import.meta.env.VITE_APP_NAME || 'BukBox',
+      name: import.meta.env.VITE_APP_NAME || 'BulkBox',
       description: `Bulk order for ${orderData.items.length} items - ${orderData.items.map(item => item.name).join(', ').substring(0, 100)}`,
-      image: '/logo.png', // Add your logo here
+      // Note: No order_id for direct payment integration
+      image: '/logo.png',
       handler: async (response: any) => {
         try {
           console.log('Payment successful:', response);
           
-          // For direct payment without pre-created order, response will have:
-          // razorpay_payment_id
+          // For direct payment, response will have payment_id and signature
           const paymentResponse: RazorpayResponse = {
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_order_id: order.id, // Our generated order ID
-            razorpay_signature: response.razorpay_signature || 'direct_payment'
+            razorpay_signature: response.razorpay_signature || 'client_side_payment'
           };
 
-          // Verify payment (simplified for direct payment)
+          // Verify payment using client-side validation
           const verification = await verifyRazorpayPayment(
             paymentResponse.razorpay_payment_id,
             paymentResponse.razorpay_order_id,
@@ -219,7 +213,7 @@ export const initiateRazorpayPayment = async (
           if (verification.success) {
             onSuccess(paymentResponse);
           } else {
-            onError(new Error('Payment verification failed'));
+            onError(new Error(verification.message || 'Payment verification failed'));
           }
         } catch (error) {
           console.error('Payment handler error:', error);
@@ -233,7 +227,7 @@ export const initiateRazorpayPayment = async (
       },
       notes: {
         address: `${orderData.deliveryAddress.plotNumber || ''} ${orderData.deliveryAddress.buildingName || ''}, ${orderData.deliveryAddress.street || ''}, ${orderData.deliveryAddress.address}`.trim(),
-        order_id: order.id,
+        order_id: orderData.orderId,
         customer_name: orderData.customerInfo.name,
         items_count: orderData.items.length.toString()
       },

@@ -267,12 +267,20 @@ const Checkout = () => {
       if (pcError) throw pcError;
 
       // Also fetch general coupons (not tied to specific products)
-      const { data: generalCoupons, error: gcError } = await supabase
+      const productCouponIds = productCoupons?.map(pc => pc.coupon_id).filter(Boolean) || [];
+      
+      let generalCouponsQuery = supabase
         .from('coupons')
         .select('*')
         .eq('is_active', true)
-        .gte('valid_until', new Date().toISOString())
-        .not('id', 'in', `(${productCoupons?.map(pc => pc.coupon_id).join(',') || 'null'})`);
+        .gte('valid_until', new Date().toISOString());
+
+      // Only add the exclusion filter if we have product coupon IDs
+      if (productCouponIds.length > 0) {
+        generalCouponsQuery = generalCouponsQuery.not('id', 'in', `(${productCouponIds.join(',')})`);
+      }
+
+      const { data: generalCoupons, error: gcError } = await generalCouponsQuery;
 
       if (gcError) throw gcError;
       
@@ -667,14 +675,62 @@ const Checkout = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4 sm:py-8">
       {/* Header */}
-      <div className="flex items-center space-x-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        <h1 className="text-3xl font-bold">Checkout</h1>
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" onClick={() => navigate(-1)} size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <h1 className="text-2xl sm:text-3xl font-bold">Checkout</h1>
+        </div>
+        
+        {/* Mobile Total Display */}
+        <div className="xl:hidden">
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Total</p>
+            <p className="text-lg font-bold">{formatPrice(total)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Price Breakdown - Always Visible */}
+      <div className="xl:hidden mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-medium">Order Total</span>
+              <span className="font-bold text-lg">{formatPrice(total)}</span>
+            </div>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tax ({settings.tax_rate}%)</span>
+                <span>{formatPrice(tax)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span>{deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}</span>
+              </div>
+              {paymentMethod === 'cod' && settings.cod_charge > 0 && (
+                <div className="flex justify-between">
+                  <span>COD Fee</span>
+                  <span>{formatPrice(codFee)}</span>
+                </div>
+              )}
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount</span>
+                  <span>-{formatPrice(discount)}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Stepper */}
@@ -682,9 +738,9 @@ const Checkout = () => {
         <Stepper steps={steps} currentStep={currentStep} />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {/* Main Content */}
-        <div className="xl:col-span-2">
+        <div className="xl:col-span-2 order-2 xl:order-1">
           {/* Step 1: Contact Information */}
           {currentStep === 1 && (
             <Card>
@@ -695,7 +751,7 @@ const Checkout = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-sm font-medium">
                       Full Name *
@@ -1452,7 +1508,7 @@ const Checkout = () => {
         </div>
 
         {/* Order Summary Sidebar */}
-        <div className="lg:col-span-1">
+        <div className="xl:col-span-1 order-1 xl:order-2">
           <Card className="sticky top-4">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
@@ -1652,19 +1708,133 @@ const Checkout = () => {
                 <span>{formatPrice(total)}</span>
               </div>
 
-              {currentStep === 3 && (
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={handlePlaceOrder}
-                >
-                  Pay {formatPrice(total)}
-                </Button>
-              )}
+              {/* Mobile Action Button */}
+              <div className="xl:hidden">
+                {currentStep < 5 && (
+                  <div className="flex gap-2">
+                    {currentStep > 1 && (
+                      <Button 
+                        variant="outline" 
+                        onClick={handlePrevStep}
+                        className="flex-1"
+                      >
+                        Back
+                      </Button>
+                    )}
+                    <Button 
+                      onClick={currentStep === 4 ? handlePlaceOrder : handleNextStep}
+                      className="flex-1"
+                      disabled={isProcessingPayment}
+                    >
+                      {isProcessingPayment ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Processing...
+                        </div>
+                      ) : currentStep === 4 ? (
+                        `Pay ${formatPrice(total)}`
+                      ) : (
+                        'Continue'
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Action Button */}
+              <div className="hidden xl:block">
+                {currentStep === 4 && (
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    onClick={handlePlaceOrder}
+                    disabled={isProcessingPayment}
+                  >
+                    {isProcessingPayment ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Processing Payment...
+                      </div>
+                    ) : (
+                      `Pay ${formatPrice(total)}`
+                    )}
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Mobile Sticky Bottom Bar */}
+      <div className="xl:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
+        <div className="container mx-auto">
+          {currentStep < 5 ? (
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">
+                  Step {currentStep} of {steps.length}
+                </p>
+                <p className="font-medium">{steps[currentStep - 1]?.title}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-right mr-4">
+                  <p className="text-sm text-muted-foreground">Total</p>
+                  <p className="font-bold">{formatPrice(total)}</p>
+                </div>
+                {currentStep > 1 && (
+                  <Button 
+                    variant="outline" 
+                    onClick={handlePrevStep}
+                    size="sm"
+                  >
+                    Back
+                  </Button>
+                )}
+                <Button 
+                  onClick={currentStep === 4 ? handlePlaceOrder : handleNextStep}
+                  disabled={isProcessingPayment}
+                  size="sm"
+                  className="min-w-[100px]"
+                >
+                  {isProcessingPayment ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                      <span className="text-xs">Processing...</span>
+                    </div>
+                  ) : currentStep === 4 ? (
+                    'Pay Now'
+                  ) : (
+                    'Continue'
+                  )}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">Review your order and confirm</p>
+              <Button 
+                onClick={handlePlaceOrder}
+                disabled={isProcessingPayment}
+                className="w-full"
+                size="lg"
+              >
+                {isProcessingPayment ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Processing Payment...
+                  </div>
+                ) : (
+                  `Confirm Order - ${formatPrice(total)}`
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Add bottom padding to prevent content from being hidden behind sticky bar */}
+      <div className="xl:hidden h-20"></div>
     </div>
   );
 };

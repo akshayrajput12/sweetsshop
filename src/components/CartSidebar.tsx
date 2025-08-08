@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const CartSidebar = () => {
   const { 
@@ -15,9 +16,48 @@ const CartSidebar = () => {
   
   const navigate = useNavigate();
 
+  // Dynamic settings from database
+  const [settings, setSettings] = useState<Record<string, any>>({
+    tax_rate: 18,
+    delivery_charge: 50,
+    free_delivery_threshold: 1000,
+    currency_symbol: '₹'
+  });
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('key, value')
+        .in('key', ['tax_rate', 'delivery_charge', 'free_delivery_threshold', 'currency_symbol']);
+
+      if (error) throw error;
+
+      const settingsObj: Record<string, any> = {};
+      data?.forEach(setting => {
+        try {
+          settingsObj[setting.key] = typeof setting.value === 'string' 
+            ? JSON.parse(setting.value) 
+            : setting.value;
+        } catch {
+          settingsObj[setting.key] = setting.value;
+        }
+      });
+
+      setSettings(prev => ({ ...prev, ...settingsObj }));
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
   const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.08;
-  const total = subtotal + tax;
+  const tax = subtotal * (settings.tax_rate / 100);
+  const deliveryFee = subtotal >= settings.free_delivery_threshold ? 0 : settings.delivery_charge;
+  const total = subtotal + tax + deliveryFee;
 
   const handleCheckout = () => {
     toggleCart();
@@ -88,7 +128,7 @@ const CartSidebar = () => {
                           {item.name}
                         </h4>
                         <p className="caption text-muted-foreground">
-                          {item.weight} • ₹{item.price}
+                          {item.weight} • {settings.currency_symbol}{item.price}
                         </p>
                         
                         <div className="flex items-center space-x-2 mt-2">
@@ -129,16 +169,31 @@ const CartSidebar = () => {
               <div className="border-t p-6 space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between body-text">
-                    <span>Subtotal</span>
-                    <span>₹{subtotal.toFixed(2)}</span>
+                    <span>Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
+                    <span>{settings.currency_symbol}{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between body-text">
-                    <span>Tax</span>
-                    <span>₹{tax.toFixed(2)}</span>
+                    <span>Tax ({settings.tax_rate}%)</span>
+                    <span>{settings.currency_symbol}{tax.toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between body-text">
+                    <span>Delivery Fee</span>
+                    <span>
+                      {deliveryFee === 0 ? (
+                        <span className="text-green-600 font-medium">FREE</span>
+                      ) : (
+                        `${settings.currency_symbol}${deliveryFee.toFixed(2)}`
+                      )}
+                    </span>
+                  </div>
+                  {deliveryFee > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      Add {settings.currency_symbol}{(settings.free_delivery_threshold - subtotal).toFixed(2)} more for free delivery
+                    </div>
+                  )}
                   <div className="flex justify-between heading-md font-semibold pt-2 border-t">
                     <span>Total</span>
-                    <span>₹{total.toFixed(2)}</span>
+                    <span>{settings.currency_symbol}{total.toFixed(2)}</span>
                   </div>
                 </div>
 

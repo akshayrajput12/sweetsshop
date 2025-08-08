@@ -174,3 +174,74 @@
     background: var(--gradient-card);
   }
 }
+
+/* Image Optimization Styles */
+.lazy-loading {
+  filter: blur(5px);
+  transition: filter 0.3s ease-in-out;
+}
+
+.lazy-loaded {
+  filter: none;
+}
+
+.image-error {
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.image-error::after {
+  content: "Image not available";
+}
+
+/* Performance optimizations */
+img {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px 200px;
+}
+
+/* Smooth loading animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Skeleton loading for images */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Responsive image containers */
+.aspect-square { aspect-ratio: 1 / 1; }
+.aspect-video { aspect-ratio: 16 / 9; }
+.aspect-photo { aspect-ratio: 4 / 3; }
+
+/* Image hover effects */
+.image-hover-zoom {
+  transition: transform 0.3s ease-in-out;
+}
+
+.image-hover-zoom:hover {
+  transform: scale(1.05);
+}
+
+/* Critical resource hints */
+.preload-image {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 1px;
+}

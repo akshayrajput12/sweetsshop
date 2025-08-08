@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
   subtotal DECIMAL(10, 2) NOT NULL,
   tax DECIMAL(10, 2) NOT NULL DEFAULT 0,
   delivery_fee DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  cod_fee DECIMAL(10, 2) NOT NULL DEFAULT 0,
   discount DECIMAL(10, 2) NOT NULL DEFAULT 0,
   total DECIMAL(10, 2) NOT NULL,
   payment_method TEXT NOT NULL,

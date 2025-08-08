@@ -4,6 +4,8 @@ import ScrollToTop from '@/components/ScrollToTop';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartSidebar from '@/components/CartSidebar';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { PageLoader } from '@/components/LoadingSpinner';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,11 +41,7 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
   const { user, isAdmin, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader text="Authenticating..." />;
   }
 
   if (!user) {
@@ -63,11 +61,7 @@ const AppContent = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader text="Loading BulkBox..." />;
   }
 
   return (
@@ -156,5 +150,9 @@ const AppContent = () => {
 };
 
 export default function App() {
-  return <AppContent />;
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
+  );
 }
