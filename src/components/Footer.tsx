@@ -8,10 +8,10 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-primary">MeatExpress</h3>
+            <h3 className="text-2xl font-bold text-primary">BukBox</h3>
             <p className="text-gray-300">
-              Premium quality meat delivered fresh to your doorstep. 
-              Trusted by thousands of families across India.
+              Your ultimate bulk shopping destination. Buy everything in bulk at wholesale prices. 
+              Trusted by thousands of businesses and families across India.
             </p>
             <div className="flex space-x-4">
               <Facebook className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
@@ -44,17 +44,17 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Categories</h4>
             <div className="space-y-2">
-              <Link to="/products?category=Chicken" className="block text-gray-300 hover:text-primary transition-colors">
-                Chicken
+              <Link to="/products?category=Groceries" className="block text-gray-300 hover:text-primary transition-colors">
+                Bulk Groceries
               </Link>
-              <Link to="/products?category=Beef" className="block text-gray-300 hover:text-primary transition-colors">
-                Beef & Mutton
+              <Link to="/products?category=Electronics" className="block text-gray-300 hover:text-primary transition-colors">
+                Electronics
               </Link>
-              <Link to="/products?category=Seafood" className="block text-gray-300 hover:text-primary transition-colors">
-                Seafood
+              <Link to="/products?category=Home" className="block text-gray-300 hover:text-primary transition-colors">
+                Home Essentials
               </Link>
-              <Link to="/products?category=Ready to Cook" className="block text-gray-300 hover:text-primary transition-colors">
-                Ready to Cook
+              <Link to="/products?category=Office" className="block text-gray-300 hover:text-primary transition-colors">
+                Office Supplies
               </Link>
             </div>
           </div>
@@ -69,12 +69,12 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-gray-300">support@meatexpress.com</span>
+                <span className="text-gray-300">support@bukbox.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <MapPin className="h-4 w-4 text-primary mt-1" />
                 <span className="text-gray-300">
-                  123 Food Street,<br />
+                  456 Commerce Hub,<br />
                   Mumbai, Maharashtra 400001
                 </span>
               </div>
@@ -85,7 +85,7 @@ const Footer = () => {
         <div className="border-t border-gray-700 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300 text-sm">
-              © 2024 MeatExpress. All rights reserved.
+              © 2024 BukBox. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-300 hover:text-primary text-sm transition-colors">

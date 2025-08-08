@@ -1,4 +1,4 @@
-// Home page for MeatE - Premium Meat E-commerce Platform
+// Home page for BukBox - Bulk Shopping E-commerce Platform
 import Home from './Home/Home';
 
 const Index = () => {

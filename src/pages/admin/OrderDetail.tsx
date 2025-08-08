@@ -37,6 +37,9 @@ interface OrderDetail {
     state: string;
     pincode: string;
     landmark?: string;
+    mapAddress?: string;
+    latitude?: number;
+    longitude?: number;
   };
   orderDate: string;
   deliveryDate?: string;
@@ -73,6 +76,8 @@ const AdminOrderDetail = () => {
         const addressDetails = data.address_details as any;
         const orderItems = data.items as any;
         
+        const deliveryLocation = data.delivery_location as any;
+        
         const orderDetail: OrderDetail = {
           id: data.order_number,
           customerName: customerInfo?.name || 'Unknown Customer',
@@ -87,11 +92,14 @@ const AdminOrderDetail = () => {
           paymentStatus: data.payment_status as any,
           paymentMethod: data.payment_method,
           shippingAddress: {
-            street: addressDetails?.address_line_1 || '',
-            city: addressDetails?.city || '',
+            street: addressDetails?.complete_address || addressDetails?.address_line_1 || '',
+            city: deliveryLocation?.address || addressDetails?.city || '',
             state: addressDetails?.state || '',
             pincode: addressDetails?.pincode || '',
-            landmark: addressDetails?.landmark || ''
+            landmark: addressDetails?.landmark || '',
+            mapAddress: addressDetails?.map_address || deliveryLocation?.address || '',
+            latitude: addressDetails?.latitude || deliveryLocation?.lat,
+            longitude: addressDetails?.longitude || deliveryLocation?.lng
           },
           orderDate: data.created_at,
           deliveryDate: data.actual_delivery,
@@ -388,7 +396,7 @@ const AdminOrderDetail = () => {
             <CardHeader>
               <CardTitle>Shipping Address</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="flex items-start space-x-3">
                 <MapPin className="w-4 h-4 text-muted-foreground mt-1" />
                 <div className="space-y-1">
@@ -405,6 +413,30 @@ const AdminOrderDetail = () => {
                   )}
                 </div>
               </div>
+              
+              {/* Map Address Section */}
+              {order.shippingAddress.mapAddress && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-sm mb-2">Map Location</h4>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-sm text-gray-700">{order.shippingAddress.mapAddress}</p>
+                    {order.shippingAddress.latitude && order.shippingAddress.longitude && (
+                      <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                        <span>Lat: {order.shippingAddress.latitude.toFixed(6)}</span>
+                        <span>Lng: {order.shippingAddress.longitude.toFixed(6)}</span>
+                        <a
+                          href={`https://www.google.com/maps?q=${order.shippingAddress.latitude},${order.shippingAddress.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          View on Map
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Navigation, Search, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LocationPickerProps {
   onLocationSelect: (location: {
@@ -46,29 +47,13 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     lat: number;
     lng: number;
   } | null>(initialLocation || null);
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([
-    {
-      id: '1',
-      label: 'Home',
-      address: 'Koramangala, Bengaluru, Karnataka, India',
-      lat: 12.9352,
-      lng: 77.6245,
-      type: 'home'
-    },
-    {
-      id: '2',
-      label: 'Work',
-      address: 'Electronic City, Bengaluru, Karnataka, India',
-      lat: 12.8456,
-      lng: 77.6603,
-      type: 'work'
-    }
-  ]);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [showSavedAddresses, setShowSavedAddresses] = useState(true);
   
   const { toast } = useToast();
 
   useEffect(() => {
+    fetchSavedAddresses();
     const initializeMap = async () => {
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
       
@@ -188,6 +173,36 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
     initializeMap();
   }, [initialLocation, onLocationSelect, toast]);
+
+  const fetchSavedAddresses = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('is_default', { ascending: false })
+        .limit(5); // Show only top 5 addresses
+
+      if (error) throw error;
+      
+      const formattedAddresses = (data || []).map(addr => ({
+        id: addr.id,
+        label: addr.name,
+        address: `${addr.address_line_1}, ${addr.city}, ${addr.state}`,
+        lat: addr.latitude || 0,
+        lng: addr.longitude || 0,
+        type: addr.type as 'home' | 'work' | 'other'
+      }));
+      
+      setSavedAddresses(formattedAddresses);
+    } catch (error) {
+      console.error('Error fetching saved addresses:', error);
+    }
+  };
 
   const reverseGeocode = async (lat: number, lng: number) => {
     if (!window.google) return;

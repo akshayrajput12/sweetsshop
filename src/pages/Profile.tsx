@@ -17,9 +17,23 @@ export default function Profile() {
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [profileData, setProfileData] = useState({
-    full_name: profile?.full_name || '',
-    phone: profile?.phone || '',
+    full_name: '',
+    phone: '',
   });
+
+  // Update profile data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setProfileData({
+        full_name: profile.full_name || '',
+        phone: profile.phone || '',
+      });
+    }
+  }, [profile]);
+
+  // Get tab from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const defaultTab = urlParams.get('tab') || 'profile';
 
   useEffect(() => {
     if (user) {
@@ -30,16 +44,44 @@ export default function Profile() {
 
   const fetchOrders = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching orders for user:', user?.id);
+      
+      // First try to get orders with user_id
+      let { data, error } = await supabase
         .from('orders')
         .select('*')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      // If no orders found with user_id, try to find orders by email (fallback for old orders)
+      if (!data || data.length === 0) {
+        console.log('No orders found with user_id, trying email fallback...');
+        const { data: emailOrders, error: emailError } = await supabase
+          .from('orders')
+          .select('*')
+          .contains('customer_info', { email: user?.email })
+          .order('created_at', { ascending: false });
+
+        if (!emailError && emailOrders) {
+          data = emailOrders;
+          console.log('Found orders by email:', emailOrders);
+        }
+      }
+      
+      console.log('Orders fetched:', data);
       setOrders(data || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch orders. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -63,21 +105,34 @@ export default function Profile() {
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', user?.id);
+      console.log('Updating profile with data:', profileData);
+      console.log('User ID:', user?.id);
 
-      if (error) throw error;
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profileData.full_name,
+          phone: profileData.phone
+        })
+        .eq('id', user?.id)
+        .select();
+
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
+
+      console.log('Profile updated successfully:', data);
 
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully.",
       });
     } catch (error: any) {
+      console.error('Profile update failed:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to update profile",
         variant: "destructive",
       });
     } finally {
@@ -103,6 +158,27 @@ export default function Profile() {
     }
   };
 
+  const getOrderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'delivered': return 'bg-green-100 text-green-800';
+      case 'shipped': return 'bg-blue-100 text-blue-800';
+      case 'processing': return 'bg-yellow-100 text-yellow-800';
+      case 'confirmed': return 'bg-blue-100 text-blue-800';
+      case 'placed': return 'bg-orange-100 text-orange-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'failed': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -111,7 +187,7 @@ export default function Profile() {
           <p className="text-muted-foreground">Manage your account and view your orders</p>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
@@ -195,35 +271,55 @@ export default function Profile() {
                 ) : (
                   <div className="space-y-4">
                     {orders.map((order: any) => (
-                      <div key={order.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-semibold">Order #{order.order_number}</p>
+                      <div key={order.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <p className="font-semibold">Order #{order.order_number}</p>
+                              <div className="flex gap-2">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusBadge(order.order_status)}`}>
+                                  {order.order_status}
+                                </span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusBadge(order.payment_status)}`}>
+                                  {order.payment_status}
+                                </span>
+                              </div>
+                            </div>
                             <p className="text-sm text-muted-foreground">
-                              {new Date(order.created_at).toLocaleDateString()}
+                              Placed on {new Date(order.created_at).toLocaleDateString('en-IN', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {Array.isArray(order.items) ? order.items.length : 0} items • {order.payment_method.toUpperCase()}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">₹{order.total}</p>
-                            <p className={`text-sm capitalize ${getOrderStatusColor(order.order_status)}`}>
-                              {order.order_status}
-                            </p>
+                            <p className="font-bold text-lg">₹{order.total?.toLocaleString('en-IN')}</p>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          {order.tracking_url && (
-                            <Button variant="outline" size="sm" asChild>
-                              <a href={order.tracking_url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="w-4 h-4 mr-2" />
-                                Track Order
-                              </a>
-                            </Button>
-                          )}
-                          {order.porter_task_id && (
-                            <span className="text-xs bg-muted px-2 py-1 rounded">
-                              Porter ID: {order.porter_task_id}
-                            </span>
-                          )}
+                        <div className="flex justify-between items-center">
+                          <div className="flex gap-2">
+                            {order.tracking_url && (
+                              <Button variant="outline" size="sm" asChild>
+                                <a href={order.tracking_url} target="_blank" rel="noopener noreferrer">
+                                  <ExternalLink className="w-4 h-4 mr-2" />
+                                  Track Order
+                                </a>
+                              </Button>
+                            )}
+                          </div>
+                          <Button 
+                            variant="default" 
+                            size="sm"
+                            onClick={() => window.open(`/order-detail/${order.id}`, '_blank')}
+                          >
+                            View Details
+                          </Button>
                         </div>
                       </div>
                     ))}

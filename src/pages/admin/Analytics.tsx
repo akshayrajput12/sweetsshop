@@ -38,88 +38,233 @@ const AdminAnalytics = () => {
     try {
       setLoading(true);
 
-      // Fetch orders for revenue and order analytics
-      const { data: orders, error: ordersError } = await supabase
+      // Calculate date ranges
+      const now = new Date();
+      const daysBack = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : 90;
+      const currentPeriodStart = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+      const previousPeriodStart = new Date(currentPeriodStart.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+
+      // Fetch all orders
+      const { data: allOrders, error: ordersError } = await supabase
         .from('orders')
-        .select('total, created_at, customer_info, items')
+        .select('total, created_at, customer_info, items, user_id')
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
 
-      // Fetch categories with product count
-      const { data: categories, error: categoriesError } = await supabase
-        .from('categories')
-        .select(`
-          name,
-          products(count)
-        `)
-        .eq('is_active', true);
-
-      if (categoriesError) throw categoriesError;
-
-      // Fetch profiles for customer analytics
+      // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, created_at, full_name');
+        .select('id, created_at, full_name, email');
 
       if (profilesError) throw profilesError;
 
-      // Calculate analytics
-      const totalRevenue = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
-      const totalOrders = orders?.length || 0;
-      const totalCustomers = profiles?.length || 0;
-      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      // Filter orders by date periods
+      const currentPeriodOrders = allOrders?.filter(order => 
+        new Date(order.created_at) >= currentPeriodStart
+      ) || [];
+      
+      const previousPeriodOrders = allOrders?.filter(order => 
+        new Date(order.created_at) >= previousPeriodStart && 
+        new Date(order.created_at) < currentPeriodStart
+      ) || [];
 
-      // Mock previous period data (in real app, calculate based on date range)
-      const previousRevenue = totalRevenue * 0.8;
-      const previousOrders = Math.floor(totalOrders * 0.85);
-      const previousCustomers = Math.floor(totalCustomers * 0.9);
-      const previousAvgOrderValue = avgOrderValue * 0.85;
+      // Calculate current period metrics
+      const currentRevenue = currentPeriodOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+      const currentOrderCount = currentPeriodOrders.length;
+      const currentCustomers = profiles?.filter(profile => 
+        new Date(profile.created_at) >= currentPeriodStart
+      ).length || 0;
+      const currentAvgOrderValue = currentOrderCount > 0 ? currentRevenue / currentOrderCount : 0;
+
+      // Calculate previous period metrics
+      const previousRevenue = previousPeriodOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+      const previousOrderCount = previousPeriodOrders.length;
+      const previousCustomers = profiles?.filter(profile => 
+        new Date(profile.created_at) >= previousPeriodStart && 
+        new Date(profile.created_at) < currentPeriodStart
+      ).length || 0;
+      const previousAvgOrderValue = previousOrderCount > 0 ? previousRevenue / previousOrderCount : 0;
+
+      // Calculate growth percentages
+      const revenueGrowth = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
+      const ordersGrowth = previousOrderCount > 0 ? ((currentOrderCount - previousOrderCount) / previousOrderCount) * 100 : 0;
+      const customersGrowth = previousCustomers > 0 ? ((currentCustomers - previousCustomers) / previousCustomers) * 100 : 0;
+      const avgOrderValueGrowth = previousAvgOrderValue > 0 ? ((currentAvgOrderValue - previousAvgOrderValue) / previousAvgOrderValue) * 100 : 0;
 
       setAnalyticsData({
         revenue: {
-          current: totalRevenue,
+          current: currentRevenue,
           previous: previousRevenue,
-          growth: ((totalRevenue - previousRevenue) / previousRevenue) * 100,
-          trend: totalRevenue > previousRevenue ? 'up' : 'down'
+          growth: revenueGrowth,
+          trend: currentRevenue >= previousRevenue ? 'up' : 'down'
         },
         orders: {
-          current: totalOrders,
-          previous: previousOrders,
-          growth: ((totalOrders - previousOrders) / previousOrders) * 100,
-          trend: totalOrders > previousOrders ? 'up' : 'down'
+          current: currentOrderCount,
+          previous: previousOrderCount,
+          growth: ordersGrowth,
+          trend: currentOrderCount >= previousOrderCount ? 'up' : 'down'
         },
         customers: {
-          current: totalCustomers,
+          current: currentCustomers,
           previous: previousCustomers,
-          growth: ((totalCustomers - previousCustomers) / previousCustomers) * 100,
-          trend: totalCustomers > previousCustomers ? 'up' : 'down'
+          growth: customersGrowth,
+          trend: currentCustomers >= previousCustomers ? 'up' : 'down'
         },
         avgOrderValue: {
-          current: avgOrderValue,
+          current: currentAvgOrderValue,
           previous: previousAvgOrderValue,
-          growth: ((avgOrderValue - previousAvgOrderValue) / previousAvgOrderValue) * 100,
-          trend: avgOrderValue > previousAvgOrderValue ? 'up' : 'down'
+          growth: avgOrderValueGrowth,
+          trend: currentAvgOrderValue >= previousAvgOrderValue ? 'up' : 'down'
         }
       });
 
-      // Format top categories
-      const formattedCategories = categories?.map(category => ({
-        name: category.name,
-        revenue: Math.random() * 50000, // Mock revenue
-        orders: Math.floor(Math.random() * 100), // Mock orders
-        growth: Math.random() * 30 // Mock growth
-      })) || [];
+      // Calculate real category performance from sales data
+      try {
+        // Try to use product_sales table with product categories
+        const { data: salesWithCategories, error: salesError } = await supabase
+          .from('product_sales')
+          .select(`
+            quantity_sold,
+            total_revenue,
+            sale_date,
+            products (
+              categories (
+                name
+              )
+            )
+          `)
+          .gte('sale_date', currentPeriodStart.toISOString())
+          .order('sale_date', { ascending: false });
 
-      setTopCategories(formattedCategories);
+        const categoryStats = new Map();
+        
+        if (salesWithCategories && !salesError) {
+          // Use sales tracking data
+          salesWithCategories.forEach(sale => {
+            const categoryName = (sale.products as any)?.categories?.name || 'General Items';
+            
+            if (!categoryStats.has(categoryName)) {
+              categoryStats.set(categoryName, { revenue: 0, orders: 0, items: 0 });
+            }
+            const stats = categoryStats.get(categoryName);
+            stats.revenue += sale.total_revenue || 0;
+            stats.orders += 1;
+            stats.items += sale.quantity_sold || 0;
+          });
+        } else {
+          // Fallback to calculating from orders
+          currentPeriodOrders.forEach(order => {
+            const items = order.items as any[] || [];
+            items.forEach(item => {
+              // Try to get proper category name
+              let category = 'General Items';
+              if (item.category && item.category !== 'bulk' && item.category !== 'meat') {
+                category = item.category;
+              } else {
+                // Map old categories to new ones
+                if (item.category === 'meat' || item.category === 'bulk') {
+                  category = 'Bulk Groceries';
+                } else if (item.category) {
+                  category = item.category;
+                }
+              }
+              
+              if (!categoryStats.has(category)) {
+                categoryStats.set(category, { revenue: 0, orders: 0, items: 0 });
+              }
+              const stats = categoryStats.get(category);
+              stats.revenue += (item.price * item.quantity) || 0;
+              stats.orders += 1;
+              stats.items += item.quantity || 0;
+            });
+          });
+        }
 
-      // Format top customers (mock data based on profiles)
-      const formattedCustomers = profiles?.slice(0, 5).map(profile => ({
-        name: profile.full_name || 'Unknown Customer',
-        orders: Math.floor(Math.random() * 20),
-        totalSpent: Math.random() * 10000,
-        avgOrderValue: Math.random() * 2000
-      })) || [];
+        // Calculate growth by comparing with previous period
+        const previousPeriodSales = await supabase
+          .from('product_sales')
+          .select(`
+            total_revenue,
+            products (
+              categories (
+                name
+              )
+            )
+          `)
+          .gte('sale_date', previousPeriodStart.toISOString())
+          .lt('sale_date', currentPeriodStart.toISOString());
+
+        const previousCategoryStats = new Map();
+        if (previousPeriodSales.data) {
+          previousPeriodSales.data.forEach(sale => {
+            const categoryName = (sale.products as any)?.categories?.name || 'General Items';
+            if (!previousCategoryStats.has(categoryName)) {
+              previousCategoryStats.set(categoryName, 0);
+            }
+            previousCategoryStats.set(categoryName, 
+              previousCategoryStats.get(categoryName) + (sale.total_revenue || 0)
+            );
+          });
+        }
+
+        const formattedCategories = Array.from(categoryStats.entries())
+          .map(([name, stats]: [string, any]) => {
+            const previousRevenue = previousCategoryStats.get(name) || 0;
+            const growth = previousRevenue > 0 ? ((stats.revenue - previousRevenue) / previousRevenue) * 100 : 0;
+            
+            return {
+              name,
+              revenue: stats.revenue,
+              orders: stats.orders,
+              growth: growth
+            };
+          })
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 5);
+
+        setTopCategories(formattedCategories);
+      } catch (error) {
+        console.error('Error calculating category performance:', error);
+        setTopCategories([]);
+      }
+
+      // Calculate real top customers from orders
+      const customerStats = new Map();
+      currentPeriodOrders.forEach(order => {
+        const customerId = order.user_id || (order.customer_info as any)?.email || 'guest';
+        
+        // Try to get customer name from multiple sources
+        let customerName = 'Guest Customer';
+        if (order.user_id) {
+          // Try to find in profiles first
+          const profile = profiles?.find(p => p.id === order.user_id);
+          customerName = profile?.full_name || profile?.email || 'Registered User';
+        } else if (order.customer_info) {
+          // Fallback to customer_info
+          const customerInfo = order.customer_info as any;
+          customerName = customerInfo?.name || customerInfo?.full_name || customerInfo?.email || 'Guest Customer';
+        }
+        
+        if (!customerStats.has(customerId)) {
+          customerStats.set(customerId, { 
+            name: customerName, 
+            orders: 0, 
+            totalSpent: 0 
+          });
+        }
+        const stats = customerStats.get(customerId);
+        stats.orders += 1;
+        stats.totalSpent += order.total || 0;
+      });
+
+      const formattedCustomers = Array.from(customerStats.values())
+        .map((customer: any) => ({
+          ...customer,
+          avgOrderValue: customer.orders > 0 ? customer.totalSpent / customer.orders : 0
+        }))
+        .sort((a, b) => b.totalSpent - a.totalSpent)
+        .slice(0, 5);
 
       setTopCustomers(formattedCustomers);
 

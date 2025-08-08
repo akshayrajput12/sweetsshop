@@ -67,7 +67,7 @@ const CategoriesCarousel = () => {
         >
           <h2 className="heading-lg mb-4">Shop by Categories</h2>
           <p className="body-text text-muted-foreground max-w-2xl mx-auto">
-            Freshest meats and much more! Explore our wide selection of premium products.
+            Everything you need in bulk! Explore our wide selection of products across all categories at wholesale prices.
           </p>
         </motion.div>
 

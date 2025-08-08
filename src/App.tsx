@@ -17,6 +17,7 @@ import Profile from '@/pages/Profile';
 import Contact from '@/pages/Contact';
 import About from '@/pages/About';
 import NotFound from '@/pages/NotFound';
+import UserOrderDetail from '@/pages/OrderDetail';
 import AdminLayout from '@/pages/admin/AdminLayout';
 import Dashboard from '@/pages/admin/Dashboard';
 import AdminProducts from '@/pages/admin/Products';
@@ -103,6 +104,14 @@ const AppContent = () => {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/order-detail/:id" 
+            element={
+              <ProtectedRoute>
+                <UserOrderDetail />
               </ProtectedRoute>
             } 
           />

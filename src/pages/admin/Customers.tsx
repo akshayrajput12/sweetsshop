@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Users, Mail, Phone, MapPin, Calendar, Eye, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Customer {
   id: string;
@@ -36,82 +38,80 @@ interface Customer {
 const AdminCustomers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  // Sample customers data
-  const customers: Customer[] = [
-    {
-      id: 'CUST001',
-      name: 'Rajesh Kumar',
-      email: 'rajesh@example.com',
-      phone: '+91 98765 43210',
-      location: 'Mumbai, Maharashtra',
-      totalOrders: 12,
-      totalSpent: 15750,
-      lastOrder: '2024-01-26',
-      joinDate: '2023-06-15',
-      status: 'active'
-    },
-    {
-      id: 'CUST002',
-      name: 'Priya Sharma',
-      email: 'priya@example.com',
-      phone: '+91 87654 32109',
-      location: 'Delhi, Delhi',
-      totalOrders: 8,
-      totalSpent: 8920,
-      lastOrder: '2024-01-25',
-      joinDate: '2023-08-22',
-      status: 'active'
-    },
-    {
-      id: 'CUST003',
-      name: 'Amit Singh',
-      email: 'amit@example.com',
-      phone: '+91 76543 21098',
-      location: 'Bangalore, Karnataka',
-      totalOrders: 15,
-      totalSpent: 22350,
-      lastOrder: '2024-01-24',
-      joinDate: '2023-04-10',
-      status: 'active'
-    },
-    {
-      id: 'CUST004',
-      name: 'Sneha Patel',
-      email: 'sneha@example.com',
-      phone: '+91 65432 10987',
-      location: 'Pune, Maharashtra',
-      totalOrders: 5,
-      totalSpent: 4250,
-      lastOrder: '2024-01-20',
-      joinDate: '2023-10-05',
-      status: 'active'
-    },
-    {
-      id: 'CUST005',
-      name: 'Vikram Reddy',
-      email: 'vikram@example.com',
-      phone: '+91 54321 09876',
-      location: 'Hyderabad, Telangana',
-      totalOrders: 3,
-      totalSpent: 2100,
-      lastOrder: '2023-12-15',
-      joinDate: '2023-11-20',
-      status: 'inactive'
-    },
-    {
-      id: 'CUST006',
-      name: 'Anita Gupta',
-      email: 'anita@example.com',
-      phone: '+91 43210 98765',
-      location: 'Chennai, Tamil Nadu',
-      totalOrders: 20,
-      totalSpent: 35600,
-      lastOrder: '2024-01-26',
-      joinDate: '2023-03-08',
-      status: 'active'
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch profiles with order statistics
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      // Fetch orders to calculate statistics
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('user_id, total, created_at, customer_info');
+
+      if (ordersError) throw ordersError;
+
+      // Process customer data with order statistics
+      const customersData: Customer[] = profiles?.map(profile => {
+        // Get orders for this user (by user_id or email fallback)
+        const userOrders = orders?.filter(order => 
+          order.user_id === profile.id || 
+          (order.customer_info as any)?.email === profile.email
+        ) || [];
+
+        const totalOrders = userOrders.length;
+        const totalSpent = userOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+        const lastOrder = userOrders.length > 0 
+          ? userOrders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at
+          : null;
+
+        // Determine status based on recent activity (active if ordered in last 30 days)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const isActive = lastOrder ? new Date(lastOrder) > thirtyDaysAgo : false;
+
+        return {
+          id: profile.id,
+          name: profile.full_name || 'Unknown User',
+          email: profile.email,
+          phone: profile.phone || 'Not provided',
+          location: 'Not specified', // We don't have location in profiles, could be derived from addresses
+          totalOrders,
+          totalSpent,
+          lastOrder: lastOrder ? new Date(lastOrder).toLocaleDateString('en-IN') : 'Never',
+          joinDate: new Date(profile.created_at).toLocaleDateString('en-IN'),
+          status: isActive ? 'active' : 'inactive'
+        };
+      }) || [];
+
+      setCustomers(customersData);
+    } catch (error: any) {
+      console.error('Error fetching customers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch customers data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+
 
   const statuses = ['all', 'active', 'inactive'];
 
@@ -135,8 +135,18 @@ const AdminCustomers = () => {
     active: customers.filter(c => c.status === 'active').length,
     inactive: customers.filter(c => c.status === 'inactive').length,
     totalRevenue: customers.reduce((sum, customer) => sum + customer.totalSpent, 0),
-    avgOrderValue: customers.reduce((sum, customer) => sum + customer.totalSpent, 0) / customers.reduce((sum, customer) => sum + customer.totalOrders, 0)
+    avgOrderValue: customers.length > 0 
+      ? customers.reduce((sum, customer) => sum + customer.totalSpent, 0) / Math.max(customers.reduce((sum, customer) => sum + customer.totalOrders, 0), 1)
+      : 0
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

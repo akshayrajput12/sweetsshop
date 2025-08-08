@@ -24,8 +24,8 @@ const HeroBanner = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             Welcome to{' '}
-            <span className="text-primary">Premium</span>{' '}
-            Meat Delivery
+            <span className="text-primary">BukBox</span>{' '}
+            - Buy in Bulk, Save More
           </motion.h1>
           
           <motion.p 
@@ -34,7 +34,7 @@ const HeroBanner = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Avail exciting offers, only for you! Fresh, premium quality meat delivered straight to your doorstep.
+            Your one-stop bulk shopping destination! Get wholesale prices on groceries, electronics, home essentials, and everything you need.
           </motion.p>
 
           <motion.div 
@@ -65,10 +65,10 @@ const HeroBanner = () => {
             transition={{ duration: 0.8, delay: 0.8 }}
           >
               <div className="text-center">
-                <p className="caption text-muted-foreground">Starting from</p>
+                <p className="caption text-muted-foreground">Save up to</p>
                 <div className="flex items-center space-x-2">
-                  <span className="heading-md line-through text-muted-foreground">₹499</span>
-                  <span className="heading-lg font-bold text-primary">₹299</span>
+                  <span className="heading-lg font-bold text-primary">50%</span>
+                  <span className="heading-md text-muted-foreground">on bulk orders</span>
                 </div>
               </div>
           </motion.div>
@@ -84,7 +84,7 @@ const HeroBanner = () => {
           <div className="relative">
             <motion.img
               src={heroImage}
-              alt="Premium meat selection"
+              alt="Bulk shopping products selection"
               className="w-full h-auto rounded-2xl shadow-large"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
@@ -96,7 +96,7 @@ const HeroBanner = () => {
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              🔥 Fresh Today
+              🔥 Wholesale Prices
             </motion.div>
             
             <motion.div 
@@ -104,7 +104,7 @@ const HeroBanner = () => {
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
             >
-              ✅ Free Delivery
+              ✅ Bulk Discounts
             </motion.div>
           </div>
         </motion.div>

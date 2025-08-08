@@ -72,7 +72,7 @@ const Contact = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-medium">support@meatexpress.com</p>
+              <p className="text-lg font-medium">support@bukbox.com</p>
               <p className="text-muted-foreground">We'll respond within 24 hours</p>
             </CardContent>
           </Card>
@@ -85,7 +85,7 @@ const Contact = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-medium">123 Food Street</p>
+              <p className="text-lg font-medium">456 Commerce Hub</p>
               <p className="text-muted-foreground">Mumbai, Maharashtra 400001</p>
             </CardContent>
           </Card>

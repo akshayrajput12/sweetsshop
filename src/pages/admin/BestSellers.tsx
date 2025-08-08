@@ -44,7 +44,8 @@ const AdminBestSellers = () => {
     try {
       setLoading(true);
       
-      const { data: productsData, error } = await supabase
+      // Fetch bestseller products
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select(`
           *,
@@ -54,24 +55,102 @@ const AdminBestSellers = () => {
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (productsError) throw productsError;
 
-      const formattedBestSellers = productsData?.map((product, index) => ({
-        id: product.id,
-        name: product.name,
-        category: (product.categories as any)?.name || 'Unknown',
-        price: product.price || 0,
-        unitsSold: product.stock_quantity || 0, // Using stock as proxy for sales
-        revenue: (product.stock_quantity || 0) * (product.price || 0),
-        rating: 4.5, // Default rating since we don't have reviews aggregated
-        image: product.images?.[0] || '/placeholder.svg',
-        rank: index + 1,
-        growthRate: Math.random() * 30, // Mock growth rate
-        profitMargin: 25 + Math.random() * 20, // Mock profit margin
-        stockQuantity: product.stock_quantity || 0
-      })) || [];
+      // Fetch actual sales data from product_sales table
+      const { data: salesData, error: salesError } = await supabase
+        .from('product_sales')
+        .select('product_id, quantity_sold, total_revenue, sale_date')
+        .order('sale_date', { ascending: false });
 
-      setBestSellers(formattedBestSellers);
+      if (salesError) {
+        console.error('Sales data error:', salesError);
+        // Fallback to calculating from orders if sales table doesn't exist yet
+        const { data: ordersData } = await supabase
+          .from('orders')
+          .select('items, created_at')
+          .order('created_at', { ascending: false });
+        
+        // Calculate from orders as fallback
+        const productSalesMap = new Map();
+        ordersData?.forEach(order => {
+          const items = order.items as any[] || [];
+          items.forEach(item => {
+            if (!productSalesMap.has(item.id)) {
+              productSalesMap.set(item.id, {
+                totalQuantity: 0,
+                totalRevenue: 0,
+                orderCount: 0
+              });
+            }
+            const salesData = productSalesMap.get(item.id);
+            salesData.totalQuantity += item.quantity || 0;
+            salesData.totalRevenue += (item.price || 0) * (item.quantity || 0);
+            salesData.orderCount += 1;
+          });
+        });
+      }
+
+      // Calculate actual sales data for each product
+      const productSalesMap = new Map();
+      
+      if (salesData) {
+        // Use product_sales table data
+        salesData.forEach(sale => {
+          if (!productSalesMap.has(sale.product_id)) {
+            productSalesMap.set(sale.product_id, {
+              totalQuantity: 0,
+              totalRevenue: 0,
+              orderCount: 0
+            });
+          }
+          const salesInfo = productSalesMap.get(sale.product_id);
+          salesInfo.totalQuantity += sale.quantity_sold || 0;
+          salesInfo.totalRevenue += sale.total_revenue || 0;
+          salesInfo.orderCount += 1;
+        });
+      }
+
+      // Calculate average rating from reviews (if available)
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('product_id, rating');
+
+      const productRatings = new Map();
+      reviewsData?.forEach(review => {
+        if (!productRatings.has(review.product_id)) {
+          productRatings.set(review.product_id, []);
+        }
+        productRatings.get(review.product_id).push(review.rating);
+      });
+
+      const formattedBestSellers = productsData?.map((product, index) => {
+        const salesData = productSalesMap.get(product.id) || { totalQuantity: 0, totalRevenue: 0, orderCount: 0 };
+        const ratings = productRatings.get(product.id) || [];
+        const avgRating = ratings.length > 0 ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : 4.5;
+        
+        return {
+          id: product.id,
+          name: product.name,
+          category: (product.categories as any)?.name || 'Unknown',
+          price: product.price || 0,
+          unitsSold: salesData.totalQuantity,
+          revenue: salesData.totalRevenue,
+          rating: avgRating,
+          image: product.images?.[0] || '/placeholder.svg',
+          rank: index + 1,
+          growthRate: salesData.orderCount > 0 ? (salesData.totalQuantity / salesData.orderCount) * 10 : 0, // Growth based on sales velocity
+          profitMargin: 25 + Math.random() * 20, // Mock profit margin - would need cost data
+          stockQuantity: product.stock_quantity || 0
+        };
+      }) || [];
+
+      // Sort by actual revenue instead of index
+      const sortedBestSellers = formattedBestSellers
+        .sort((a, b) => b.revenue - a.revenue)
+        .map((product, index) => ({ ...product, rank: index + 1 }));
+
+      setBestSellers(sortedBestSellers);
     } catch (error: any) {
       console.error('Error fetching best sellers:', error);
       toast({

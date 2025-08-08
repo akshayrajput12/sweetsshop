@@ -36,9 +36,9 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">M</span>
+              <span className="text-primary-foreground font-bold text-lg">B</span>
             </div>
-            <span className="heading-md text-primary">MeatE</span>
+            <span className="heading-md text-primary">BukBox</span>
           </Link>
 
           {/* Location Display */}

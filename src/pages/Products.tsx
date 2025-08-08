@@ -34,7 +34,13 @@ const Products = () => {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          categories (
+            id,
+            name
+          )
+        `)
         .eq('is_active', true);
 
       if (error) throw error;
@@ -66,7 +72,12 @@ const Products = () => {
 
     // Apply category filter
     if (selectedCategory !== 'All') {
-      filtered = filtered.filter((product: any) => product.category?.name === selectedCategory);
+      filtered = filtered.filter((product: any) => {
+        // Check both direct category and category relationship
+        return product.category?.name === selectedCategory || 
+               product.categories?.name === selectedCategory ||
+               (product.category_id && product.categories?.id === product.category_id && product.categories?.name === selectedCategory);
+      });
     }
 
     // Apply search filter
@@ -80,7 +91,8 @@ const Products = () => {
     // Apply filters
     if (filters.categories.length > 0) {
       filtered = filtered.filter((product: any) => 
-        filters.categories.includes(product.category?.name)
+        filters.categories.includes(product.category?.name) ||
+        filters.categories.includes(product.categories?.name)
       );
     }
 
@@ -119,9 +131,9 @@ const Products = () => {
         transition={{ duration: 0.6 }}
       >
         <div className="container mx-auto px-4 text-center">
-          <h1 className="heading-lg mb-4">Premium Meat Selection</h1>
+          <h1 className="heading-lg mb-4">Bulk Products for Every Need</h1>
           <p className="body-text text-muted-foreground max-w-2xl mx-auto">
-            Discover our wide range of premium quality meats, sourced from the finest farms and delivered fresh to your door.
+            Discover our extensive range of bulk products across all categories, sourced directly from manufacturers at wholesale prices.
           </p>
         </div>
       </motion.div>
@@ -252,7 +264,7 @@ const Products = () => {
                         ...product,
                         image: product.images?.[0] || '/placeholder.svg',
                         slug: product.sku || product.id,
-                        category: product.category?.name || 'Unknown'
+                        category: product.categories?.name || product.category?.name || 'General'
                       }}
                       onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
                     />

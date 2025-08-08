@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# BukBox - Bulk Shopping E-commerce Platform
 
 ## Project info
 

@@ -64,24 +64,20 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
   const [uploadingImage, setUploadingImage] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
 
-  const [nutritionalInfo, setNutritionalInfo] = useState({
-    totalEnergy: '',
-    carbohydrate: '',
-    fat: '',
-    protein: ''
+  const [productSpecs, setProductSpecs] = useState({
+    material: '',
+    dimensions: '',
+    weight_per_unit: '',
+    brand: '',
+    model: '',
+    warranty: '',
+    certification: '',
+    origin: ''
   });
 
-  const [features, setFeatures] = useState({
-    humanlyRaised: false,
-    handSelected: false,
-    temperatureControlled: false,
-    artisanalCut: false,
-    hygienicallyVacuumPacked: false,
-    netWeightOfPreppedMeat: false,
-    qualityAndFoodsafetyChecks: false,
-    mixOfOffalOrgans: false,
-    antibioticResidueFree: false
-  });
+  const [availableFeatures, setAvailableFeatures] = useState<string[]>([]);
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [newFeature, setNewFeature] = useState('');
 
   const [marketingInfo, setMarketingInfo] = useState({
     marketedBy: '',
@@ -93,6 +89,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
 
   useEffect(() => {
     fetchCategories();
+    fetchAvailableFeatures();
     if (id && isEdit) {
       fetchProduct();
     } else if (propProduct) {
@@ -116,6 +113,32 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     }
   };
 
+  const fetchAvailableFeatures = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('product_features')
+        .select('name')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setAvailableFeatures(data?.map(f => f.name) || []);
+    } catch (error) {
+      console.error('Error fetching features:', error);
+      // Fallback to default features if table doesn't exist yet
+      setAvailableFeatures([
+        'Bulk Pack',
+        'Wholesale Price',
+        'Commercial Grade',
+        'Energy Efficient',
+        'Eco Friendly',
+        'Premium Quality',
+        'Fast Delivery',
+        'Bulk Discount Available'
+      ]);
+    }
+  };
+
   const fetchProduct = async () => {
     if (!id) return;
     
@@ -132,10 +155,17 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
       setFormData(data);
       setImages(data.images || []);
       if (data.nutritional_info && typeof data.nutritional_info === 'object') {
-        setNutritionalInfo(data.nutritional_info as any);
+        setProductSpecs(data.nutritional_info as any);
       }
-      if (data.features && typeof data.features === 'object') {
-        setFeatures({ ...features, ...(data.features as any) });
+      if (data.features && Array.isArray(data.features)) {
+        setSelectedFeatures(data.features as string[]);
+      } else if (data.features && typeof data.features === 'object') {
+        // Convert old format to new format
+        const oldFeatures = data.features as any;
+        const convertedFeatures = Object.entries(oldFeatures)
+          .filter(([_, value]) => value === true)
+          .map(([key, _]) => key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()));
+        setSelectedFeatures(convertedFeatures);
       }
       if (data.marketing_info && typeof data.marketing_info === 'object') {
         setMarketingInfo({ ...marketingInfo, ...(data.marketing_info as any) });
@@ -224,6 +254,86 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const addNewFeature = async () => {
+    if (!newFeature.trim()) return;
+    
+    try {
+      // Try to add to database first
+      const { error } = await supabase
+        .from('product_features')
+        .insert({ name: newFeature.trim(), is_active: true });
+      
+      if (error && !error.message.includes('relation "product_features" does not exist')) {
+        throw error;
+      }
+      
+      // Add to local state
+      if (!availableFeatures.includes(newFeature.trim())) {
+        setAvailableFeatures(prev => [...prev, newFeature.trim()].sort());
+      }
+      
+      // Add to selected features
+      if (!selectedFeatures.includes(newFeature.trim())) {
+        setSelectedFeatures(prev => [...prev, newFeature.trim()]);
+      }
+      
+      setNewFeature('');
+      
+      toast({
+        title: "Feature added",
+        description: `"${newFeature.trim()}" has been added to available features.`,
+      });
+    } catch (error) {
+      console.error('Error adding feature:', error);
+      // Still add to local state even if database fails
+      if (!availableFeatures.includes(newFeature.trim())) {
+        setAvailableFeatures(prev => [...prev, newFeature.trim()].sort());
+      }
+      if (!selectedFeatures.includes(newFeature.trim())) {
+        setSelectedFeatures(prev => [...prev, newFeature.trim()]);
+      }
+      setNewFeature('');
+    }
+  };
+
+  const toggleFeature = (feature: string) => {
+    setSelectedFeatures(prev => 
+      prev.includes(feature) 
+        ? prev.filter(f => f !== feature)
+        : [...prev, feature]
+    );
+  };
+
+  const removeFeatureFromAvailable = async (feature: string) => {
+    try {
+      // Try to remove from database
+      const { error } = await supabase
+        .from('product_features')
+        .update({ is_active: false })
+        .eq('name', feature);
+      
+      if (error && !error.message.includes('relation "product_features" does not exist')) {
+        throw error;
+      }
+      
+      // Remove from local state
+      setAvailableFeatures(prev => prev.filter(f => f !== feature));
+      setSelectedFeatures(prev => prev.filter(f => f !== feature));
+      
+      toast({
+        title: "Feature removed",
+        description: `"${feature}" has been removed from available features.`,
+      });
+    } catch (error) {
+      console.error('Error removing feature:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove feature. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -249,8 +359,8 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         is_active: formData.is_active,
         is_bestseller: formData.is_bestseller,
         images: images,
-        features: features,
-        nutritional_info: nutritionalInfo,
+        features: selectedFeatures,
+        nutritional_info: productSpecs,
         sku: formData.sku,
         pieces: formData.pieces,
         serves: Number(formData.serves) || 0,
@@ -446,13 +556,13 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="serves">Serves</Label>
+                  <Label htmlFor="units">Units/Quantity</Label>
                   <Input
-                    id="serves"
+                    id="units"
                     type="number"
                     value={formData.serves}
                     onChange={(e) => handleInputChange('serves', Number(e.target.value))}
-                    placeholder="e.g., 2"
+                    placeholder="e.g., 50 (for bulk pack)"
                     min="0"
                   />
                 </div>
@@ -486,20 +596,74 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
               <CardTitle>Product Features</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(features).map(([key, value]) => (
-                  <div key={key} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={key}
-                      checked={value}
-                      onCheckedChange={(checked) => setFeatures(prev => ({ ...prev, [key]: checked }))}
-                    />
-                    <Label htmlFor={key} className="text-sm">
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                    </Label>
-                  </div>
-                ))}
+              {/* Add New Feature */}
+              <div className="space-y-2">
+                <Label>Add New Feature</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newFeature}
+                    onChange={(e) => setNewFeature(e.target.value)}
+                    placeholder="Enter new feature name"
+                    onKeyPress={(e) => e.key === 'Enter' && addNewFeature()}
+                  />
+                  <Button type="button" onClick={addNewFeature} disabled={!newFeature.trim()}>
+                    Add
+                  </Button>
+                </div>
               </div>
+
+              {/* Available Features */}
+              <div className="space-y-4">
+                <Label>Available Features</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto border rounded-lg p-4">
+                  {availableFeatures.map((feature) => (
+                    <div key={feature} className="flex items-center justify-between space-x-2 p-2 hover:bg-muted rounded">
+                      <div className="flex items-center space-x-2 flex-1">
+                        <Checkbox
+                          id={feature}
+                          checked={selectedFeatures.includes(feature)}
+                          onCheckedChange={() => toggleFeature(feature)}
+                        />
+                        <Label htmlFor={feature} className="text-sm cursor-pointer flex-1">
+                          {feature}
+                        </Label>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFeatureFromAvailable(feature)}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selected Features Preview */}
+              {selectedFeatures.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Selected Features ({selectedFeatures.length})</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedFeatures.map((feature) => (
+                      <Badge key={feature} variant="secondary" className="flex items-center gap-1">
+                        {feature}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleFeature(feature)}
+                          className="h-4 w-4 p-0 hover:bg-transparent"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -573,50 +737,98 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
             </CardContent>
           </Card>
 
-          {/* Nutritional Information */}
+          {/* Product Specifications */}
           <Card>
             <CardHeader>
-              <CardTitle>Nutritional Information</CardTitle>
+              <CardTitle>Product Specifications</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="totalEnergy">Total Energy</Label>
-                <Input
-                  id="totalEnergy"
-                  value={nutritionalInfo.totalEnergy}
-                  onChange={(e) => setNutritionalInfo({...nutritionalInfo, totalEnergy: e.target.value})}
-                  placeholder="e.g., 165 kcal"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="material">Material</Label>
+                  <Input
+                    id="material"
+                    value={productSpecs.material}
+                    onChange={(e) => setProductSpecs({...productSpecs, material: e.target.value})}
+                    placeholder="e.g., Plastic, Metal, Cotton"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="dimensions">Dimensions</Label>
+                  <Input
+                    id="dimensions"
+                    value={productSpecs.dimensions}
+                    onChange={(e) => setProductSpecs({...productSpecs, dimensions: e.target.value})}
+                    placeholder="e.g., 30x20x15 cm"
+                  />
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="protein">Protein</Label>
-                <Input
-                  id="protein"
-                  value={nutritionalInfo.protein}
-                  onChange={(e) => setNutritionalInfo({...nutritionalInfo, protein: e.target.value})}
-                  placeholder="e.g., 25g"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="weight_per_unit">Weight per Unit</Label>
+                  <Input
+                    id="weight_per_unit"
+                    value={productSpecs.weight_per_unit}
+                    onChange={(e) => setProductSpecs({...productSpecs, weight_per_unit: e.target.value})}
+                    placeholder="e.g., 500g, 2kg"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="brand">Brand</Label>
+                  <Input
+                    id="brand"
+                    value={productSpecs.brand}
+                    onChange={(e) => setProductSpecs({...productSpecs, brand: e.target.value})}
+                    placeholder="e.g., Samsung, Nike"
+                  />
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="fat">Fat</Label>
-                <Input
-                  id="fat"
-                  value={nutritionalInfo.fat}
-                  onChange={(e) => setNutritionalInfo({...nutritionalInfo, fat: e.target.value})}
-                  placeholder="e.g., 8g"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="model">Model</Label>
+                  <Input
+                    id="model"
+                    value={productSpecs.model}
+                    onChange={(e) => setProductSpecs({...productSpecs, model: e.target.value})}
+                    placeholder="e.g., Model XYZ-123"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="warranty">Warranty</Label>
+                  <Input
+                    id="warranty"
+                    value={productSpecs.warranty}
+                    onChange={(e) => setProductSpecs({...productSpecs, warranty: e.target.value})}
+                    placeholder="e.g., 1 year, 6 months"
+                  />
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="carbohydrate">Carbohydrate</Label>
-                <Input
-                  id="carbohydrate"
-                  value={nutritionalInfo.carbohydrate}
-                  onChange={(e) => setNutritionalInfo({...nutritionalInfo, carbohydrate: e.target.value})}
-                  placeholder="e.g., 0g"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="certification">Certification</Label>
+                  <Input
+                    id="certification"
+                    value={productSpecs.certification}
+                    onChange={(e) => setProductSpecs({...productSpecs, certification: e.target.value})}
+                    placeholder="e.g., ISO 9001, CE, FDA"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="origin">Country of Origin</Label>
+                  <Input
+                    id="origin"
+                    value={productSpecs.origin}
+                    onChange={(e) => setProductSpecs({...productSpecs, origin: e.target.value})}
+                    placeholder="e.g., India, China, USA"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -90,15 +90,77 @@ const AdminDashboard = () => {
       
       setRecentOrders(formattedOrders);
 
-      // Set top products based on stock
-      const sortedProducts = products?.sort((a, b) => (b.stock_quantity || 0) - (a.stock_quantity || 0)).slice(0, 4).map(product => ({
-        name: product.name,
-        sales: product.stock_quantity || 0,
-        revenue: (product.stock_quantity || 0) * 250, // Approximate revenue
-        category: 'Unknown' // We'll need to join with categories to get this
-      })) || [];
+      // Calculate top products based on actual sales
+      try {
+        // Try to use product_sales table first
+        const { data: salesData, error: salesError } = await supabase
+          .from('product_sales')
+          .select(`
+            product_id,
+            quantity_sold,
+            total_revenue,
+            products (
+              name,
+              categories (
+                name
+              )
+            )
+          `)
+          .order('sale_date', { ascending: false });
 
-      setTopProducts(sortedProducts);
+        const productSales = new Map();
+        
+        if (salesData && !salesError) {
+          // Use sales tracking data
+          salesData.forEach(sale => {
+            const productId = sale.product_id;
+            if (!productSales.has(productId)) {
+              productSales.set(productId, {
+                name: (sale.products as any)?.name || 'Unknown Product',
+                category: (sale.products as any)?.categories?.name || 'Unknown',
+                totalQuantity: 0,
+                totalRevenue: 0
+              });
+            }
+            const productData = productSales.get(productId);
+            productData.totalQuantity += sale.quantity_sold || 0;
+            productData.totalRevenue += sale.total_revenue || 0;
+          });
+        } else {
+          // Fallback to calculating from orders
+          orders?.forEach(order => {
+            const items = order.items as any[] || [];
+            items.forEach(item => {
+              if (!productSales.has(item.id)) {
+                productSales.set(item.id, {
+                  name: item.name,
+                  category: item.category || 'Unknown',
+                  totalQuantity: 0,
+                  totalRevenue: 0
+                });
+              }
+              const productData = productSales.get(item.id);
+              productData.totalQuantity += item.quantity || 0;
+              productData.totalRevenue += (item.price || 0) * (item.quantity || 0);
+            });
+          });
+        }
+
+        const sortedProducts = Array.from(productSales.values())
+          .sort((a, b) => b.totalRevenue - a.totalRevenue)
+          .slice(0, 4)
+          .map(product => ({
+            name: product.name,
+            sales: product.totalQuantity,
+            revenue: product.totalRevenue,
+            category: product.category
+          }));
+
+        setTopProducts(sortedProducts);
+      } catch (error) {
+        console.error('Error fetching top products:', error);
+        setTopProducts([]);
+      }
 
     } catch (error: any) {
       console.error('Error fetching dashboard data:', error);

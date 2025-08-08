@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Eye, Edit, Package, MapPin, Calendar } from 'lucide-react';
+import { Search, Filter, Eye, Edit, Package, MapPin, Calendar, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatPrice } from '@/utils/currency';
@@ -43,6 +55,7 @@ const AdminOrders = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -53,26 +66,67 @@ const AdminOrders = () => {
     try {
       setLoading(true);
       
-      const { data: ordersData, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch orders and profiles for customer name resolution
+      const [ordersResult, profilesResult] = await Promise.all([
+        supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('profiles')
+          .select('id, full_name, email, phone')
+      ]);
 
-      if (error) throw error;
+      if (ordersResult.error) throw ordersResult.error;
+      if (profilesResult.error) throw profilesResult.error;
 
-      const formattedOrders = ordersData?.map(order => ({
-        id: order.id,
-        orderNumber: order.order_number,
-        customerName: (order.customer_info as any)?.name || 'Unknown Customer',
-        customerEmail: (order.customer_info as any)?.email || 'No email',
-        items: Array.isArray(order.items) ? order.items.length : 0,
-        total: order.total || 0,
-        status: (order.order_status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'placed') || 'pending',
-        paymentStatus: (order.payment_status as 'pending' | 'paid' | 'failed') || 'pending',
-        address: (order.address_details as any)?.city || 'Unknown',
-        orderDate: new Date(order.created_at).toLocaleDateString(),
-        deliveryDate: order.actual_delivery ? new Date(order.actual_delivery).toLocaleDateString() : undefined
-      })) || [];
+      const profiles = profilesResult.data || [];
+      const formattedOrders = ordersResult.data?.map(order => {
+        // Enhanced customer name resolution
+        let customerName = 'Guest Customer';
+        let customerEmail = 'No email';
+        let customerPhone = '';
+
+        if (order.user_id) {
+          // Try to find in profiles first
+          const profile = profiles.find(p => p.id === order.user_id);
+          if (profile) {
+            customerName = profile.full_name || profile.email || 'Registered User';
+            customerEmail = profile.email || '';
+            customerPhone = profile.phone || '';
+          }
+        }
+        
+        // Fallback to customer_info if profile data is incomplete
+        if (order.customer_info) {
+          const customerInfo = order.customer_info as any;
+          if (!customerName || customerName === 'Guest Customer') {
+            customerName = customerInfo?.name || customerInfo?.full_name || customerName;
+          }
+          if (!customerEmail || customerEmail === 'No email') {
+            customerEmail = customerInfo?.email || customerEmail;
+          }
+          if (!customerPhone) {
+            customerPhone = customerInfo?.phone || '';
+          }
+        }
+
+        return {
+          id: order.id,
+          orderNumber: order.order_number,
+          customerName,
+          customerEmail,
+          items: Array.isArray(order.items) ? order.items.length : 0,
+          total: order.total || 0,
+          status: (order.order_status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'placed') || 'pending',
+          paymentStatus: (order.payment_status as 'pending' | 'paid' | 'failed') || 'pending',
+          address: (order.address_details as any)?.complete_address || 
+                  `${(order.address_details as any)?.plotNumber || ''} ${(order.address_details as any)?.street || ''}, ${(order.address_details as any)?.city || ''}`.trim() ||
+                  'Address not provided',
+          orderDate: new Date(order.created_at).toLocaleDateString(),
+          deliveryDate: order.actual_delivery ? new Date(order.actual_delivery).toLocaleDateString() : undefined
+        };
+      }) || [];
 
       setOrders(formattedOrders);
     } catch (error: any) {
@@ -84,6 +138,36 @@ const AdminOrders = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteOrder = async (orderId: string, orderNumber: string) => {
+    try {
+      setDeletingOrderId(orderId);
+      
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      // Remove the order from the local state
+      setOrders(orders.filter(order => order.id !== orderId));
+      
+      toast({
+        title: "Order Deleted",
+        description: `Order #${orderNumber} has been deleted successfully.`,
+      });
+    } catch (error: any) {
+      console.error('Error deleting order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingOrderId(null);
     }
   };
 
@@ -298,6 +382,38 @@ const AdminOrders = () => {
                           <Edit className="mr-2 h-4 w-4" />
                           Update Status
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem 
+                              className="text-red-600 focus:text-red-600"
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Order
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Order</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete order #{order.orderNumber}? 
+                                This action cannot be undone and will permanently remove the order 
+                                and all associated data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteOrder(order.id, order.orderNumber)}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={deletingOrderId === order.id}
+                              >
+                                {deletingOrderId === order.id ? 'Deleting...' : 'Delete Order'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
