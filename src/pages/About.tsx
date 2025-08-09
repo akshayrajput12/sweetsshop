@@ -14,7 +14,7 @@ const About = () => {
     {
       name: 'Rajesh Kumar',
       role: 'Founder & CEO',
-      bio: 'With 15+ years in e-commerce, Rajesh founded BukBox to democratize bulk shopping and make wholesale prices accessible to everyone.',
+      bio: 'With 15+ years in e-commerce, Rajesh founded BulkBoxs to democratize bulk shopping and make wholesale prices accessible to everyone.',
       image: '/api/placeholder/300/300'
     },
     {
@@ -41,7 +41,7 @@ const About = () => {
           <span className="text-primary"> Savings Made Real</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          For over 10 years, BukBox has been revolutionizing how businesses and families shop. 
+          For over 10 years, BulkBoxs has been revolutionizing how businesses and families shop. 
           We believe in delivering exceptional value through bulk purchasing power and wholesale prices.
         </p>
       </div>
@@ -75,7 +75,7 @@ const About = () => {
           </div>
         </div>
         <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg p-8">
-          <h3 className="text-2xl font-bold mb-4">Why Choose BukBox?</h3>
+          <h3 className="text-2xl font-bold mb-4">Why Choose BulkBoxs?</h3>
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <Shield className="h-6 w-6 text-primary" />
@@ -115,7 +115,7 @@ const About = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Meet Our Team</h2>
           <p className="text-muted-foreground text-lg">
-            The dedicated professionals behind BukBox who make bulk shopping simple and affordable
+            The dedicated professionals behind BulkBoxs who make bulk shopping simple and affordable
           </p>
         </div>
         

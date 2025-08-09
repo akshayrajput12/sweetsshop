@@ -1,8 +1,8 @@
-# BulkBox - Bulk Shopping E-commerce Platform
+# BulkBoxs - Bulk Shopping E-commerce Platform
 
-![BulkBox Logo](https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200)
+![BulkBoxs Logo](https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200)
 
-**BulkBox** is a comprehensive bulk shopping e-commerce platform designed for businesses, restaurants, and bulk buyers. Shop everything in bulk at wholesale prices with advanced features like real-time inventory management, dynamic pricing, and seamless payment integration.
+**BulkBoxs** is a comprehensive bulk shopping e-commerce platform designed for businesses, restaurants, and bulk buyers. Shop everything in bulk at wholesale prices with advanced features like real-time inventory management, dynamic pricing, and seamless payment integration.
 
 ## 🚀 Features
 
@@ -45,7 +45,7 @@
 ### 1. Clone & Install
 ```bash
 git clone <your-repo>
-cd bulkbox
+cd bulkboxs-ecommerce
 npm install
 ```
 
@@ -64,7 +64,7 @@ VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
 
 # Application Configuration
-VITE_APP_NAME=BulkBox
+VITE_APP_NAME=BulkBoxs
 VITE_APP_URL=http://localhost:8080
 ```
 
@@ -82,7 +82,7 @@ RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 3. Copy and run the complete migration:
    ```sql
    -- Copy entire content from:
-   -- supabase/migrations/20250208000000_bulkbox_complete_migration.sql
+   -- supabase/migrations/20250208000000_bulkboxs_complete_migration.sql
    ```
 4. If you have an existing database, also run the additional migration:
    ```sql

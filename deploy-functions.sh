@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Deploy Supabase Edge Functions for BukBox
+# Deploy Supabase Edge Functions for BulkBoxs
 
-echo "Deploying BukBox Edge Functions..."
+echo "Deploying BulkBoxs Edge Functions..."
 
 # Deploy create-razorpay-order function
 echo "Deploying create-razorpay-order function..."

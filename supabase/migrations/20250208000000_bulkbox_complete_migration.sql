@@ -1,7 +1,7 @@
 -- =====================================================
--- BULKBOX COMPLETE DATABASE MIGRATION
+-- BULKBOXS COMPLETE DATABASE MIGRATION
 -- =====================================================
--- This migration creates the complete database schema for BulkBox
+-- This migration creates the complete database schema for BulkBoxs
 -- A comprehensive bulk shopping e-commerce platform
 -- 
 -- Version: 3.0 (Complete Analysis-Based Migration)
@@ -258,7 +258,7 @@ DECLARE
   receipt_id TEXT;
 BEGIN
   -- Generate unique receipt ID for Razorpay
-  receipt_id := 'BULKBOX_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 8);
+  receipt_id := 'BULKBOXS_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 8);
   
   RETURN receipt_id;
 END;
@@ -566,7 +566,7 @@ CREATE POLICY "Admins can delete coupon images" ON storage.objects FOR DELETE
 USING (bucket_id = 'coupon-images' AND public.is_admin());
 
 -- =====================================================
--- INITIAL DATA FOR BULKBOX
+-- INITIAL DATA FOR BULKBOXS
 -- =====================================================
 
 -- Insert default categories for bulk shopping with images
@@ -616,10 +616,10 @@ SELECT
   true,
   100,
   'BULK-RICE-25KG',
-  '{"material": "Premium Basmati Rice", "origin": "Punjab, India", "brand": "BulkBox Premium", "certification": "FSSAI Approved", "weight_per_unit": "25kg", "dimensions": "45x30x15 cm"}'::jsonb,
+  '{"material": "Premium Basmati Rice", "origin": "Punjab, India", "brand": "BulkBoxs Premium", "certification": "FSSAI Approved", "weight_per_unit": "25kg", "dimensions": "45x30x15 cm"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800', 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800'],
   'Store in a cool, dry place away from direct sunlight. Keep in airtight container after opening.',
-  '{"marketedBy": "BulkBox Premium Foods Pvt Ltd", "address": "Plot 123, Industrial Area", "city": "Mumbai", "state": "Maharashtra", "fssaiLicense": "12345678901234"}'::jsonb
+  '{"marketedBy": "BulkBoxs Premium Foods Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -635,10 +635,10 @@ SELECT
   true,
   75,
   'BULK-OIL-15L',
-  '{"material": "Refined Sunflower Oil", "origin": "India", "brand": "BulkBox Commercial", "certification": "FSSAI Approved", "weight_per_unit": "15L", "dimensions": "25x25x35 cm"}'::jsonb,
+  '{"material": "Refined Sunflower Oil", "origin": "India", "brand": "BulkBoxs Commercial", "certification": "FSSAI Approved", "weight_per_unit": "15L", "dimensions": "25x25x35 cm"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800', 'https://images.unsplash.com/photo-1615485925763-4d5b8c2b2c1e?w=800'],
   'Store in cool, dry place. Avoid direct sunlight. Use within 12 months of opening.',
-  '{"marketedBy": "BulkBox Oils & Edibles Ltd", "address": "Industrial Estate, Sector 5", "city": "Pune", "state": "Maharashtra", "fssaiLicense": "98765432109876"}'::jsonb
+  '{"marketedBy": "BulkBoxs Oils & Edibles Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "98765432109876"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -653,10 +653,10 @@ SELECT
   '["Energy Efficient", "Bulk Pack", "Bulk Discount Available", "Premium Quality", "Long Lasting", "Eco Friendly"]'::jsonb,
   50,
   'BULK-LED-50PC',
-  '{"material": "LED with Aluminum Heat Sink", "dimensions": "Standard E27 Base", "warranty": "2 years", "certification": "BIS Approved", "weight_per_unit": "50g per bulb", "brand": "BulkBox Electronics"}'::jsonb,
+  '{"material": "LED with Aluminum Heat Sink", "dimensions": "Standard E27 Base", "warranty": "2 years", "certification": "BIS Approved", "weight_per_unit": "50g per bulb", "brand": "BulkBoxs Electronics"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800', 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800', 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800'],
   'Store in original packaging until use. Avoid moisture and extreme temperatures.',
-  '{"marketedBy": "BulkBox Electronics Pvt Ltd", "address": "Tech Park, Phase 2", "city": "Bangalore", "state": "Karnataka", "fssaiLicense": null}'::jsonb
+  '{"marketedBy": "BulkBoxs Electronics Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
 FROM public.categories c WHERE c.name = 'Electronics'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -673,7 +673,7 @@ SELECT
   false,
   80,
   'BULK-FLOUR-20KG',
-  '{"material": "Whole Wheat Flour", "origin": "Rajasthan, India", "brand": "BulkBox Naturals", "certification": "Organic Certified", "weight_per_unit": "20kg"}'::jsonb,
+  '{"material": "Whole Wheat Flour", "origin": "Rajasthan, India", "brand": "BulkBoxs Naturals", "certification": "Organic Certified", "weight_per_unit": "20kg"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800', 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800'],
   'Store in airtight container in cool, dry place. Use within 6 months for best quality.'
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
@@ -690,7 +690,7 @@ SELECT
   '["Bulk Pack", "Commercial Grade", "Bulk Discount Available", "Premium Quality", "Smooth Writing"]'::jsonb,
   120,
   'BULK-PENS-100PC',
-  '{"material": "Plastic with Metal Tip", "brand": "BulkBox Stationery", "warranty": "6 months", "dimensions": "14cm length"}'::jsonb,
+  '{"material": "Plastic with Metal Tip", "brand": "BulkBoxs Stationery", "warranty": "6 months", "dimensions": "14cm length"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800', 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800']
 FROM public.categories c WHERE c.name = 'Office Supplies'
 ON CONFLICT (sku) DO NOTHING;
@@ -709,11 +709,11 @@ ON CONFLICT (code) DO NOTHING;
 -- Insert comprehensive default settings
 INSERT INTO public.settings (key, value, description, category, is_public) VALUES
   -- General Store Settings
-  ('store_name', '"BulkBox"', 'Store name displayed to customers', 'general', true),
+  ('store_name', '"BulkBoxs"', 'Store name displayed to customers', 'general', true),
   ('store_description', '"Your ultimate bulk shopping destination with wholesale prices on everything you need"', 'Store description', 'general', true),
-  ('store_email', '"contact@bulkbox.com"', 'Store contact email', 'general', true),
-  ('store_phone', '"+91 98765 43210"', 'Store contact phone', 'general', true),
-  ('store_address', '"Mumbai, Maharashtra, India"', 'Store address', 'general', true),
+  ('store_email', '"contact@bulkboxs.com"', 'Store contact email', 'general', true),
+  ('store_phone', '"+91 9996616153"', 'Store contact phone', 'general', true),
+  ('store_address', '"Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102, Near police station"', 'Store address', 'general', true),
   ('store_logo', '"https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"', 'Store logo URL', 'general', true),
   
   -- Business Settings
@@ -773,7 +773,7 @@ INSERT INTO public.settings (key, value, description, category, is_public) VALUE
   ('netbanking_enabled', 'true', 'Enable net banking', 'payment', true),
   
   -- SEO Settings
-  ('site_title', '"BulkBox - Bulk Shopping at Wholesale Prices"', 'Site title for SEO', 'seo', true),
+  ('site_title', '"BulkBoxs - Bulk Shopping at Wholesale Prices"', 'Site title for SEO', 'seo', true),
   ('site_description', '"Shop bulk products at wholesale prices. Perfect for businesses, restaurants, and bulk buyers. Free delivery on orders above ₹1000."', 'Site meta description', 'seo', true),
   ('site_keywords', '"bulk shopping, wholesale prices, bulk groceries, bulk electronics, business supplies"', 'Site meta keywords', 'seo', true),
   
@@ -782,7 +782,7 @@ INSERT INTO public.settings (key, value, description, category, is_public) VALUE
   ('instagram_url', '""', 'Instagram profile URL', 'social', true),
   ('twitter_url', '""', 'Twitter profile URL', 'social', true),
   ('linkedin_url', '""', 'LinkedIn profile URL', 'social', true),
-  ('whatsapp_number', '"+91 98765 43210"', 'WhatsApp business number', 'social', true)
+  ('whatsapp_number', '"+91 9996616153"', 'WhatsApp business number', 'social', true)
 ON CONFLICT (key) DO NOTHING;
 
 -- =====================================================
@@ -828,6 +828,304 @@ UPDATE public.products
 SET features = '[]'::jsonb
 WHERE features IS NULL OR features = 'null'::jsonb OR features = '{}'::jsonb;
 
+-- =====================================================
+-- INVOICE GENERATION FUNCTIONS
+-- =====================================================
+
+-- Function to generate invoice data for orders
+CREATE OR REPLACE FUNCTION public.generate_invoice_data(order_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  order_record RECORD;
+  invoice_data JSONB;
+  store_settings JSONB;
+  item_details JSONB;
+BEGIN
+  -- Get order details
+  SELECT * INTO order_record FROM public.orders WHERE id = order_id;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Order not found';
+  END IF;
+  
+  -- Get store settings for invoice
+  SELECT jsonb_object_agg(key, value) INTO store_settings
+  FROM public.settings 
+  WHERE key IN ('store_name', 'store_address', 'store_phone', 'store_email', 'currency_symbol');
+  
+  -- Build invoice data
+  invoice_data := jsonb_build_object(
+    'invoice_number', 'INV-' || order_record.order_number,
+    'order_number', order_record.order_number,
+    'invoice_date', to_char(order_record.created_at, 'DD/MM/YYYY'),
+    'due_date', to_char(order_record.created_at + interval '30 days', 'DD/MM/YYYY'),
+    'order_date', to_char(order_record.created_at, 'DD/MM/YYYY HH24:MI'),
+    'store_info', store_settings,
+    'customer_info', order_record.customer_info,
+    'delivery_address', order_record.address_details,
+    'items', order_record.items,
+    'pricing', jsonb_build_object(
+      'subtotal', order_record.subtotal,
+      'tax', order_record.tax,
+      'delivery_fee', order_record.delivery_fee,
+      'cod_fee', order_record.cod_fee,
+      'discount', order_record.discount,
+      'total', order_record.total
+    ),
+    'payment_info', jsonb_build_object(
+      'method', order_record.payment_method,
+      'status', order_record.payment_status,
+      'razorpay_payment_id', order_record.razorpay_payment_id
+    ),
+    'order_status', order_record.order_status,
+    'coupon_code', order_record.coupon_code,
+    'special_instructions', order_record.special_instructions
+  );
+  
+  RETURN invoice_data;
+END;
+$$;
+
+-- Function to get invoice template settings
+CREATE OR REPLACE FUNCTION public.get_invoice_template_settings()
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  template_settings JSONB;
+BEGIN
+  SELECT jsonb_object_agg(key, value) INTO template_settings
+  FROM public.settings 
+  WHERE key IN (
+    'store_name', 'store_address', 'store_phone', 'store_email', 'store_logo',
+    'currency_symbol', 'tax_rate', 'invoice_terms', 'invoice_footer'
+  );
+  
+  -- Add default values if not set
+  template_settings := template_settings || jsonb_build_object(
+    'invoice_terms', COALESCE(template_settings->>'invoice_terms', 'Payment is due within 30 days of invoice date.'),
+    'invoice_footer', COALESCE(template_settings->>'invoice_footer', 'Thank you for your business!')
+  );
+  
+  RETURN template_settings;
+END;
+$$;
+
+-- Function to get app settings for frontend
+CREATE OR REPLACE FUNCTION public.get_app_settings()
+RETURNS TABLE(key TEXT, value JSONB)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT s.key, s.value 
+  FROM public.settings s
+  WHERE s.key IN (
+    'tax_rate',
+    'delivery_charge',
+    'free_delivery_threshold',
+    'cod_charge',
+    'cod_threshold',
+    'min_order_amount',
+    'max_order_amount',
+    'bulk_discount_threshold',
+    'bulk_discount_percentage',
+    'currency_symbol',
+    'cod_enabled',
+    'razorpay_enabled',
+    'upi_enabled',
+    'card_enabled',
+    'netbanking_enabled',
+    'store_name',
+    'store_phone',
+    'store_email',
+    'store_address'
+  );
+$$;
+
+-- =====================================================
+-- ADDITIONAL SETTINGS FOR INVOICE
+-- =====================================================
+
+-- Insert invoice-related settings
+INSERT INTO public.settings (key, value, description, category, is_public) VALUES
+  ('invoice_terms', '"Payment is due within 30 days of invoice date. Late payments may incur additional charges."', 'Invoice payment terms', 'invoice', false),
+  ('invoice_footer', '"Thank you for choosing BulkBoxs! For any queries, contact us at contact@bulkboxs.com"', 'Invoice footer text', 'invoice', false),
+  ('invoice_logo', '"https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"', 'Invoice logo URL', 'invoice', false),
+  ('company_registration', '"CIN: U12345MH2024PTC123456"', 'Company registration details', 'invoice', false),
+  ('gst_number', '"27ABCDE1234F1Z5"', 'GST registration number', 'invoice', false),
+  ('bank_details', '{"bank_name": "State Bank of India", "account_number": "1234567890", "ifsc": "SBIN0001234", "branch": "Mumbai Main Branch"}'::jsonb, 'Bank account details for invoice', 'invoice', false)
+ON CONFLICT (key) DO NOTHING;
+
+-- =====================================================
+-- ADDITIONAL INDEXES AND OPTIMIZATIONS
+-- =====================================================
+
+-- Add indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON public.orders(payment_status);
+CREATE INDEX IF NOT EXISTS idx_orders_payment_method ON public.orders(payment_method);
+CREATE INDEX IF NOT EXISTS idx_orders_razorpay_payment_id ON public.orders(razorpay_payment_id) WHERE razorpay_payment_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_orders_coupon_code ON public.orders(coupon_code) WHERE coupon_code IS NOT NULL;
+
+-- Add composite indexes for common queries
+CREATE INDEX IF NOT EXISTS idx_orders_user_status ON public.orders(user_id, order_status);
+CREATE INDEX IF NOT EXISTS idx_orders_date_status ON public.orders(created_at DESC, order_status);
+CREATE INDEX IF NOT EXISTS idx_products_category_active ON public.products(category_id, is_active) WHERE is_active = true;
+
+-- =====================================================
+-- ADDITIONAL TRIGGERS AND FUNCTIONS
+-- =====================================================
+
+-- Function to update order status history
+CREATE OR REPLACE FUNCTION public.log_order_status_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Log status changes in activity_logs
+  IF OLD.order_status != NEW.order_status OR OLD.payment_status != NEW.payment_status THEN
+    INSERT INTO public.activity_logs (
+      user_id,
+      action,
+      entity_type,
+      entity_id,
+      old_values,
+      new_values
+    ) VALUES (
+      auth.uid(),
+      'status_update',
+      'order',
+      NEW.id,
+      jsonb_build_object(
+        'order_status', OLD.order_status,
+        'payment_status', OLD.payment_status
+      ),
+      jsonb_build_object(
+        'order_status', NEW.order_status,
+        'payment_status', NEW.payment_status
+      )
+    );
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- Create trigger for order status logging
+CREATE TRIGGER log_order_status_changes
+  AFTER UPDATE ON public.orders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.log_order_status_change();
+
+-- Function to validate order data
+CREATE OR REPLACE FUNCTION public.validate_order_data()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Validate required fields
+  IF NEW.customer_info IS NULL OR NEW.customer_info = '{}'::jsonb THEN
+    RAISE EXCEPTION 'Customer information is required';
+  END IF;
+  
+  IF NEW.items IS NULL OR jsonb_array_length(NEW.items) = 0 THEN
+    RAISE EXCEPTION 'Order must contain at least one item';
+  END IF;
+  
+  IF NEW.total <= 0 THEN
+    RAISE EXCEPTION 'Order total must be greater than zero';
+  END IF;
+  
+  -- Validate payment method
+  IF NEW.payment_method NOT IN ('cod', 'online', 'wallet', 'bank_transfer') THEN
+    RAISE EXCEPTION 'Invalid payment method';
+  END IF;
+  
+  -- Validate order status
+  IF NEW.order_status NOT IN ('placed', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded') THEN
+    RAISE EXCEPTION 'Invalid order status';
+  END IF;
+  
+  -- Validate payment status
+  IF NEW.payment_status NOT IN ('pending', 'paid', 'failed', 'refunded', 'cancelled') THEN
+    RAISE EXCEPTION 'Invalid payment status';
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- Create trigger for order validation
+CREATE TRIGGER validate_order_before_insert
+  BEFORE INSERT ON public.orders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.validate_order_data();
+
+CREATE TRIGGER validate_order_before_update
+  BEFORE UPDATE ON public.orders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.validate_order_data();
+
+-- =====================================================
+-- ADDITIONAL RLS POLICIES
+-- =====================================================
+
+-- Policy for invoice generation (admin only)
+CREATE POLICY "invoice_generation_admin_only" ON public.orders FOR SELECT
+USING (public.is_admin() AND id IS NOT NULL);
+
+-- =====================================================
+-- VIEWS FOR REPORTING
+-- =====================================================
+
+-- Create view for order analytics
+CREATE OR REPLACE VIEW public.order_analytics AS
+SELECT 
+  DATE_TRUNC('day', created_at) as order_date,
+  COUNT(*) as total_orders,
+  SUM(total) as total_revenue,
+  AVG(total) as average_order_value,
+  COUNT(CASE WHEN payment_method = 'cod' THEN 1 END) as cod_orders,
+  COUNT(CASE WHEN payment_method = 'online' THEN 1 END) as online_orders,
+  COUNT(CASE WHEN order_status = 'delivered' THEN 1 END) as delivered_orders,
+  COUNT(CASE WHEN order_status = 'cancelled' THEN 1 END) as cancelled_orders
+FROM public.orders
+GROUP BY DATE_TRUNC('day', created_at)
+ORDER BY order_date DESC;
+
+-- Create view for product performance
+CREATE OR REPLACE VIEW public.product_performance AS
+SELECT 
+  p.id,
+  p.name,
+  p.category_id,
+  c.name as category_name,
+  COALESCE(SUM(ps.quantity_sold), 0) as total_sold,
+  COALESCE(SUM(ps.total_revenue), 0) as total_revenue,
+  p.stock_quantity,
+  p.is_bestseller,
+  p.is_active
+FROM public.products p
+LEFT JOIN public.categories c ON p.category_id = c.id
+LEFT JOIN public.product_sales ps ON p.id = ps.product_id
+GROUP BY p.id, p.name, p.category_id, c.name, p.stock_quantity, p.is_bestseller, p.is_active
+ORDER BY total_revenue DESC;
+
+-- =====================================================
+-- FINAL PERMISSIONS AND CLEANUP
+-- =====================================================
+
+-- Grant permissions on new functions
+GRANT EXECUTE ON FUNCTION public.generate_invoice_data(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_invoice_template_settings() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_app_settings() TO anon, authenticated;
+
+-- Grant permissions on views
+GRANT SELECT ON public.order_analytics TO authenticated;
+GRANT SELECT ON public.product_performance TO authenticated;
+
 -- Grant necessary permissions
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
@@ -840,6 +1138,7 @@ NOTIFY pgrst, 'reload schema';
 -- =====================================================
 -- MIGRATION COMPLETE
 -- =====================================================
--- BulkBox database schema has been successfully created
--- with all necessary tables, policies, functions, and initial data
+-- BulkBoxs database schema has been successfully created
+-- with all necessary tables, policies, functions, initial data,
+-- invoice generation capabilities, and comprehensive analytics
 -- =====================================================

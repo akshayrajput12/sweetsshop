@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * BukBox Setup Script
+ * BulkBoxs Setup Script
  * 
- * This script helps set up the BukBox project by:
+ * This script helps set up the BulkBoxs project by:
  * 1. Checking for required environment variables
  * 2. Validating Supabase connection
  * 3. Providing setup guidance
@@ -12,7 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 BukBox Setup Script');
+console.log('🚀 BulkBoxs Setup Script');
 console.log('======================\n');
 
 // Check if .env file exists
@@ -92,27 +92,27 @@ if (missingVars.length > 0) {
   missingVars.forEach(varName => {
     console.log(`   - ${varName}`);
   });
-  console.log('\n📖 Please refer to BUKBOX_SETUP_GUIDE.md for detailed setup instructions');
+  console.log('\n📖 Please refer to BULKBOXS_SETUP_GUIDE.md for detailed setup instructions');
 } else {
   console.log('\n✅ All required environment variables are configured!');
 }
 
 // Check if migration file exists
-const migrationPath = path.join(__dirname, 'supabase', 'migrations', '20250208000000_bukbox_complete_migration.sql');
+const migrationPath = path.join(__dirname, 'supabase', 'migrations', '20250208000000_bulkboxs_complete_migration.sql');
 
 if (fs.existsSync(migrationPath)) {
   console.log('✅ Database migration file found');
   console.log('\n📋 Next steps:');
   console.log('   1. Run the migration in your Supabase SQL Editor');
   console.log('   2. Copy the content from:');
-  console.log('      supabase/migrations/20250208000000_bukbox_complete_migration.sql');
+  console.log('      supabase/migrations/20250208000000_bulkboxs_complete_migration.sql');
   console.log('   3. Paste and execute in Supabase dashboard');
 } else {
   console.log('❌ Database migration file not found!');
 }
 
 console.log('\n🎉 Setup check complete!');
-console.log('\n📚 For detailed setup instructions, see: BUKBOX_SETUP_GUIDE.md');
+console.log('\n📚 For detailed setup instructions, see: BULKBOXS_SETUP_GUIDE.md');
 console.log('🚀 To start development: npm run dev');
 
 // Check package.json scripts
@@ -127,6 +127,6 @@ if (fs.existsSync(packageJsonPath)) {
 }
 
 console.log('\n' + '='.repeat(50));
-console.log('BukBox - Bulk Shopping Platform');
+console.log('BulkBoxs - Bulk Shopping Platform');
 console.log('Ready for bulk e-commerce! 🛒');
 console.log('='.repeat(50));

@@ -56,7 +56,7 @@ const WhyChooseUs = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="heading-lg mb-4">Why Choose BukBox?</h2>
+          <h2 className="heading-lg mb-4">Why Choose BulkBoxs?</h2>
           <p className="body-text text-muted-foreground max-w-2xl mx-auto">
             We're committed to delivering the best bulk shopping experience with unbeatable prices and exceptional service.
           </p>
@@ -105,7 +105,7 @@ const WhyChooseUs = () => {
           <div className="bg-muted/50 rounded-2xl p-8 md:p-12">
             <h3 className="heading-lg mb-4">Ready to Start Saving with Bulk Shopping?</h3>
             <p className="body-text text-muted-foreground mb-6 max-w-xl mx-auto">
-              Join thousands of satisfied customers who trust BukBox for their bulk shopping needs and wholesale savings.
+              Join thousands of satisfied customers who trust BulkBoxs for their bulk shopping needs and wholesale savings.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="btn-primary">

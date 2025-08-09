@@ -91,10 +91,10 @@ export const createRazorpayOrder = async (orderData: OrderData): Promise<{
     // Generate a unique order ID for tracking
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 9);
-    const orderId = `BULKBOX_${timestamp}_${randomString}`;
-    
+    const orderId = `BULKBOXS_${timestamp}_${randomString}`;
+
     const amount = Math.round(orderData.amount * 100); // Convert to paise
-    
+
     // Log order creation for debugging
     console.log('Creating client-side order:', {
       orderId,
@@ -103,7 +103,7 @@ export const createRazorpayOrder = async (orderData: OrderData): Promise<{
       customer: orderData.customerInfo.name,
       items: orderData.items.length
     });
-    
+
     return {
       id: orderId,
       amount: amount,
@@ -141,7 +141,7 @@ export const verifyRazorpayPayment = async (
     // For client-side integration without Edge Functions, we trust Razorpay's callback
     // since the payment was processed through their secure checkout
     // In production, you should implement server-side verification
-    
+
     console.log('Payment verification (client-side):', {
       paymentId,
       orderId,
@@ -188,14 +188,14 @@ export const initiateRazorpayPayment = async (
       key: razorpayKey,
       amount: order.amount,
       currency: order.currency,
-      name: import.meta.env.VITE_APP_NAME || 'BulkBox',
+      name: import.meta.env.VITE_APP_NAME || 'BulkBoxs',
       description: `Bulk order for ${orderData.items.length} items - ${orderData.items.map(item => item.name).join(', ').substring(0, 100)}`,
       // Note: No order_id for direct payment integration
       image: '/logo.png',
       handler: async (response: any) => {
         try {
           console.log('Payment successful:', response);
-          
+
           // For direct payment, response will have payment_id and signature
           const paymentResponse: RazorpayResponse = {
             razorpay_payment_id: response.razorpay_payment_id,
@@ -263,5 +263,5 @@ export const formatRazorpayAmount = (amount: number): string => {
 // Generate order receipt
 export const generateOrderReceipt = (orderData: OrderData): string => {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  return `BUKBOX_${timestamp}_${orderData.orderId.substring(orderData.orderId.length - 6)}`;
+  return `BULKBOXS_${timestamp}_${orderData.orderId.substring(orderData.orderId.length - 6)}`;
 };

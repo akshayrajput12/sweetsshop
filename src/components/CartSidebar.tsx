@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useSettings } from '../hooks/useSettings';
+import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '../utils/settingsHelpers';
 
 const CartSidebar = () => {
   const { 
@@ -15,48 +16,46 @@ const CartSidebar = () => {
   } = useStore();
   
   const navigate = useNavigate();
+  const { settings, loading: settingsLoading } = useSettings();
 
-  // Dynamic settings from database
-  const [settings, setSettings] = useState<Record<string, any>>({
-    tax_rate: 18,
-    delivery_charge: 50,
-    free_delivery_threshold: 1000,
-    currency_symbol: '₹'
-  });
+  // Show loading state while settings are being fetched
+  if (settingsLoading) {
+    return (
+      <AnimatePresence>
+        {isCartOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/50 z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={toggleCart}
+            />
+            <motion.div
+              className="fixed right-0 top-0 h-full w-full max-w-md bg-background shadow-large z-50 flex flex-col items-center justify-center"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            >
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <p className="mt-4 text-muted-foreground">Loading cart...</p>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    );
+  }
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('key, value')
-        .in('key', ['tax_rate', 'delivery_charge', 'free_delivery_threshold', 'currency_symbol']);
-
-      if (error) throw error;
-
-      const settingsObj: Record<string, any> = {};
-      data?.forEach(setting => {
-        try {
-          settingsObj[setting.key] = typeof setting.value === 'string' 
-            ? JSON.parse(setting.value) 
-            : setting.value;
-        } catch {
-          settingsObj[setting.key] = setting.value;
-        }
-      });
-
-      setSettings(prev => ({ ...prev, ...settingsObj }));
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-    }
-  };
-
-  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const tax = subtotal * (settings.tax_rate / 100);
-  const deliveryFee = subtotal >= settings.free_delivery_threshold ? 0 : settings.delivery_charge;
+  // Safe calculations using helper functions
+  const subtotal = cartItems.reduce((total, item) => {
+    const price = toNumber(item.price);
+    const quantity = toNumber(item.quantity);
+    return total + (price * quantity);
+  }, 0);
+  
+  const tax = calculatePercentage(subtotal, settings.tax_rate);
+  const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
   const total = subtotal + tax + deliveryFee;
 
   const handleCheckout = () => {
@@ -128,7 +127,7 @@ const CartSidebar = () => {
                           {item.name}
                         </h4>
                         <p className="caption text-muted-foreground">
-                          {item.weight} • {settings.currency_symbol}{item.price}
+                          {item.weight} • {formatCurrency(item.price, settings.currency_symbol)}
                         </p>
                         
                         <div className="flex items-center space-x-2 mt-2">
@@ -169,12 +168,12 @@ const CartSidebar = () => {
               <div className="border-t p-6 space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between body-text">
-                    <span>Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
-                    <span>{settings.currency_symbol}{subtotal.toFixed(2)}</span>
+                    <span>Subtotal ({cartItems.reduce((sum, item) => sum + toNumber(item.quantity), 0)} items)</span>
+                    <span>{formatCurrency(subtotal, settings.currency_symbol)}</span>
                   </div>
                   <div className="flex justify-between body-text">
-                    <span>Tax ({settings.tax_rate}%)</span>
-                    <span>{settings.currency_symbol}{tax.toFixed(2)}</span>
+                    <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
+                    <span>{formatCurrency(tax, settings.currency_symbol)}</span>
                   </div>
                   <div className="flex justify-between body-text">
                     <span>Delivery Fee</span>
@@ -182,18 +181,18 @@ const CartSidebar = () => {
                       {deliveryFee === 0 ? (
                         <span className="text-green-600 font-medium">FREE</span>
                       ) : (
-                        `${settings.currency_symbol}${deliveryFee.toFixed(2)}`
+                        formatCurrency(deliveryFee, settings.currency_symbol)
                       )}
                     </span>
                   </div>
-                  {deliveryFee > 0 && (
+                  {deliveryFee > 0 && toNumber(settings.free_delivery_threshold) > 0 && (
                     <div className="text-xs text-muted-foreground">
-                      Add {settings.currency_symbol}{(settings.free_delivery_threshold - subtotal).toFixed(2)} more for free delivery
+                      Add {formatCurrency(toNumber(settings.free_delivery_threshold) - subtotal, settings.currency_symbol)} more for free delivery
                     </div>
                   )}
                   <div className="flex justify-between heading-md font-semibold pt-2 border-t">
                     <span>Total</span>
-                    <span>{settings.currency_symbol}{total.toFixed(2)}</span>
+                    <span>{formatCurrency(total, settings.currency_symbol)}</span>
                   </div>
                 </div>
 

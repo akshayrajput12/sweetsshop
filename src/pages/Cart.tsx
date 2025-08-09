@@ -1,70 +1,50 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useStore } from '@/store/useStore';
 import { formatPrice } from '@/utils/currency';
-import { supabase } from '@/integrations/supabase/client';
+import { useSettings } from '@/hooks/useSettings';
+import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '@/utils/settingsHelpers';
 
 const Cart = () => {
   const { cartItems, updateQuantity, removeFromCart } = useStore();
+  const { settings, loading: settingsLoading, error: settingsError } = useSettings();
 
-  // Dynamic settings from database
-  const [settings, setSettings] = useState<Record<string, any>>({
-    tax_rate: 18,
-    delivery_charge: 50,
-    free_delivery_threshold: 1000,
-    currency_symbol: '₹'
-  });
-
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('key, value')
-        .in('key', ['tax_rate', 'delivery_charge', 'free_delivery_threshold', 'currency_symbol']);
-
-      if (error) throw error;
-
-      const settingsObj: Record<string, any> = {};
-      data?.forEach(setting => {
-        try {
-          settingsObj[setting.key] = typeof setting.value === 'string' 
-            ? JSON.parse(setting.value) 
-            : setting.value;
-        } catch {
-          settingsObj[setting.key] = setting.value;
-        }
-      });
-
-      setSettings(prev => ({ ...prev, ...settingsObj }));
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * (settings.tax_rate / 100);
-  const deliveryFee = subtotal >= settings.free_delivery_threshold ? 0 : settings.delivery_charge;
-  const total = subtotal + tax + deliveryFee;
-
-  if (loading) {
+  // Early return if settings are still loading
+  if (settingsLoading) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-        <p className="mt-4 text-muted-foreground">Loading cart...</p>
+        <p className="mt-4 text-muted-foreground">Loading cart settings...</p>
       </div>
     );
   }
+
+  // Show error if settings failed to load
+  if (settingsError) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <div className="text-red-500 mb-4">⚠️ Settings Error</div>
+        <p className="text-muted-foreground mb-4">{settingsError}</p>
+        <Button onClick={() => window.location.reload()}>
+          Refresh Page
+        </Button>
+      </div>
+    );
+  }
+
+  const subtotal = cartItems.reduce((sum, item) => sum + (toNumber(item.price) * toNumber(item.quantity)), 0);
+  const tax = calculatePercentage(subtotal, settings.tax_rate);
+  const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
+  const total = subtotal + tax + deliveryFee;
+  
+
+  
+  // Check if minimum order amount is met
+  const minOrderAmount = toNumber(settings.min_order_amount);
+  const isMinOrderMet = subtotal >= minOrderAmount;
+  const minOrderShortfall = Math.max(0, minOrderAmount - subtotal);
 
   if (cartItems.length === 0) {
     return (
@@ -134,7 +114,7 @@ const Cart = () => {
                         {item.weight}{item.pieces && ` • ${item.pieces}`}
                       </p>
                       <p className="font-bold text-primary text-sm sm:text-base mt-1">
-                        {settings.currency_symbol}{item.price.toFixed(2)}
+                        {formatCurrency(item.price, settings.currency_symbol)}
                       </p>
                     </div>
                   </div>
@@ -167,7 +147,7 @@ const Cart = () => {
                     {/* Price and Remove */}
                     <div className="text-right">
                       <p className="font-bold text-sm sm:text-base">
-                        {settings.currency_symbol}{(item.price * item.quantity).toFixed(2)}
+                        {formatCurrency(toNumber(item.price) * toNumber(item.quantity), settings.currency_symbol)}
                       </p>
                       <Button
                         variant="ghost"
@@ -198,7 +178,7 @@ const Cart = () => {
               </div>
               
               <div className="flex justify-between">
-                <span>Tax ({settings.tax_rate}%)</span>
+                <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
                 <span>{formatPrice(tax)}</span>
               </div>
               
@@ -216,23 +196,30 @@ const Cart = () => {
               {deliveryFee > 0 && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <p className="text-sm text-green-700 font-medium">
-                    💡 Add {formatPrice(settings.free_delivery_threshold - subtotal)} more for FREE delivery!
+                    💡 Add {formatPrice(toNumber(settings.free_delivery_threshold) - subtotal)} more for FREE delivery!
                   </p>
                 </div>
               )}
 
               {/* COD Fee Information */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-blue-700">COD Fee (if applicable)</span>
-                  <span className="text-sm font-medium text-blue-700">
-                    {settings.currency_symbol}{settings.cod_charge}
-                  </span>
+              {settings.cod_enabled && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-blue-700">COD Fee (if applicable)</span>
+                    <span className="text-sm font-medium text-blue-700">
+                      {formatCurrency(settings.cod_charge, settings.currency_symbol)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Additional {formatCurrency(settings.cod_charge, settings.currency_symbol)} for Cash on Delivery orders
+                  </p>
+                  {settings.cod_threshold && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      COD available for orders up to {formatCurrency(settings.cod_threshold, settings.currency_symbol)}
+                    </p>
+                  )}
                 </div>
-                <p className="text-xs text-blue-600 mt-1">
-                  Additional {settings.currency_symbol}{settings.cod_charge} for Cash on Delivery orders
-                </p>
-              </div>
+              )}
               
               <hr />
               
@@ -241,13 +228,30 @@ const Cart = () => {
                 <span>{formatPrice(total)}</span>
               </div>
 
+              {/* Minimum Order Validation */}
+              {!isMinOrderMet && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                  <p className="text-sm text-orange-700 font-medium">
+                    ⚠️ Minimum order amount: {formatCurrency(minOrderAmount, settings.currency_symbol)}
+                  </p>
+                  <p className="text-xs text-orange-600 mt-1">
+                    Add {formatPrice(minOrderShortfall)} more to proceed to checkout
+                  </p>
+                </div>
+              )}
+
               <p className="text-xs text-muted-foreground">
                 Final total will be calculated at checkout based on payment method
               </p>
               
-              <Button asChild className="w-full" size="lg">
+              <Button 
+                asChild 
+                className="w-full" 
+                size="lg"
+                disabled={!isMinOrderMet}
+              >
                 <Link to="/checkout">
-                  Proceed to Checkout
+                  {isMinOrderMet ? 'Proceed to Checkout' : `Add ${formatPrice(minOrderShortfall)} More`}
                 </Link>
               </Button>
               
@@ -260,6 +264,62 @@ const Cart = () => {
           </Card>
         </div>
       </div>
+
+      {/* Mobile Sticky Bottom Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 shadow-lg">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                {cartItems.reduce((sum, item) => sum + item.quantity, 0)} items
+              </p>
+              <p className="font-bold text-lg">{formatPrice(total)}</p>
+            </div>
+            <div className="text-right">
+              {!isMinOrderMet && (
+                <p className="text-xs text-orange-600 mb-1">
+                  Add {formatPrice(minOrderShortfall)} more
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                + COD fee if applicable
+              </p>
+            </div>
+          </div>
+          
+          {!isMinOrderMet && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 mb-3">
+              <p className="text-xs text-orange-700 text-center">
+                Minimum order: {formatCurrency(minOrderAmount, settings.currency_symbol)}
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <Button 
+              asChild 
+              variant="outline" 
+              className="flex-1"
+            >
+              <Link to="/products">
+                Continue Shopping
+              </Link>
+            </Button>
+            <Button 
+              asChild 
+              className="flex-1" 
+              disabled={!isMinOrderMet}
+            >
+              <Link to="/checkout">
+                {isMinOrderMet ? 'Checkout' : 'Add More Items'}
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Add bottom padding to prevent content from being hidden behind sticky bar */}
+      <div className="lg:hidden h-32"></div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, User, CreditCard, Phone, Mail } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, User, CreditCard, Phone, Mail, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { downloadInvoice, validateInvoiceData } from '@/utils/invoiceGenerator';
 
 interface OrderItem {
   id: string;
@@ -194,6 +195,97 @@ const AdminOrderDetail = () => {
     }
   };
 
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+
+    try {
+      // Try to fetch invoice data from database function first
+      let invoiceData;
+      
+      try {
+        const { data, error } = await supabase
+          .rpc('generate_invoice_data', { order_id: id });
+        
+        if (!error && data) {
+          invoiceData = data;
+        }
+      } catch (dbError) {
+        console.warn('Database function not available, using fallback:', dbError);
+      }
+
+      // Fallback: Generate invoice data from current order
+      if (!invoiceData) {
+        // Fetch store settings
+        const { data: settings } = await supabase
+          .from('settings')
+          .select('key, value')
+          .in('key', ['store_name', 'store_address', 'store_phone', 'store_email', 'currency_symbol']);
+
+        const storeSettings = settings?.reduce((acc: any, setting) => {
+          acc[setting.key] = typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value;
+          return acc;
+        }, {}) || {};
+
+        invoiceData = {
+          invoice_number: `INV-${order.id}`,
+          order_number: order.id,
+          invoice_date: new Date().toLocaleDateString('en-IN'),
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN'),
+          order_date: formatDate(order.orderDate),
+          store_info: {
+            store_name: storeSettings.store_name || 'BulkBoxs',
+            store_address: storeSettings.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
+            store_phone: storeSettings.store_phone || '+91 9996616153',
+            store_email: storeSettings.store_email || 'contact@bulkboxs.com',
+            currency_symbol: storeSettings.currency_symbol || '₹'
+          },
+          customer_info: {
+            name: order.customerName,
+            email: order.customerEmail,
+            phone: order.customerPhone
+          },
+          delivery_address: order.shippingAddress,
+          items: order.items,
+          pricing: {
+            subtotal: order.subtotal,
+            tax: order.tax,
+            delivery_fee: order.deliveryFee,
+            cod_fee: order.codFee,
+            discount: order.discount,
+            total: order.total
+          },
+          payment_info: {
+            method: order.paymentMethod,
+            status: order.paymentStatus,
+            razorpay_payment_id: order.razorpayPaymentId
+          },
+          order_status: order.status,
+          coupon_code: order.couponCode,
+          special_instructions: order.notes
+        };
+      }
+
+      if (!validateInvoiceData(invoiceData)) {
+        throw new Error('Invalid invoice data');
+      }
+
+      // Download the invoice
+      await downloadInvoice(invoiceData);
+      
+      toast({
+        title: "Success",
+        description: "Invoice downloaded successfully",
+      });
+    } catch (error: any) {
+      console.error('Error downloading invoice:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to download invoice",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -230,6 +322,17 @@ const AdminOrderDetail = () => {
         </div>
         
         <div className="flex items-center space-x-3">
+          <Button
+            onClick={handleDownloadInvoice}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Download Invoice</span>
+            <span className="sm:hidden">Invoice</span>
+          </Button>
+          
           <Badge className={getStatusColor(currentStatus)}>
             {currentStatus}
           </Badge>

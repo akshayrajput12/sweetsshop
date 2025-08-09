@@ -18,7 +18,7 @@ INSERT INTO public.orders (
     payment_status,
     order_status
 ) VALUES (
-    'BULKBOX_' || extract(epoch from now())::bigint || '_COD',
+    'BULKBOXS_' || extract(epoch from now())::bigint || '_COD',
     '{"name": "John Doe", "email": "john@example.com", "phone": "+91 9876543210"}',
     '{"address": "Mumbai, Maharashtra, India", "lat": 19.0760, "lng": 72.8777}',
     '{"plotNumber": "123", "street": "MG Road", "city": "Mumbai", "state": "Maharashtra", "pincode": "400001", "landmark": "Near Metro Station"}',
@@ -53,7 +53,7 @@ INSERT INTO public.orders (
     razorpay_payment_id,
     razorpay_order_id
 ) VALUES (
-    'BULKBOX_' || extract(epoch from now())::bigint || '_ONLINE',
+    'BULKBOXS_' || extract(epoch from now())::bigint || '_ONLINE',
     '{"name": "Jane Smith", "email": "jane@example.com", "phone": "+91 9876543211"}',
     '{"address": "Delhi, India", "lat": 28.6139, "lng": 77.2090}',
     '{"plotNumber": "456", "street": "CP", "city": "Delhi", "state": "Delhi", "pincode": "110001"}',
@@ -68,7 +68,7 @@ INSERT INTO public.orders (
     'paid',
     'confirmed',
     'pay_test123456789',
-    'BULKBOX_test_order_123'
+    'BULKBOXS_test_order_123'
 );
 
 -- Verify both orders were created
@@ -85,7 +85,7 @@ SELECT
     order_status,
     created_at
 FROM public.orders 
-WHERE order_number LIKE 'BULKBOX_%'
+WHERE order_number LIKE 'BULKBOXS_%'
 ORDER BY created_at DESC 
 LIMIT 2;
 
@@ -98,8 +98,8 @@ SELECT
     o.order_number
 FROM public.product_sales ps
 JOIN public.orders o ON ps.order_id = o.id
-WHERE o.order_number LIKE 'BULKBOX_%'
+WHERE o.order_number LIKE 'BULKBOXS_%'
 ORDER BY ps.created_at DESC;
 
 -- Clean up test orders (uncomment to remove test data)
--- DELETE FROM public.orders WHERE order_number LIKE 'BULKBOX_%';
+-- DELETE FROM public.orders WHERE order_number LIKE 'BULKBOXS_%';

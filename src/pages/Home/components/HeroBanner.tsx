@@ -24,7 +24,7 @@ const HeroBanner = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             Welcome to{' '}
-            <span className="text-primary">BukBox</span>{' '}
+            <span className="text-primary">BulkBoxs</span>{' '}
             - Buy in Bulk, Save More
           </motion.h1>
           

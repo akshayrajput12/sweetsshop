@@ -16,11 +16,15 @@ import Stepper from '@/components/Stepper';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { validateContactInfo, validateAddressDetails, validatePaymentMethod, formatPhoneNumber } from '@/utils/validation';
+import { useSettings } from '@/hooks/useSettings';
+import { toNumber, formatCurrency, calculatePercentage, meetsThreshold, toBoolean } from '@/utils/settingsHelpers';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { cartItems, clearCart } = useStore();
+  const { settings, loading: settingsLoading, error: settingsError } = useSettings();
   const [currentStep, setCurrentStep] = useState(1);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -33,20 +37,9 @@ const Checkout = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [useExistingAddress, setUseExistingAddress] = useState(false);
   
-  // Settings from database
-  const [settings, setSettings] = useState<Record<string, any>>({
-    tax_rate: 18,
-    delivery_charge: 50,
-    free_delivery_threshold: 1000,
-    cod_charge: 25,
-    cod_threshold: 2000,
-    cod_enabled: true,
-    razorpay_enabled: true,
-    upi_enabled: true,
-    card_enabled: true,
-    netbanking_enabled: true,
-    currency_symbol: '₹'
-  });
+  // Form validation states
+  const [contactErrors, setContactErrors] = useState<string[]>([]);
+  const [addressErrors, setAddressErrors] = useState<string[]>([]);
 
   // Customer Information
   const [customerInfo, setCustomerInfo] = useState({
@@ -82,40 +75,11 @@ const Checkout = () => {
   ];
 
   useEffect(() => {
-    fetchSettings();
     fetchProductCoupons();
     fetchSavedAddresses();
   }, [cartItems]);
 
-  const fetchSettings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('key, value')
-        .in('key', [
-          'tax_rate', 'delivery_charge', 'free_delivery_threshold', 
-          'cod_charge', 'cod_threshold', 'cod_enabled', 'razorpay_enabled',
-          'upi_enabled', 'card_enabled', 'netbanking_enabled', 'currency_symbol'
-        ]);
-
-      if (error) throw error;
-
-      const settingsObj: Record<string, any> = {};
-      data?.forEach(setting => {
-        try {
-          settingsObj[setting.key] = typeof setting.value === 'string' 
-            ? JSON.parse(setting.value) 
-            : setting.value;
-        } catch {
-          settingsObj[setting.key] = setting.value;
-        }
-      });
-
-      setSettings(prev => ({ ...prev, ...settingsObj }));
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-    }
-  };
+  // Remove fetchSettings since we're using static settings now
 
   const fetchSavedAddresses = async () => {
     try {
@@ -266,43 +230,25 @@ const Checkout = () => {
 
       if (pcError) throw pcError;
 
-      // Also fetch general coupons (not tied to specific products)
-      const productCouponIds = productCoupons?.map(pc => pc.coupon_id).filter(Boolean) || [];
-      
-      let generalCouponsQuery = supabase
-        .from('coupons')
-        .select('*')
-        .eq('is_active', true)
-        .gte('valid_until', new Date().toISOString());
-
-      // Only add the exclusion filter if we have product coupon IDs
-      if (productCouponIds.length > 0) {
-        generalCouponsQuery = generalCouponsQuery.not('id', 'in', `(${productCouponIds.join(',')})`);
-      }
-
-      const { data: generalCoupons, error: gcError } = await generalCouponsQuery;
-
-      if (gcError) throw gcError;
-      
+      // Filter and process only product-specific coupons for items in cart
       const productSpecificCoupons = productCoupons
         ?.map(pc => pc.coupons)
-        .filter(c => c !== null && c.is_active)
+        .filter(c => c !== null && c.is_active && new Date(c.valid_until) > new Date())
         .filter((coupon, index, self) => 
           index === self.findIndex(c => c.id === coupon.id)
         ) || [];
 
-      const allCoupons = [...productSpecificCoupons, ...(generalCoupons || [])];
-      
-      setAvailableCoupons(allCoupons);
+      // Only show coupons that are specifically assigned to products in the cart
+      setAvailableCoupons(productSpecificCoupons);
     } catch (error) {
       console.error('Error fetching product coupons:', error);
     }
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * (settings.tax_rate / 100);
-  const deliveryFee = subtotal >= settings.free_delivery_threshold ? 0 : settings.delivery_charge;
-  const codFee = paymentMethod === 'cod' ? settings.cod_charge : 0;
+  const subtotal = cartItems.reduce((sum, item) => sum + (toNumber(item.price) * toNumber(item.quantity)), 0);
+  const tax = calculatePercentage(subtotal, settings.tax_rate);
+  const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
+  const codFee = paymentMethod === 'cod' ? toNumber(settings.cod_charge) : 0;
   const total = subtotal + tax + deliveryFee + codFee - discount;
 
   const applyCoupon = async () => {
@@ -380,38 +326,58 @@ const Checkout = () => {
   };
 
   const handleNextStep = () => {
+    // Check minimum order amount before any step
+    if (subtotal < toNumber(settings.min_order_amount)) {
+      toast({
+        title: "Minimum Order Not Met",
+        description: `Minimum order amount is ${formatCurrency(settings.min_order_amount, settings.currency_symbol)}. Please add more items to your cart.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validation for each step
     if (currentStep === 1) {
-      if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
+      const validation = validateContactInfo(customerInfo);
+      if (!validation.isValid) {
+        setContactErrors(validation.errors);
         toast({
-          title: "Missing Information",
-          description: "Please fill in all contact details.",
+          title: "Invalid Information",
+          description: validation.errors[0],
           variant: "destructive",
         });
         return;
       }
+      setContactErrors([]);
     } else if (currentStep === 2) {
       if (!deliveryLocation) {
         toast({
           title: "Location Required",
-          description: "Please select a delivery location.",
+          description: "Please select a delivery location on the map.",
           variant: "destructive",
         });
         return;
       }
     } else if (currentStep === 3) {
-      if (!useExistingAddress && (!addressDetails.plotNumber || !addressDetails.street)) {
-        toast({
-          title: "Address Details Required",
-          description: "Please fill in plot number and street.",
-          variant: "destructive",
-        });
-        return;
+      if (!useExistingAddress) {
+        const validation = validateAddressDetails(addressDetails);
+        if (!validation.isValid) {
+          setAddressErrors(validation.errors);
+          toast({
+            title: "Invalid Address",
+            description: validation.errors[0],
+            variant: "destructive",
+          });
+          return;
+        }
       }
-      if (!addressDetails.pincode) {
+      setAddressErrors([]);
+    } else if (currentStep === 4) {
+      const paymentValidation = validatePaymentMethod(paymentMethod, total, settings);
+      if (!paymentValidation.isValid) {
         toast({
-          title: "Location Required",
-          description: "Please select a location on the map to auto-detect pincode.",
+          title: "Payment Method Error",
+          description: paymentValidation.errors[0],
           variant: "destructive",
         });
         return;
@@ -466,6 +432,16 @@ const Checkout = () => {
       return;
     }
 
+    // Validate minimum order amount
+    if (subtotal < Number(settings.min_order_amount)) {
+      toast({
+        title: "Minimum Order Not Met",
+        description: `Minimum order amount is ${settings.currency_symbol}${Number(settings.min_order_amount).toFixed(2)}. Please add more items.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate COD order limits
     if (paymentMethod === 'cod') {
       if (!settings.cod_enabled) {
@@ -477,10 +453,10 @@ const Checkout = () => {
         return;
       }
       
-      if (total > settings.cod_threshold) {
+      if (total > Number(settings.cod_threshold)) {
         toast({
           title: "COD Limit Exceeded",
-          description: `Cash on Delivery is not available for orders above ${settings.currency_symbol}${settings.cod_threshold}. Please choose online payment.`,
+          description: `Cash on Delivery is not available for orders above ${settings.currency_symbol}${Number(settings.cod_threshold).toFixed(2)}. Please choose online payment.`,
           variant: "destructive",
         });
         return;
@@ -674,6 +650,27 @@ const Checkout = () => {
     );
   }
 
+  if (settingsLoading) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4 text-muted-foreground">Loading checkout...</p>
+      </div>
+    );
+  }
+
+  if (settingsError) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <div className="text-red-500 mb-4">⚠️ Error loading settings</div>
+        <p className="text-muted-foreground">Please refresh the page to try again.</p>
+        <Button onClick={() => window.location.reload()} className="mt-4">
+          Refresh Page
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-4 sm:py-8">
       {/* Header */}
@@ -695,6 +692,23 @@ const Checkout = () => {
         </div>
       </div>
 
+      {/* Mobile Progress Bar */}
+      <div className="xl:hidden mb-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">Step {currentStep} of {steps.length}</span>
+            <span className="text-sm text-muted-foreground">{Math.round((currentStep / steps.length) * 100)}% Complete</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-primary h-2 rounded-full transition-all duration-300 ease-in-out"
+              style={{ width: `${(currentStep / steps.length) * 100}%` }}
+            ></div>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">{steps[currentStep - 1]?.description}</p>
+        </div>
+      </div>
+
       {/* Mobile Price Breakdown - Always Visible */}
       <div className="xl:hidden mb-6">
         <Card>
@@ -709,14 +723,14 @@ const Checkout = () => {
                 <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Tax ({settings.tax_rate}%)</span>
+                <span>Tax ({Number(settings.tax_rate || 0).toFixed(0)}%)</span>
                 <span>{formatPrice(tax)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery</span>
                 <span>{deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}</span>
               </div>
-              {paymentMethod === 'cod' && settings.cod_charge > 0 && (
+              {paymentMethod === 'cod' && Number(settings.cod_charge) > 0 && (
                 <div className="flex justify-between">
                   <span>COD Fee</span>
                   <span>{formatPrice(codFee)}</span>
@@ -763,8 +777,14 @@ const Checkout = () => {
                         type="text"
                         placeholder="Enter your full name"
                         value={customerInfo.name}
-                        onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                        className="pl-10 h-12"
+                        onChange={(e) => {
+                          setCustomerInfo({...customerInfo, name: e.target.value});
+                          // Clear errors when user starts typing
+                          if (contactErrors.length > 0) {
+                            setContactErrors([]);
+                          }
+                        }}
+                        className={`pl-10 h-12 ${contactErrors.some(e => e.includes('name') || e.includes('Name')) ? 'border-red-500' : ''}`}
                         required
                       />
                     </div>
@@ -781,8 +801,13 @@ const Checkout = () => {
                         type="tel"
                         placeholder="Enter your phone number"
                         value={customerInfo.phone}
-                        onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                        className="pl-10 h-12"
+                        onChange={(e) => {
+                          setCustomerInfo({...customerInfo, phone: e.target.value});
+                          if (contactErrors.length > 0) {
+                            setContactErrors([]);
+                          }
+                        }}
+                        className={`pl-10 h-12 ${contactErrors.some(e => e.includes('phone') || e.includes('Phone')) ? 'border-red-500' : ''}`}
                         required
                       />
                     </div>
@@ -800,12 +825,36 @@ const Checkout = () => {
                       type="email"
                       placeholder="Enter your email address"
                       value={customerInfo.email}
-                      onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                      className="pl-10 h-12"
+                      onChange={(e) => {
+                        setCustomerInfo({...customerInfo, email: e.target.value});
+                        if (contactErrors.length > 0) {
+                          setContactErrors([]);
+                        }
+                      }}
+                      className={`pl-10 h-12 ${contactErrors.some(e => e.includes('email') || e.includes('Email')) ? 'border-red-500' : ''}`}
                       required
                     />
                   </div>
                 </div>
+
+                {/* Validation Errors */}
+                {contactErrors.length > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="h-5 w-5 text-red-600 mt-0.5">⚠️</div>
+                      <div>
+                        <h4 className="font-medium text-red-900 text-sm mb-1">
+                          Please fix the following errors:
+                        </h4>
+                        <ul className="text-red-700 text-sm space-y-1">
+                          {contactErrors.map((error, index) => (
+                            <li key={index}>• {error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-start space-x-3">
@@ -849,9 +898,9 @@ const Checkout = () => {
                       </h4>
                       <p className="text-orange-700 text-sm mt-1">
                         Get your bulk orders delivered within 2-3 business days nationwide.
-                        {subtotal < settings.free_delivery_threshold && (
+                        {subtotal < (settings.free_delivery_threshold || 1000) && (
                           <span className="block mt-1 font-medium">
-                            Add {settings.currency_symbol}{(settings.free_delivery_threshold - subtotal).toFixed(2)} more for FREE delivery!
+                            Add {settings.currency_symbol || '₹'}{((settings.free_delivery_threshold || 1000) - subtotal).toFixed(2)} more for FREE delivery!
                           </span>
                         )}
                       </p>
@@ -1213,7 +1262,7 @@ const Checkout = () => {
                   )}
 
                   {/* Cash on Delivery Option */}
-                  {settings.cod_enabled && total <= settings.cod_threshold && (
+                  {settings.cod_enabled && total <= Number(settings.cod_threshold) && (
                     <div className="relative">
                       <div className="flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-blue-300 transition-colors cursor-pointer">
                         <RadioGroupItem value="cod" id="cod" />
@@ -1223,9 +1272,9 @@ const Checkout = () => {
                               <div className="font-medium text-base">Cash on Delivery</div>
                               <div className="text-sm text-gray-600 mt-1">
                                 Pay when your order is delivered
-                                {settings.cod_charge > 0 && (
+                                {Number(settings.cod_charge) > 0 && (
                                   <span className="text-orange-600 font-medium">
-                                    {' '}+ {settings.currency_symbol}{settings.cod_charge} COD fee
+                                    {' '}+ {settings.currency_symbol}{Number(settings.cod_charge).toFixed(2)} COD fee
                                   </span>
                                 )}
                               </div>
@@ -1240,9 +1289,9 @@ const Checkout = () => {
                             <Clock className="h-4 w-4 text-blue-600" />
                             <span className="text-sm text-blue-700">
                               Please keep exact change ready for faster delivery
-                              {settings.cod_charge > 0 && (
+                              {Number(settings.cod_charge) > 0 && (
                                 <span className="block mt-1 font-medium">
-                                  COD fee: {settings.currency_symbol}{settings.cod_charge} will be added to your total
+                                  COD fee: {settings.currency_symbol}{Number(settings.cod_charge).toFixed(2)} will be added to your total
                                 </span>
                               )}
                             </span>
@@ -1253,12 +1302,12 @@ const Checkout = () => {
                   )}
 
                   {/* COD Not Available Message */}
-                  {settings.cod_enabled && total > settings.cod_threshold && (
+                  {settings.cod_enabled && total > Number(settings.cod_threshold) && (
                     <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                       <div className="flex items-center space-x-2">
                         <Clock className="h-4 w-4 text-orange-600" />
                         <span className="text-sm text-orange-700">
-                          Cash on Delivery not available for orders above {settings.currency_symbol}{settings.cod_threshold}
+                          Cash on Delivery not available for orders above {settings.currency_symbol}{Number(settings.cod_threshold).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -1449,10 +1498,10 @@ const Checkout = () => {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Taxes & Charges ({settings.tax_rate}%)</span>
+                          <span>Taxes & Charges ({Number(settings.tax_rate || 0).toFixed(0)}%)</span>
                           <span>{formatPrice(tax)}</span>
                         </div>
-                        {paymentMethod === 'cod' && settings.cod_charge > 0 && (
+                        {paymentMethod === 'cod' && Number(settings.cod_charge) > 0 && (
                           <div className="flex justify-between">
                             <span>COD Fee</span>
                             <span>{formatPrice(codFee)}</span>
@@ -1519,7 +1568,7 @@ const Checkout = () => {
                 <>
                   <div className="space-y-3">
                     <h4 className="font-medium text-sm text-gray-700">
-                      {cartItems.reduce((sum, item) => sum + item.quantity, 0)} items in cart
+                      {cartItems.reduce((sum, item) => sum + toNumber(item.quantity), 0)} items in cart
                     </h4>
                     {cartItems.slice(0, 3).map((item) => (
                       <div key={item.id} className="flex items-center space-x-3 py-2">
@@ -1535,7 +1584,7 @@ const Checkout = () => {
                           </p>
                         </div>
                         <div className="text-sm font-medium">
-                          {formatPrice(item.price * item.quantity)}
+                          {formatPrice(toNumber(item.price) * toNumber(item.quantity))}
                         </div>
                       </div>
                     ))}
@@ -1593,12 +1642,12 @@ const Checkout = () => {
                 </>
               )}
               <div className="flex justify-between">
-                <span>Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
+                <span>Subtotal ({cartItems.reduce((sum, item) => sum + toNumber(item.quantity), 0)} items)</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
               
               <div className="flex justify-between">
-                <span>Tax ({settings.tax_rate}%)</span>
+                <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
                 <span>{formatPrice(tax)}</span>
               </div>
               
@@ -1607,7 +1656,7 @@ const Checkout = () => {
                 <span>
                   {deliveryFee === 0 ? (
                     <span className="text-green-600 font-medium">
-                      FREE (Above {settings.currency_symbol}{settings.free_delivery_threshold})
+                      FREE (Above {formatCurrency(settings.free_delivery_threshold, settings.currency_symbol)})
                     </span>
                   ) : (
                     formatPrice(deliveryFee)
@@ -1615,7 +1664,7 @@ const Checkout = () => {
                 </span>
               </div>
 
-              {paymentMethod === 'cod' && settings.cod_charge > 0 && (
+              {paymentMethod === 'cod' && toNumber(settings.cod_charge) > 0 && (
                 <div className="flex justify-between">
                   <span>COD Fee</span>
                   <span>{formatPrice(codFee)}</span>
@@ -1707,6 +1756,23 @@ const Checkout = () => {
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>
               </div>
+
+              {/* Minimum Order Warning */}
+              {subtotal < toNumber(settings.min_order_amount) && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-orange-600">⚠️</span>
+                    <div>
+                      <p className="text-sm text-orange-700 font-medium">
+                        Minimum Order: {formatCurrency(settings.min_order_amount, settings.currency_symbol)}
+                      </p>
+                      <p className="text-xs text-orange-600">
+                        Add {formatCurrency(toNumber(settings.min_order_amount) - subtotal, settings.currency_symbol)} more to proceed
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Mobile Action Button */}
               <div className="xl:hidden">
