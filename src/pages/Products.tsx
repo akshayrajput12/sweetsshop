@@ -18,10 +18,12 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<ProductFilters>({
     categories: [],
-    priceRange: [0, 5000],
+    priceRange: [0, 10000],
     features: [],
     rating: 0,
     inStock: false,
+    isBestseller: false,
+    sortBy: 'name',
   });
   const navigate = useNavigate();
 
@@ -96,10 +98,27 @@ const Products = () => {
       );
     }
 
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 5000) {
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000) {
       filtered = filtered.filter((product: any) => 
         product.price >= filters.priceRange[0] && 
         product.price <= filters.priceRange[1]
+      );
+    }
+
+    if (filters.features.length > 0) {
+      filtered = filtered.filter((product: any) => {
+        const productFeatures = Array.isArray(product.features) 
+          ? product.features 
+          : (product.features ? Object.values(product.features) : []);
+        return filters.features.some(feature => 
+          productFeatures.includes(feature)
+        );
+      });
+    }
+
+    if (filters.rating > 0) {
+      filtered = filtered.filter((product: any) => 
+        (product.rating || 0) >= filters.rating
       );
     }
 
@@ -107,15 +126,28 @@ const Products = () => {
       filtered = filtered.filter((product: any) => product.stock_quantity > 0);
     }
 
+    if (filters.isBestseller) {
+      filtered = filtered.filter((product: any) => product.is_bestseller === true);
+    }
+
     return filtered;
   }, [products, selectedCategory, searchTerm, filters]);
 
   const sortedProducts = [...filteredProducts].sort((a: any, b: any) => {
-    switch (sortBy) {
+    const sortOption = filters.sortBy || sortBy;
+    switch (sortOption) {
+      case 'name-desc':
+        return b.name.localeCompare(a.name);
       case 'price-low':
         return a.price - b.price;
       case 'price-high':
         return b.price - a.price;
+      case 'rating':
+        return (b.rating || 0) - (a.rating || 0);
+      case 'newest':
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      case 'bestseller':
+        return (b.is_bestseller ? 1 : 0) - (a.is_bestseller ? 1 : 0);
       default:
         return a.name.localeCompare(b.name);
     }
@@ -161,11 +193,55 @@ const Products = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder="Search products by name, description, or features..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
+              </div>
+
+              {/* Quick Filters */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setFilters(prev => ({ ...prev, inStock: !prev.inStock }))}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                    filters.inStock
+                      ? 'bg-green-100 text-green-800 border border-green-300'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  In Stock Only
+                </button>
+                <button
+                  onClick={() => setFilters(prev => ({ ...prev, isBestseller: !prev.isBestseller }))}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                    filters.isBestseller
+                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  ⭐ Bestsellers
+                </button>
+                <button
+                  onClick={() => setFilters(prev => ({ ...prev, priceRange: [0, 1000] }))}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                    filters.priceRange[0] === 0 && filters.priceRange[1] === 1000
+                      ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Under ₹1,000
+                </button>
+                <button
+                  onClick={() => setFilters(prev => ({ ...prev, features: prev.features.includes('Bulk Pack') ? prev.features.filter(f => f !== 'Bulk Pack') : [...prev.features, 'Bulk Pack'] }))}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                    filters.features.includes('Bulk Pack')
+                      ? 'bg-orange-100 text-orange-800 border border-orange-300'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  📦 Bulk Pack
+                </button>
               </div>
 
               {/* Category Filter & Controls */}
