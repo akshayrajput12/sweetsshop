@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, Search, MapPin, LogOut, X, Home, Package, Info, Phone } from 'lucide-react';
+import { ShoppingCart, User, Menu, Search, LogOut, X, Home, Package, Info, Phone } from 'lucide-react';
+import logoImage from '../assets/logo.png';
 import { useStore } from '../store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from '../hooks/useLocation';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   DropdownMenu,
@@ -19,7 +20,7 @@ const Header = () => {
   const { cartItems, toggleCart } = useStore();
   const { user, isAdmin, signOut, profile } = useAuth();
   const navigate = useNavigate();
-  const userLocation = useLocation();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   
@@ -49,18 +50,17 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">B</span>
-            </div>
+            <img 
+              src={logoImage} 
+              alt="BulkBoxs Logo" 
+              className="w-8 h-8 object-contain"
+            />
             <span className="heading-md text-primary hidden xs:block">BulkBoxs</span>
           </Link>
 
-          {/* Location Display - Hidden on very small screens */}
-          <div className="hidden sm:flex items-center space-x-2 text-sm flex-1 justify-center">
-            <MapPin className="w-4 h-4 text-red-500" />
-            <span className="text-muted-foreground">
-              {userLocation.loading ? 'Detecting...' : userLocation.city}
-            </span>
+          {/* Spacer for layout */}
+          <div className="hidden sm:flex flex-1 justify-center">
+            {/* Removed location display */}
           </div>
 
           {/* Desktop Navigation */}
@@ -283,15 +283,7 @@ const Header = () => {
                     </div>
                   )}
 
-                  {/* Location Info - Mobile */}
-                  <div className="border-t pt-4 mt-4">
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 text-red-500" />
-                      <span>
-                        {userLocation.loading ? 'Detecting location...' : `Delivering to ${userLocation.city}`}
-                      </span>
-                    </div>
-                  </div>
+
                 </div>
               </motion.div>
             </>

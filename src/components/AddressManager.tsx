@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Plus, Edit2, Trash2, Home, Briefcase, MapIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import LocationPicker from './LocationPicker';
+
 
 interface Address {
   id: string;
@@ -38,7 +38,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     address_line_1: '',
@@ -52,11 +52,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
     is_default: false
   });
 
-  const [deliveryLocation, setDeliveryLocation] = useState<{
-    address: string;
-    lat: number;
-    lng: number;
-  } | null>(null);
+
 
   useEffect(() => {
     fetchAddresses();
@@ -66,7 +62,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         setLoading(false);
         return;
@@ -79,7 +75,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
         .order('is_default', { ascending: false });
 
       if (error) throw error;
-      setAddresses((data || []).map(addr => ({...addr, type: addr.type as 'home' | 'work' | 'other'})));
+      setAddresses((data || []).map(addr => ({ ...addr, type: addr.type as 'home' | 'work' | 'other' })));
     } catch (error) {
       console.error('Error fetching addresses:', error);
       toast({
@@ -94,10 +90,10 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         toast({
           title: "Authentication required",
@@ -110,8 +106,8 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
       const addressData = {
         ...formData,
         user_id: user.id,
-        latitude: deliveryLocation?.lat,
-        longitude: deliveryLocation?.lng
+        latitude: null,
+        longitude: null
       };
 
       if (editingAddress) {
@@ -122,7 +118,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
           .eq('id', editingAddress.id);
 
         if (error) throw error;
-        
+
         toast({
           title: "Address updated!",
           description: "Your address has been updated successfully.",
@@ -134,7 +130,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
           .insert([addressData]);
 
         if (error) throw error;
-        
+
         toast({
           title: "Address saved!",
           description: "Your address has been saved successfully.",
@@ -170,12 +166,12 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
         .eq('id', addressId);
 
       if (error) throw error;
-      
+
       toast({
         title: "Address deleted",
         description: "Address has been removed successfully.",
       });
-      
+
       fetchAddresses();
     } catch (error) {
       console.error('Error deleting address:', error);
@@ -201,15 +197,8 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
       type: address.type,
       is_default: address.is_default
     });
-    
-    if (address.latitude && address.longitude) {
-      setDeliveryLocation({
-        address: `${address.address_line_1}, ${address.city}`,
-        lat: address.latitude,
-        lng: address.longitude
-      });
-    }
-    
+
+
     setShowForm(true);
   };
 
@@ -226,7 +215,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
       type: 'home',
       is_default: false
     });
-    setDeliveryLocation(null);
+
     setEditingAddress(null);
     setShowForm(false);
   };
@@ -266,11 +255,10 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
       {addresses.length > 0 && (
         <div className="space-y-3">
           {addresses.map((address) => (
-            <Card 
-              key={address.id} 
-              className={`cursor-pointer transition-all ${
-                selectedAddressId === address.id ? 'ring-2 ring-primary' : ''
-              } ${showSelector ? 'hover:ring-1 hover:ring-muted-foreground' : ''}`}
+            <Card
+              key={address.id}
+              className={`cursor-pointer transition-all ${selectedAddressId === address.id ? 'ring-2 ring-primary' : ''
+                } ${showSelector ? 'hover:ring-1 hover:ring-muted-foreground' : ''}`}
               onClick={() => showSelector && onAddressSelect?.(address)}
             >
               <CardContent className="p-4">
@@ -286,7 +274,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                         <Badge className="text-xs">Default</Badge>
                       )}
                     </div>
-                    
+
                     <div className="text-sm text-muted-foreground space-y-1">
                       <p>{address.address_line_1}</p>
                       {address.address_line_2 && <p>{address.address_line_2}</p>}
@@ -298,15 +286,15 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
 
                   {!showSelector && (
                     <div className="flex items-center space-x-2">
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(address)}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(address.id)}
                         className="text-destructive hover:text-destructive"
@@ -349,14 +337,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Location Picker */}
-              <div className="space-y-2">
-                <Label>Delivery Location *</Label>
-                <LocationPicker 
-                  onLocationSelect={setDeliveryLocation}
-                  initialLocation={deliveryLocation}
-                />
-              </div>
+              {/* Note: Location picker removed - users will manually enter address */}
 
               {/* Address Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -365,7 +346,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g., Home, Office"
                     required
                   />
@@ -373,7 +354,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
 
                 <div className="space-y-2">
                   <Label htmlFor="type">Address Type</Label>
-                  <Select value={formData.type} onValueChange={(value: 'home' | 'work' | 'other') => setFormData({...formData, type: value})}>
+                  <Select value={formData.type} onValueChange={(value: 'home' | 'work' | 'other') => setFormData({ ...formData, type: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -391,7 +372,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                 <Input
                   id="address_line_1"
                   value={formData.address_line_1}
-                  onChange={(e) => setFormData({...formData, address_line_1: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, address_line_1: e.target.value })}
                   placeholder="House/Flat number, Building name"
                   required
                 />
@@ -402,7 +383,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                 <Input
                   id="address_line_2"
                   value={formData.address_line_2}
-                  onChange={(e) => setFormData({...formData, address_line_2: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, address_line_2: e.target.value })}
                   placeholder="Street, Area"
                 />
               </div>
@@ -413,7 +394,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                   <Input
                     id="city"
                     value={formData.city}
-                    onChange={(e) => setFormData({...formData, city: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     placeholder="City"
                     required
                   />
@@ -424,7 +405,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                   <Input
                     id="state"
                     value={formData.state}
-                    onChange={(e) => setFormData({...formData, state: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                     placeholder="State"
                     required
                   />
@@ -435,7 +416,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                   <Input
                     id="pincode"
                     value={formData.pincode}
-                    onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
                     placeholder="6-digit pincode"
                     required
                   />
@@ -448,7 +429,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                   <Input
                     id="landmark"
                     value={formData.landmark}
-                    onChange={(e) => setFormData({...formData, landmark: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
                     placeholder="Nearby landmark"
                   />
                 </div>
@@ -458,7 +439,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                   <Input
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="Contact number"
                   />
                 </div>
@@ -469,7 +450,7 @@ const AddressManager = ({ onAddressSelect, selectedAddressId, showSelector = fal
                   type="checkbox"
                   id="is_default"
                   checked={formData.is_default}
-                  onChange={(e) => setFormData({...formData, is_default: e.target.checked})}
+                  onChange={(e) => setFormData({ ...formData, is_default: e.target.checked })}
                   className="rounded"
                 />
                 <Label htmlFor="is_default">Set as default address</Label>

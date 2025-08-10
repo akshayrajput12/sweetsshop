@@ -29,7 +29,7 @@ if (!fs.existsSync(envPath)) {
     console.log('\n📝 Please update the .env file with your actual values:');
     console.log('   - VITE_SUPABASE_URL');
     console.log('   - VITE_SUPABASE_ANON_KEY');
-    console.log('   - VITE_GOOGLE_MAPS_API_KEY');
+    // console.log('   - VITE_GOOGLE_MAPS_API_KEY'); // Removed - no longer needed
     console.log('   - VITE_RAZORPAY_KEY_ID');
   } else {
     console.log('❌ .env.example file not found either!');
@@ -72,7 +72,7 @@ envContent.split('\n').forEach(line => {
 const requiredVars = [
   'VITE_SUPABASE_URL',
   'VITE_SUPABASE_ANON_KEY',
-  'VITE_GOOGLE_MAPS_API_KEY',
+  // 'VITE_GOOGLE_MAPS_API_KEY', // Removed - no longer needed
   'VITE_RAZORPAY_KEY_ID'
 ];
 

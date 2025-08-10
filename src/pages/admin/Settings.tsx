@@ -784,11 +784,9 @@ const AdminSettings = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-medium mb-2">Google Maps API</h3>
-                <p className="text-sm text-muted-foreground mb-3">For location services and delivery tracking</p>
-                <Input placeholder="Enter Google Maps API Key" className="mb-2" />
-                <Button variant="outline" size="sm">Configure</Button>
+              <div className="p-4 border rounded-lg bg-gray-50">
+                <h3 className="font-medium mb-2 text-gray-500">Google Maps API - Removed</h3>
+                <p className="text-sm text-muted-foreground">Location features have been removed. Users now manually enter addresses.</p>
               </div>
 
               <div className="p-4 border rounded-lg">

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import logoImage from '../assets/logo.png';
 
 const Footer = () => {
   return (
@@ -8,7 +9,14 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-primary">BulkBoxs</h3>
+            <div className="flex items-center space-x-2">
+              <img 
+                src={logoImage} 
+                alt="BulkBoxs Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <h3 className="text-2xl font-bold text-primary">BulkBoxs</h3>
+            </div>
             <p className="text-gray-300">
               Your ultimate bulk shopping destination. Buy everything in bulk at wholesale prices. 
               Trusted by thousands of businesses and families across India.

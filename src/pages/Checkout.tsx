@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useStore } from '@/store/useStore';
 import { formatPrice } from '@/utils/currency';
 import { initiateRazorpayPayment, OrderData } from '@/utils/razorpay';
-import LocationPicker from '@/components/LocationPicker';
+
 import AddressManager from '@/components/AddressManager';
 import Stepper from '@/components/Stepper';
 // Removed Porter API integration
@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { validateContactInfo, validateAddressDetails, validatePaymentMethod, formatPhoneNumber } from '@/utils/validation';
 import { useSettings } from '@/hooks/useSettings';
 import { toNumber, formatCurrency, calculatePercentage, meetsThreshold, toBoolean } from '@/utils/settingsHelpers';
+
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -48,12 +49,7 @@ const Checkout = () => {
     phone: ''
   });
 
-  // Delivery Location
-  const [deliveryLocation, setDeliveryLocation] = useState<{
-    address: string;
-    lat: number;
-    lng: number;
-  } | null>(null);
+  // Delivery Location - removed location picker functionality
 
   // Address Details
   const [addressDetails, setAddressDetails] = useState({
@@ -61,6 +57,8 @@ const Checkout = () => {
     buildingName: '',
     street: '',
     landmark: '',
+    city: '',
+    state: '',
     pincode: '',
     addressType: 'home' as 'home' | 'work' | 'other',
     saveAs: ''
@@ -68,7 +66,6 @@ const Checkout = () => {
 
   const steps = [
     { id: 'info', title: 'Contact Info', description: 'Your details' },
-    { id: 'location', title: 'Delivery Location', description: 'Where to deliver' },
     { id: 'address', title: 'Address Details', description: 'Complete address' },
     { id: 'payment', title: 'Payment', description: 'Choose payment method' },
     { id: 'summary', title: 'Order Summary', description: 'Review & confirm' }
@@ -100,58 +97,20 @@ const Checkout = () => {
     }
   };
 
-  const extractPincodeFromLocation = async (lat: number, lng: number) => {
-    if (!window.google) return '';
-
-    try {
-      const geocoder = new google.maps.Geocoder();
-      const response = await geocoder.geocode({
-        location: { lat, lng }
-      });
-
-      if (response.results[0]) {
-        const addressComponents = response.results[0].address_components;
-        const pincodeComponent = addressComponents.find(
-          component => component.types.includes('postal_code')
-        );
-        return pincodeComponent?.long_name || '';
-      }
-    } catch (error) {
-      console.error('Error extracting pincode:', error);
-    }
-    return '';
-  };
-
-  const handleLocationSelect = async (location: any) => {
-    setDeliveryLocation(location);
-    
-    // Auto-extract and set pincode from location
-    const pincode = await extractPincodeFromLocation(location.lat, location.lng);
-    if (pincode) {
-      setAddressDetails(prev => ({
-        ...prev,
-        pincode: pincode
-      }));
-    }
-  };
+  // Removed location extraction functions - users will manually enter address details
 
   const handleSavedAddressSelect = (address: any) => {
     setSelectedAddress(address);
     setUseExistingAddress(true);
-    
-    // Set delivery location from saved address
-    setDeliveryLocation({
-      address: `${address.address_line_1}, ${address.city}`,
-      lat: address.latitude || 0,
-      lng: address.longitude || 0
-    });
 
-    // Pre-fill address details
+    // Pre-fill address details from saved address
     setAddressDetails({
       plotNumber: address.address_line_1.split(',')[0] || '',
       buildingName: '',
       street: address.address_line_2 || '',
       landmark: address.landmark || '',
+      city: address.city || '',
+      state: address.state || '',
       pincode: address.pincode,
       addressType: address.type,
       saveAs: address.type === 'other' ? address.name : ''
@@ -162,20 +121,20 @@ const Checkout = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user || !deliveryLocation) return;
+      if (!user) return;
 
       const addressData = {
         user_id: user.id,
         name: addressDetails.addressType === 'other' ? addressDetails.saveAs : addressDetails.addressType,
         address_line_1: addressDetails.plotNumber,
         address_line_2: addressDetails.street,
-        city: deliveryLocation.address.split(',').slice(-2, -1)[0]?.trim() || 'Unknown',
-        state: deliveryLocation.address.split(',').slice(-1)[0]?.trim() || 'Unknown',
+        city: addressDetails.city,
+        state: addressDetails.state,
         pincode: addressDetails.pincode,
         landmark: addressDetails.landmark,
         type: addressDetails.addressType,
-        latitude: deliveryLocation.lat,
-        longitude: deliveryLocation.lng,
+        latitude: null,
+        longitude: null,
         is_default: savedAddresses.length === 0 // Make first address default
       };
 
@@ -354,15 +313,16 @@ const Checkout = () => {
       }
       setContactErrors([]);
     } else if (currentStep === 2) {
-      if (!deliveryLocation) {
+      // Validate city, state, and pincode first
+      if (!addressDetails.city || !addressDetails.state || !addressDetails.pincode) {
         toast({
-          title: "Location Required",
-          description: "Please select a delivery location on the map.",
+          title: "Missing Location Information",
+          description: "Please fill in city, state, and pincode.",
           variant: "destructive",
         });
         return;
       }
-    } else if (currentStep === 3) {
+      
       if (!useExistingAddress) {
         const validation = validateAddressDetails(addressDetails);
         if (!validation.isValid) {
@@ -376,7 +336,7 @@ const Checkout = () => {
         }
       }
       setAddressErrors([]);
-    } else if (currentStep === 4) {
+    } else if (currentStep === 3) {
       const paymentValidation = validatePaymentMethod(paymentMethod, total, settings);
       if (!paymentValidation.isValid) {
         toast({
@@ -409,10 +369,10 @@ const Checkout = () => {
       return;
     }
 
-    if (!deliveryLocation) {
+    if (!addressDetails.city || !addressDetails.state) {
       toast({
         title: "Missing Location",
-        description: "Please select a delivery location.",
+        description: "Please provide your city and state.",
         variant: "destructive",
       });
       return;
@@ -430,7 +390,7 @@ const Checkout = () => {
     if (!addressDetails.pincode) {
       toast({
         title: "Missing Pincode",
-        description: "Please select a location to auto-detect pincode.",
+        description: "Please enter your area pincode.",
         variant: "destructive",
       });
       return;
@@ -473,7 +433,7 @@ const Checkout = () => {
       // Generate unique order number
       const orderNumber = `BUK${Date.now()}${Math.floor(Math.random() * 1000)}`;
       
-      const completeAddress = `${addressDetails.plotNumber}, ${addressDetails.buildingName ? addressDetails.buildingName + ', ' : ''}${addressDetails.street}, ${addressDetails.landmark ? 'Near ' + addressDetails.landmark + ', ' : ''}${deliveryLocation.address}, ${addressDetails.pincode}`;
+      const completeAddress = `${addressDetails.plotNumber}, ${addressDetails.buildingName ? addressDetails.buildingName + ', ' : ''}${addressDetails.street}, ${addressDetails.landmark ? 'Near ' + addressDetails.landmark + ', ' : ''}${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`;
       
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -483,13 +443,12 @@ const Checkout = () => {
         user_id: user?.id || null, // Add user_id to link order to user
         order_number: orderNumber,
         customer_info: customerInfo as any,
-        delivery_location: deliveryLocation as any,
+        delivery_location: { address: completeAddress } as any, // Manual address only
         address_details: {
           ...addressDetails,
           complete_address: completeAddress,
-          map_address: deliveryLocation?.address, // Add map address
-          latitude: deliveryLocation?.lat,
-          longitude: deliveryLocation?.lng
+          latitude: null,
+          longitude: null
         } as any,
         items: cartItems.map(item => ({
           id: item.id,
@@ -544,6 +503,8 @@ const Checkout = () => {
 
         // Stock quantities will be automatically updated by database trigger
 
+        // Order confirmation email removed - no longer sending emails
+
         toast({
           title: "Order Placed Successfully!",
           description: `Your COD order #${orderNumber} has been placed. You'll pay ${settings.currency_symbol}${total.toFixed(2)} on delivery.`,
@@ -560,7 +521,7 @@ const Checkout = () => {
           items: cartItems,
           customerInfo,
           deliveryAddress: {
-            ...deliveryLocation,
+            address: completeAddress,
             ...addressDetails
           }
         };
@@ -603,6 +564,8 @@ const Checkout = () => {
               }
 
               // Stock quantities will be automatically updated by database trigger
+
+              // Order confirmation email removed - no longer sending emails
 
               toast({
                 title: "Payment Successful!",
@@ -900,16 +863,17 @@ const Checkout = () => {
             </Card>
           )}
 
-          {/* Step 2: Delivery Address */}
+          {/* Step 2: Address Details */}
           {currentStep === 2 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <MapPin className="h-5 w-5 mr-2" />
-                  Delivery Address
+                  Complete Address Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Delivery Information */}
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex items-start space-x-3">
                     <Clock className="h-5 w-5 text-orange-600 mt-0.5" />
@@ -929,38 +893,6 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <LocationPicker
-                  onLocationSelect={handleLocationSelect}
-                  initialLocation={deliveryLocation || undefined}
-                />
-
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={handlePrevStep} size="lg" className="px-8">
-                    Back to Contact
-                  </Button>
-                  <Button
-                    onClick={handleNextStep}
-                    disabled={!deliveryLocation}
-                    size="lg"
-                    className="px-8"
-                  >
-                    Continue to Address
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 3: Address Details */}
-          {currentStep === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MapPin className="h-5 w-5 mr-2" />
-                  Complete Address Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
                 {/* Saved Addresses Section */}
                 {savedAddresses.length > 0 && !useExistingAddress && (
                   <div className="space-y-4">
@@ -1057,10 +989,13 @@ const Checkout = () => {
                     <MapPin className="h-5 w-5 text-blue-600 mt-0.5" />
                     <div>
                       <h4 className="font-medium text-blue-900 text-sm">
-                        Selected Location
+                        Delivery Address
                       </h4>
                       <p className="text-blue-700 text-sm mt-1">
-                        {deliveryLocation?.address}
+                        {addressDetails.city && addressDetails.state && addressDetails.pincode 
+                          ? `${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`
+                          : 'Please fill in your city, state, and pincode above'
+                        }
                       </p>
                     </div>
                   </div>
@@ -1112,41 +1047,67 @@ const Checkout = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* City, State, and Pincode */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="landmark" className="text-sm font-medium">
-                      Nearby Landmark
+                    <Label htmlFor="city" className="text-sm font-medium">
+                      City *
                     </Label>
                     <Input
-                      id="landmark"
+                      id="city"
                       type="text"
-                      placeholder="e.g., Near Metro Station"
-                      value={addressDetails.landmark}
-                      onChange={(e) => setAddressDetails({...addressDetails, landmark: e.target.value})}
+                      placeholder="Enter your city"
+                      value={addressDetails.city}
+                      onChange={(e) => setAddressDetails({...addressDetails, city: e.target.value})}
                       className="h-12"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="state" className="text-sm font-medium">
+                      State *
+                    </Label>
+                    <Input
+                      id="state"
+                      type="text"
+                      placeholder="Enter your state"
+                      value={addressDetails.state}
+                      onChange={(e) => setAddressDetails({...addressDetails, state: e.target.value})}
+                      className="h-12"
+                      required
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="pincode" className="text-sm font-medium">
-                      Pincode * <span className="text-xs text-gray-500">(Auto-detected from location)</span>
+                      Pincode *
                     </Label>
                     <Input
                       id="pincode"
                       type="text"
-                      placeholder="Auto-detected from map location"
+                      placeholder="Enter 6-digit pincode"
                       value={addressDetails.pincode}
-                      className="h-12 bg-gray-50"
+                      onChange={(e) => setAddressDetails({...addressDetails, pincode: e.target.value})}
+                      className="h-12"
                       maxLength={6}
-                      readOnly
                       required
                     />
-                    {!addressDetails.pincode && (
-                      <p className="text-xs text-amber-600">
-                        Please select a location on the map to auto-detect pincode
-                      </p>
-                    )}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="landmark" className="text-sm font-medium">
+                    Nearby Landmark
+                  </Label>
+                  <Input
+                    id="landmark"
+                    type="text"
+                    placeholder="e.g., Near Metro Station"
+                    value={addressDetails.landmark}
+                    onChange={(e) => setAddressDetails({...addressDetails, landmark: e.target.value})}
+                    className="h-12"
+                  />
                 </div>
 
                 <div className="space-y-3">
@@ -1202,14 +1163,14 @@ const Checkout = () => {
 
                 <div className="flex justify-between pt-4">
                   <Button variant="outline" onClick={handlePrevStep} size="lg" className="px-8">
-                    Back to Location
+                    Back to Contact
                   </Button>
                   <Button
                     onClick={handleNextStep}
                     disabled={
                       useExistingAddress 
-                        ? !selectedAddress || !addressDetails.pincode
-                        : !addressDetails.plotNumber || !addressDetails.street || !addressDetails.pincode
+                        ? !selectedAddress || !addressDetails.city || !addressDetails.state || !addressDetails.pincode
+                        : !addressDetails.plotNumber || !addressDetails.street || !addressDetails.city || !addressDetails.state || !addressDetails.pincode
                     }
                     size="lg"
                     className="px-8"
@@ -1221,8 +1182,8 @@ const Checkout = () => {
             </Card>
           )}
 
-          {/* Step 4: Payment */}
-          {currentStep === 4 && (
+          {/* Step 3: Payment */}
+          {currentStep === 3 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -1351,8 +1312,8 @@ const Checkout = () => {
             </Card>
           )}
 
-          {/* Step 5: Order Summary */}
-          {currentStep === 5 && (
+          {/* Step 4: Order Summary */}
+          {currentStep === 4 && (
             <div className="space-y-6">
               {/* Order Summary Header */}
               <Card>
@@ -1424,7 +1385,10 @@ const Checkout = () => {
                       </div>
                     </div>
                     <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
-                      <strong>Map Location:</strong> {deliveryLocation?.address}
+                      <strong>Delivery Area:</strong> {addressDetails.city && addressDetails.state && addressDetails.pincode 
+                        ? `${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`
+                        : 'Address details will appear here'
+                      }
                     </div>
                   </div>
                 </CardContent>

@@ -191,7 +191,7 @@ export const initiateRazorpayPayment = async (
       name: import.meta.env.VITE_APP_NAME || 'BulkBoxs',
       description: `Bulk order for ${orderData.items.length} items - ${orderData.items.map(item => item.name).join(', ').substring(0, 100)}`,
       // Note: No order_id for direct payment integration
-      image: '/logo.png',
+      image: '/logo.png', // Uses the logo from public directory
       handler: async (response: any) => {
         try {
           console.log('Payment successful:', response);

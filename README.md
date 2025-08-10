@@ -57,8 +57,8 @@ Create `.env` file with your credentials:
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# Google Maps API Configuration (REQUIRED)
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+# Google Maps API Configuration - REMOVED
+# Location features have been removed - users manually enter addresses
 
 # Razorpay Configuration (REQUIRED)
 VITE_RAZORPAY_KEY_ID=your_razorpay_key_id

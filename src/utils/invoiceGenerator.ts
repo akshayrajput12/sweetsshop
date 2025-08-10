@@ -28,9 +28,7 @@ interface InvoiceData {
     landmark?: string;
     pincode?: string;
     complete_address?: string;
-    map_address?: string;
-    latitude?: number;
-    longitude?: number;
+    // Location fields removed - manual address entry only
   };
   items: any[];
   pricing: {
@@ -401,23 +399,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
                         <p style="margin-left: 10px; font-style: italic;">${delivery_address.complete_address}</p>
                         ` : ''}
                         
-                        ${delivery_address.map_address ? `
-                        <p style="margin-top: 10px;"><strong>Map Location:</strong></p>
-                        <p style="margin-left: 10px; color: #666; font-size: 0.9rem;">${delivery_address.map_address}</p>
-                        ` : ''}
-                        
-                        ${delivery_address.latitude && delivery_address.longitude ? `
-                        <p style="margin-top: 10px;"><strong>GPS Coordinates:</strong></p>
-                        <p style="margin-left: 10px; color: #666; font-size: 0.9rem; font-family: monospace;">
-                            Lat: ${delivery_address.latitude}, Lng: ${delivery_address.longitude}
-                        </p>
-                        <p style="margin-left: 10px; font-size: 0.8rem; color: #888;">
-                            <a href="https://www.google.com/maps?q=${delivery_address.latitude},${delivery_address.longitude}" 
-                               target="_blank" style="color: hsl(8, 94%, 47%); text-decoration: none;">
-                               📍 View on Google Maps
-                            </a>
-                        </p>
-                        ` : ''}
+                        <!-- Location features removed - manual address entry only -->
                     </div>
                 </div>
             </div>
