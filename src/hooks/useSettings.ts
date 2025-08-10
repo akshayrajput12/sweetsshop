@@ -63,31 +63,32 @@ export const useSettings = () => {
       setLoading(true);
       setError(null);
 
-      // Direct query to settings table
-      const { data, error: fetchError } = await supabase
-        .from('settings' as any)
-        .select('key, value')
-        .in('key', [
-          'tax_rate',
-          'delivery_charge',
-          'free_delivery_threshold',
-          'cod_charge',
-          'cod_threshold',
-          'min_order_amount',
-          'max_order_amount',
-          'bulk_discount_threshold',
-          'bulk_discount_percentage',
-          'currency_symbol',
-          'cod_enabled',
-          'razorpay_enabled',
-          'upi_enabled',
-          'card_enabled',
-          'netbanking_enabled',
-          'store_name',
-          'store_phone',
-          'store_email',
-          'store_address'
-        ]);
+      // Use the settings function to fetch data (fallback to direct query if function doesn't exist)
+      let data, fetchError;
+      try {
+        const result = await supabase.rpc('get_app_settings');
+        data = result.data;
+        fetchError = result.error;
+      } catch (rpcError) {
+        console.log('RPC function not available, using direct query');
+        // Fallback to direct query
+        const result = await supabase
+          .from('settings' as any)
+          .select('key, value')
+          .in('key', [
+            'tax_rate',
+            'delivery_charge',
+            'free_delivery_threshold',
+            'cod_charge',
+            'cod_threshold',
+            'min_order_amount',
+            'currency_symbol',
+            'cod_enabled',
+            'razorpay_enabled'
+          ]);
+        data = result.data;
+        fetchError = result.error;
+      }
 
       if (fetchError) {
         throw fetchError;

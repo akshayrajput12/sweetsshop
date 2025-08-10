@@ -1,4 +1,4 @@
--- Add function to fetch settings safely
+-- Add function to fetch settings safely for frontend
 CREATE OR REPLACE FUNCTION public.get_app_settings()
 RETURNS TABLE(key TEXT, value JSONB)
 LANGUAGE sql
@@ -27,7 +27,8 @@ AS $$
     'store_phone',
     'store_email',
     'store_address'
-  );
+  )
+  ORDER BY s.key;
 $$;
 
 -- Grant execute permission

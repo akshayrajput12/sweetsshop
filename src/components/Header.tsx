@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import SearchSidebar from './SearchSidebar';
 
 const Header = () => {
   const { cartItems, toggleCart } = useStore();
@@ -20,6 +21,7 @@ const Header = () => {
   const navigate = useNavigate();
   const userLocation = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -46,23 +48,18 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">B</span>
             </div>
-            <span className="heading-md text-primary">BulkBoxs</span>
+            <span className="heading-md text-primary hidden xs:block">BulkBoxs</span>
           </Link>
 
-          {/* Location Display */}
-          <div className="flex items-center space-x-2 text-sm">
+          {/* Location Display - Hidden on very small screens */}
+          <div className="hidden sm:flex items-center space-x-2 text-sm flex-1 justify-center">
             <MapPin className="w-4 h-4 text-red-500" />
             <span className="text-muted-foreground">
-              <span className="hidden sm:inline">
-                {userLocation.loading ? 'Detecting...' : userLocation.city}
-              </span>
-              <span className="sm:hidden">
-                {userLocation.loading ? '...' : userLocation.city.split(',')[0]}
-              </span>
+              {userLocation.loading ? 'Detecting...' : userLocation.city}
             </span>
           </div>
 
@@ -83,9 +80,12 @@ const Header = () => {
           </nav>
 
           {/* Right Section */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             {/* Search */}
-            <button className="p-2 hover:bg-muted rounded-lg transition-colors hidden md:block">
+            <button 
+              onClick={() => setIsSearchOpen(true)}
+              className="p-2 hover:bg-muted rounded-lg transition-colors"
+            >
               <Search className="w-5 h-5" />
             </button>
 
@@ -102,21 +102,21 @@ const Header = () => {
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 >
-                  {cartItemsCount}
+                  {cartItemsCount > 99 ? '99+' : cartItemsCount}
                 </motion.span>
               )}
             </button>
 
-            {/* User */}
+            {/* User - Desktop */}
             {user ? (
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors">
+                <DropdownMenuTrigger className="hidden md:flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors">
                   <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                     <span className="text-primary-foreground text-sm font-medium">
                       {user.email?.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="hidden md:block body-text">{user.email}</span>
+                  <span className="hidden lg:block body-text max-w-32 truncate">{user.email}</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => navigate('/profile')}>
@@ -139,7 +139,7 @@ const Header = () => {
             ) : (
               <button 
                 onClick={() => navigate('/auth')}
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
+                className="hidden md:flex p-2 hover:bg-muted rounded-lg transition-colors"
               >
                 <User className="w-5 h-5" />
               </button>
@@ -177,16 +177,18 @@ const Header = () => {
                 transition={{ duration: 0.2 }}
               >
                 <div className="container mx-auto px-4 py-4">
-                  {/* Search Bar - Mobile */}
+                  {/* Search Button - Mobile */}
                   <div className="mb-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                      <input
-                        type="text"
-                        placeholder="Search products..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
+                    <button
+                      onClick={() => {
+                        setIsSearchOpen(true);
+                        closeMobileMenu();
+                      }}
+                      className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left"
+                    >
+                      <Search className="w-5 h-5 text-primary" />
+                      <span className="font-medium">Search Products</span>
+                    </button>
                   </div>
 
                   {/* Navigation Links */}
@@ -295,6 +297,12 @@ const Header = () => {
             </>
           )}
         </AnimatePresence>
+
+        {/* Search Sidebar */}
+        <SearchSidebar 
+          isOpen={isSearchOpen} 
+          onClose={() => setIsSearchOpen(false)} 
+        />
       </div>
     </motion.header>
   );

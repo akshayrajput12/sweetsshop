@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Star } from 'lucide-react';
+import { Plus, Star, Eye } from 'lucide-react';
 import { Product } from '../store/useStore';
 import { useStore } from '../store/useStore';
 import { formatPrice } from '../utils/currency';
@@ -8,14 +8,37 @@ import { formatPrice } from '../utils/currency';
 interface ProductCardProps {
   product: Product;
   onViewDetail?: () => void;
+  onQuickView?: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuickView }) => {
   const addToCart = useStore((state) => state.addToCart);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const images = product.images || [product.image];
+  const hasMultipleImages = images.length > 1;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     addToCart(product);
+  };
+
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onQuickView?.();
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (hasMultipleImages) {
+      setCurrentImageIndex(1);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setCurrentImageIndex(0);
   };
 
   const discount = product.originalPrice 
@@ -24,19 +47,41 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail }) => {
 
   return (
     <motion.div
-      className="card-product"
+      className="card-product group cursor-pointer"
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onViewDetail}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       layout
     >
       {/* Image Container */}
       <div className="relative overflow-hidden rounded-lg mb-4">
-        <img
-          src={product.image}
+        <motion.img
+          src={images[currentImageIndex] || product.image}
           alt={product.name}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-48 object-cover transition-all duration-300"
+          animate={{ scale: isHovered ? 1.05 : 1 }}
         />
+        
+        {/* Hover Overlay */}
+        <motion.div
+          className="absolute inset-0 bg-black/20 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {onQuickView && (
+            <motion.button
+              onClick={handleQuickView}
+              className="bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Eye className="w-5 h-5" />
+            </motion.button>
+          )}
+        </motion.div>
         
         {/* Discount Badge */}
         {discount > 0 && (
@@ -49,6 +94,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail }) => {
         {(product.stock_quantity !== undefined && product.stock_quantity <= 0) && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="text-white font-medium">Out of Stock</span>
+          </div>
+        )}
+
+        {/* Image Indicators */}
+        {hasMultipleImages && (
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+            {images.slice(0, 3).map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                }`}
+              />
+            ))}
           </div>
         )}
       </div>

@@ -1,17 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
+import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
 
 const BestSellers = () => {
   const navigate = useNavigate();
   const [bestSellers, setBestSellers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsPerView, setItemsPerView] = useState(4);
+  const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
     fetchBestSellers();
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const handleResize = () => {
+    if (window.innerWidth < 640) {
+      setItemsPerView(1);
+    } else if (window.innerWidth < 768) {
+      setItemsPerView(2);
+    } else if (window.innerWidth < 1024) {
+      setItemsPerView(3);
+    } else {
+      setItemsPerView(4);
+    }
+  };
 
   const fetchBestSellers = async () => {
     try {
@@ -20,7 +41,7 @@ const BestSellers = () => {
         .select('*')
         .eq('is_bestseller', true)
         .eq('is_active', true)
-        .limit(8);
+        .limit(12);
 
       if (error) throw error;
       setBestSellers(data || []);
@@ -29,6 +50,35 @@ const BestSellers = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const nextSlide = () => {
+    if (currentIndex < bestSellers.length - itemsPerView) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const prevSlide = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const canGoNext = currentIndex < bestSellers.length - itemsPerView;
+  const canGoPrev = currentIndex > 0;
+
+  const handleQuickView = (product: any) => {
+    setQuickViewProduct({
+      ...product,
+      image: product.images?.[0] || '/placeholder.svg',
+      slug: product.sku || product.id
+    });
+    setIsQuickViewOpen(true);
+  };
+
+  const closeQuickView = () => {
+    setIsQuickViewOpen(false);
+    setQuickViewProduct(null);
   };
 
   const containerVariants = {
@@ -55,52 +105,102 @@ const BestSellers = () => {
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <motion.div 
-          className="text-center mb-12"
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="heading-lg mb-4">Bestsellers</h2>
-          <p className="body-text text-muted-foreground max-w-2xl mx-auto">
-            Most popular products near you! Discover our customer favorites and premium selections.
-          </p>
-        </motion.div>
-
-        {/* Products Grid */}
-        <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {loading ? (
-            // Loading skeleton
-            Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="animate-pulse">
-                <div className="bg-muted h-48 rounded-lg mb-4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                </div>
+          <div className="text-center sm:text-left mb-6 sm:mb-0">
+            <h2 className="heading-lg mb-4">Bestsellers</h2>
+            <p className="body-text text-muted-foreground max-w-2xl">
+              Most popular products near you! Discover our customer favorites and premium selections.
+            </p>
+          </div>
+          
+          {/* Carousel Controls */}
+          {!loading && bestSellers.length > itemsPerView && (
+            <div className="flex items-center space-x-4">
+              {/* Position Indicator */}
+              <div className="text-sm text-gray-500">
+                {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, bestSellers.length)} of {bestSellers.length}
               </div>
-            ))
-          ) : (
-            bestSellers.map((product: any) => (
-              <motion.div key={product.id} variants={itemVariants}>
-                <ProductCard 
-                  product={{
-                    ...product,
-                    image: product.images?.[0] || '/placeholder.svg',
-                    slug: product.sku || product.id
-                  }}
-                  onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
-                />
-              </motion.div>
-            ))
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={prevSlide}
+                  disabled={!canGoPrev}
+                  className={`p-2 rounded-full border transition-colors ${
+                    canGoPrev 
+                      ? 'border-primary text-primary hover:bg-primary hover:text-white' 
+                      : 'border-gray-300 text-gray-300 cursor-not-allowed'
+                  }`}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  disabled={!canGoNext}
+                  className={`p-2 rounded-full border transition-colors ${
+                    canGoNext 
+                      ? 'border-primary text-primary hover:bg-primary hover:text-white' 
+                      : 'border-gray-300 text-gray-300 cursor-not-allowed'
+                  }`}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
           )}
         </motion.div>
+
+        {/* Products Carousel */}
+        <div className="relative overflow-hidden">
+          <motion.div 
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{ 
+              transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
+            }}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            {loading ? (
+              // Loading skeleton
+              Array.from({ length: itemsPerView }).map((_, index) => (
+                <div key={index} className="flex-shrink-0 px-3" style={{ width: `${100 / itemsPerView}%` }}>
+                  <div className="animate-pulse">
+                    <div className="bg-muted h-48 rounded-lg mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-4 bg-muted rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              bestSellers.map((product: any) => (
+                <motion.div 
+                  key={product.id} 
+                  className="flex-shrink-0 px-3" 
+                  style={{ width: `${100 / itemsPerView}%` }}
+                  variants={itemVariants}
+                >
+                  <ProductCard 
+                    product={{
+                      ...product,
+                      image: product.images?.[0] || '/placeholder.svg',
+                      slug: product.sku || product.id
+                    }}
+                    onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
+                    onQuickView={() => handleQuickView(product)}
+                  />
+                </motion.div>
+              ))
+            )}
+          </motion.div>
+        </div>
 
         {/* View All Button */}
         <motion.div 
@@ -117,6 +217,13 @@ const BestSellers = () => {
             View All Products
           </button>
         </motion.div>
+
+        {/* Quick View Modal */}
+        <QuickViewModal
+          product={quickViewProduct}
+          isOpen={isQuickViewOpen}
+          onClose={closeQuickView}
+        />
       </div>
     </section>
   );

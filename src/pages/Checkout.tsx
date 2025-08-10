@@ -250,6 +250,10 @@ const Checkout = () => {
   const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
   const codFee = paymentMethod === 'cod' ? toNumber(settings.cod_charge) : 0;
   const total = subtotal + tax + deliveryFee + codFee - discount;
+  
+  // Check if minimum order amount is met
+  const isMinOrderMet = subtotal >= toNumber(settings.min_order_amount);
+  const minOrderShortfall = Math.max(0, toNumber(settings.min_order_amount) - subtotal);
 
   const applyCoupon = async () => {
     try {
@@ -723,14 +727,14 @@ const Checkout = () => {
                 <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Tax ({Number(settings.tax_rate || 0).toFixed(0)}%)</span>
+                <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
                 <span>{formatPrice(tax)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery</span>
                 <span>{deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}</span>
               </div>
-              {paymentMethod === 'cod' && Number(settings.cod_charge) > 0 && (
+              {paymentMethod === 'cod' && toNumber(settings.cod_charge) > 0 && (
                 <div className="flex justify-between">
                   <span>COD Fee</span>
                   <span>{formatPrice(codFee)}</span>
@@ -743,6 +747,23 @@ const Checkout = () => {
                 </div>
               )}
             </div>
+            
+            {/* Mobile Minimum Order Warning */}
+            {!isMinOrderMet && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-orange-600">⚠️</span>
+                  <div>
+                    <p className="text-sm text-orange-700 font-medium">
+                      Minimum Order: {formatCurrency(settings.min_order_amount, settings.currency_symbol)}
+                    </p>
+                    <p className="text-xs text-orange-600">
+                      Add {formatCurrency(minOrderShortfall, settings.currency_symbol)} more to proceed
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -898,9 +919,9 @@ const Checkout = () => {
                       </h4>
                       <p className="text-orange-700 text-sm mt-1">
                         Get your bulk orders delivered within 2-3 business days nationwide.
-                        {subtotal < (settings.free_delivery_threshold || 1000) && (
+                        {!meetsThreshold(subtotal, settings.free_delivery_threshold) && (
                           <span className="block mt-1 font-medium">
-                            Add {settings.currency_symbol || '₹'}{((settings.free_delivery_threshold || 1000) - subtotal).toFixed(2)} more for FREE delivery!
+                            Add {formatCurrency(toNumber(settings.free_delivery_threshold) - subtotal, settings.currency_symbol)} more for FREE delivery!
                           </span>
                         )}
                       </p>
@@ -1535,12 +1556,16 @@ const Checkout = () => {
                       onClick={handlePlaceOrder}
                       size="lg"
                       className="px-8 bg-green-600 hover:bg-green-700"
-                      disabled={isProcessingPayment}
+                      disabled={isProcessingPayment || !isMinOrderMet}
                     >
                       {isProcessingPayment ? (
                         <div className="flex items-center space-x-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                           <span>Processing...</span>
+                        </div>
+                      ) : !isMinOrderMet ? (
+                        <div className="flex items-center space-x-2">
+                          <span>Add {formatCurrency(minOrderShortfall, settings.currency_symbol)} More</span>
                         </div>
                       ) : (
                         <div className="flex items-center space-x-2">
@@ -1790,13 +1815,15 @@ const Checkout = () => {
                     <Button 
                       onClick={currentStep === 4 ? handlePlaceOrder : handleNextStep}
                       className="flex-1"
-                      disabled={isProcessingPayment}
+                      disabled={isProcessingPayment || (currentStep === 4 && !isMinOrderMet)}
                     >
                       {isProcessingPayment ? (
                         <div className="flex items-center gap-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                           Processing...
                         </div>
+                      ) : !isMinOrderMet && currentStep === 4 ? (
+                        `Add ${formatCurrency(minOrderShortfall, settings.currency_symbol)} More`
                       ) : currentStep === 4 ? (
                         `Pay ${formatPrice(total)}`
                       ) : (
@@ -1814,7 +1841,7 @@ const Checkout = () => {
                     className="w-full" 
                     size="lg"
                     onClick={handlePlaceOrder}
-                    disabled={isProcessingPayment}
+                    disabled={isProcessingPayment || !isMinOrderMet}
                   >
                     {isProcessingPayment ? (
                       <div className="flex items-center gap-2">
@@ -1859,7 +1886,7 @@ const Checkout = () => {
                 )}
                 <Button 
                   onClick={currentStep === 4 ? handlePlaceOrder : handleNextStep}
-                  disabled={isProcessingPayment}
+                  disabled={isProcessingPayment || (currentStep === 4 && !isMinOrderMet)}
                   size="sm"
                   className="min-w-[100px]"
                 >
@@ -1881,7 +1908,7 @@ const Checkout = () => {
               <p className="text-sm text-muted-foreground mb-2">Review your order and confirm</p>
               <Button 
                 onClick={handlePlaceOrder}
-                disabled={isProcessingPayment}
+                disabled={isProcessingPayment || !isMinOrderMet}
                 className="w-full"
                 size="lg"
               >
@@ -1890,6 +1917,8 @@ const Checkout = () => {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     Processing Payment...
                   </div>
+                ) : !isMinOrderMet ? (
+                  `Add ${formatCurrency(minOrderShortfall, settings.currency_symbol)} More`
                 ) : (
                   `Confirm Order - ${formatPrice(total)}`
                 )}
