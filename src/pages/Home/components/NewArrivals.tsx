@@ -244,7 +244,7 @@ const NewArrivals = () => {
                       image: product.images?.[0] || '/placeholder.svg',
                       slug: product.sku || product.id
                     }}
-                    onViewDetail={() => navigate(`/product/${product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`)}
+                    onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
                     onQuickView={() => handleQuickView(product)}
                   />
                 </motion.div>
