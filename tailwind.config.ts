@@ -47,6 +47,17 @@ export default {
 					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
+				blue: {
+					DEFAULT: 'hsl(var(--blue))',
+					foreground: 'hsl(var(--blue-foreground))'
+				},
+				admin: {
+					primary: 'hsl(var(--admin-primary))',
+					secondary: 'hsl(var(--admin-secondary))',
+					accent: 'hsl(var(--admin-accent))',
+					background: 'hsl(var(--admin-background))',
+					card: 'hsl(var(--admin-card))'
+				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))'

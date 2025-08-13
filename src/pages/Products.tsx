@@ -155,17 +155,17 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Simple Header */}
       <motion.div 
-        className="bg-muted/30 py-16"
+        className="py-8"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="heading-lg mb-4">Bulk Products for Every Need</h1>
-          <p className="body-text text-muted-foreground max-w-2xl mx-auto">
-            Discover our extensive range of bulk products across all categories, sourced directly from manufacturers at wholesale prices.
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl font-bold text-secondary mb-2">All Products</h1>
+          <p className="text-gray-600">
+            Browse our complete collection of bulk products at wholesale prices.
           </p>
         </div>
       </motion.div>

@@ -1,5 +1,5 @@
 /**
- * Invoice generation utilities for BulkBoxs
+ * Invoice generation utilities for BulkBuyStore
  * Generates beautiful PDF invoices for orders
  */
 

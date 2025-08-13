@@ -26,6 +26,7 @@ interface Product {
   stock_quantity?: number;
   is_active?: boolean;
   is_bestseller?: boolean;
+  new_arrival?: boolean;
   images?: string[];
   features?: any;
   nutritional_info?: any;
@@ -53,6 +54,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     stock_quantity: 0,
     is_active: true,
     is_bestseller: false,
+    new_arrival: false,
     sku: '',
     pieces: '',
     serves: 0,
@@ -358,6 +360,7 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
         stock_quantity: Number(formData.stock_quantity) || 0,
         is_active: formData.is_active,
         is_bestseller: formData.is_bestseller,
+        new_arrival: formData.new_arrival,
         images: images,
         features: selectedFeatures,
         nutritional_info: productSpecs,
@@ -585,6 +588,15 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
                     onCheckedChange={(checked) => handleInputChange('is_bestseller', checked)}
                   />
                   <Label htmlFor="is_bestseller">Mark as Best Seller</Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="new_arrival"
+                    checked={formData.new_arrival}
+                    onCheckedChange={(checked) => handleInputChange('new_arrival', checked)}
+                  />
+                  <Label htmlFor="new_arrival">Mark as New Arrival</Label>
                 </div>
               </div>
             </CardContent>

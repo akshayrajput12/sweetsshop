@@ -21,70 +21,70 @@
 
 @layer base {
   :root {
-    /* Core Brand Colors */
+    /* Clean Modern Color Palette - Black, White, Orange, Teal */
     --background: 0 0% 100%;
-    --foreground: 0 0% 20%;
+    --foreground: 0 0% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
+    --card-foreground: 0 0% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
+    --popover-foreground: 0 0% 9%;
 
-    /* Primary - Meat Red */
-    --primary: 8 94% 47%;
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 8 94% 42%;
+    /* Primary - Modern Teal */
+    --primary: 173 80% 40%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 173 80% 35%;
 
-    /* Secondary - Dark Gray */
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 98%;
+    /* Secondary - Pure Black */
+    --secondary: 0 0% 9%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Accent - Golden Yellow */
-    --accent: 48 96% 58%;
-    --accent-foreground: 0 0% 20%;
+    /* Accent - Vibrant Orange */
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Blue Accent */
+    --blue: 217 91% 60%;
+    --blue-foreground: 0 0% 100%;
 
     /* Neutral Grays */
-    --muted: 0 0% 97.5%;
+    --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
     /* Success & Error */
     --success: 142 76% 36%;
-    --success-foreground: 0 0% 98%;
+    --success-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     /* UI Elements */
     --border: 0 0% 90%;
     --input: 0 0% 100%;
-    --ring: 8 94% 47%;
+    --ring: 173 80% 40%;
 
-    /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(8 94% 47% / 0.1), hsl(48 96% 58% / 0.1));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(0 0% 98%));
+    /* Admin Theme Colors */
+    --admin-primary: 0 0% 9%;
+    --admin-secondary: 173 80% 40%;
+    --admin-accent: 25 95% 53%;
+    --admin-background: 0 0% 98%;
+    --admin-card: 0 0% 100%;
 
     /* Shadows */
-    --shadow-soft: 0 2px 8px hsl(0 0% 0% / 0.08);
-    --shadow-medium: 0 4px 16px hsl(0 0% 0% / 0.12);
-    --shadow-large: 0 8px 24px hsl(0 0% 0% / 0.16);
+    --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-medium: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    --shadow-large: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-foreground: 0 0% 9%;
+    --sidebar-primary: 0 0% 9%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 173 80% 40%;
   }
 
   .dark {
@@ -137,6 +137,7 @@
 }
 
 @layer components {
+
   /* Typography System */
   .heading-xl {
     @apply font-merriweather font-bold text-4xl md:text-5xl lg:text-6xl leading-tight;
@@ -156,6 +157,15 @@
 
   .caption {
     @apply font-inter font-normal text-xs leading-normal;
+  }
+
+  /* Header height utility */
+  .h-18 {
+    height: 4.5rem;
+  }
+
+  .top-18 {
+    top: 4.5rem;
   }
 
   /* Button Variants */
@@ -180,13 +190,27 @@
     @apply card-elevated p-4 cursor-pointer;
   }
 
-  /* Gradient Backgrounds */
-  .bg-hero-gradient {
-    background: var(--gradient-hero);
+  /* Clean Backgrounds */
+  .bg-hero-pattern {
+    background-image: radial-gradient(circle at 1px 1px, hsl(173 80% 40% / 0.15) 1px, transparent 0);
+    background-size: 20px 20px;
   }
 
-  .bg-card-gradient {
-    background: var(--gradient-card);
+  /* Admin Theme Styles */
+  .admin-page {
+    @apply bg-admin-background min-h-screen;
+  }
+
+  .admin-card {
+    @apply bg-admin-card border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200;
+  }
+
+  .admin-btn-primary {
+    @apply bg-secondary hover:bg-secondary/90 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200;
+  }
+
+  .admin-btn-secondary {
+    @apply bg-primary hover:bg-primary-hover text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200;
   }
 }
 
@@ -221,8 +245,13 @@ img {
 
 /* Smooth loading animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .fade-in {
@@ -237,14 +266,27 @@ img {
 }
 
 @keyframes loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Responsive image containers */
-.aspect-square { aspect-ratio: 1 / 1; }
-.aspect-video { aspect-ratio: 16 / 9; }
-.aspect-photo { aspect-ratio: 4 / 3; }
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-photo {
+  aspect-ratio: 4 / 3;
+}
 
 /* Image hover effects */
 .image-hover-zoom {

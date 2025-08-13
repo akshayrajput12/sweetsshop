@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, TrendingUp, Star, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Star, ArrowRight } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
 
-const BestSellers = () => {
+const NewArrivals = () => {
   const navigate = useNavigate();
-  const [bestSellers, setBestSellers] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
@@ -16,7 +16,7 @@ const BestSellers = () => {
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
-    fetchBestSellers();
+    fetchNewArrivals();
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -34,26 +34,27 @@ const BestSellers = () => {
     }
   };
 
-  const fetchBestSellers = async () => {
+  const fetchNewArrivals = async () => {
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_bestseller', true)
+        .eq('new_arrival', true)
         .eq('is_active', true)
+        .order('created_at', { ascending: false })
         .limit(12);
 
       if (error) throw error;
-      setBestSellers(data || []);
+      setNewArrivals(data || []);
     } catch (error) {
-      console.error('Error fetching bestsellers:', error);
+      console.error('Error fetching new arrivals:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const nextSlide = () => {
-    if (currentIndex < bestSellers.length - itemsPerView) {
+    if (currentIndex < newArrivals.length - itemsPerView) {
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -64,7 +65,7 @@ const BestSellers = () => {
     }
   };
 
-  const canGoNext = currentIndex < bestSellers.length - itemsPerView;
+  const canGoNext = currentIndex < newArrivals.length - itemsPerView;
   const canGoPrev = currentIndex > 0;
 
   const handleQuickView = (product: any) => {
@@ -100,12 +101,16 @@ const BestSellers = () => {
     }
   };
 
+  if (newArrivals.length === 0 && !loading) {
+    return null; // Don't show section if no new arrivals
+  }
+
   return (
-    <section className="py-20 bg-gradient-to-br from-white via-gray-50 to-blue-50 relative overflow-hidden">
+    <section className="py-20 bg-white relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"
+          className="absolute top-10 right-10 w-64 h-64 bg-accent/5 rounded-full blur-3xl"
           animate={{ 
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.5, 0.3]
@@ -113,7 +118,7 @@ const BestSellers = () => {
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute bottom-10 left-10 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"
+          className="absolute bottom-10 left-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl"
           animate={{ 
             scale: [1, 1.1, 1],
             opacity: [0.2, 0.4, 0.2]
@@ -131,24 +136,24 @@ const BestSellers = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center bg-primary/10 text-primary px-6 py-3 rounded-full text-sm font-semibold mb-6">
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Customer Favorites
+          <div className="inline-flex items-center bg-accent/10 text-accent px-6 py-3 rounded-full text-sm font-semibold mb-6">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Fresh Arrivals
           </div>
           
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-secondary mb-6">
-            Our{' '}
-            <span className="text-primary">Bestsellers</span>
+            New{' '}
+            <span className="text-accent">Arrivals</span>
           </h2>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Discover the products our customers love most! These top-rated items offer unbeatable quality, 
-            amazing bulk prices, and have earned thousands of 5-star reviews.
+            Discover the latest additions to our bulk collection! Fresh products, new brands, and exciting deals 
+            that have just arrived in our warehouse.
           </p>
         </motion.div>
 
         {/* Enhanced Carousel Controls */}
-        {!loading && bestSellers.length > itemsPerView && (
+        {!loading && newArrivals.length > itemsPerView && (
           <motion.div 
             className="flex items-center justify-between mb-12"
             initial={{ opacity: 0, y: 20 }}
@@ -158,9 +163,9 @@ const BestSellers = () => {
           >
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100">
-                <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                <Sparkles className="w-4 h-4 text-accent fill-current" />
                 <span className="text-sm font-medium text-gray-700">
-                  {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, bestSellers.length)} of {bestSellers.length} products
+                  {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, newArrivals.length)} of {newArrivals.length} new products
                 </span>
               </div>
             </div>
@@ -171,7 +176,7 @@ const BestSellers = () => {
                 disabled={!canGoPrev}
                 className={`p-3 rounded-2xl border-2 transition-all duration-200 ${
                   canGoPrev 
-                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl' 
+                    ? 'border-accent text-accent hover:bg-accent hover:text-white shadow-lg hover:shadow-xl' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
                 whileHover={canGoPrev ? { scale: 1.05 } : {}}
@@ -184,7 +189,7 @@ const BestSellers = () => {
                 disabled={!canGoNext}
                 className={`p-3 rounded-2xl border-2 transition-all duration-200 ${
                   canGoNext 
-                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl' 
+                    ? 'border-accent text-accent hover:bg-accent hover:text-white shadow-lg hover:shadow-xl' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
                 whileHover={canGoNext ? { scale: 1.05 } : {}}
@@ -226,7 +231,7 @@ const BestSellers = () => {
                 </div>
               ))
             ) : (
-              bestSellers.map((product: any) => (
+              newArrivals.map((product: any) => (
                 <motion.div 
                   key={product.id} 
                   className="flex-shrink-0 px-4" 
@@ -248,7 +253,7 @@ const BestSellers = () => {
           </motion.div>
         </div>
 
-        {/* Simple CTA Section */}
+        {/* Enhanced CTA Section */}
         <motion.div 
           className="text-center mt-16"
           initial={{ opacity: 0, y: 30 }}
@@ -256,14 +261,25 @@ const BestSellers = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <motion.button 
-            onClick={() => navigate('/products')}
-            className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200"
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            View All Products
-          </motion.button>
+          <div className="bg-accent/5 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-accent/20 shadow-xl">
+            <h3 className="text-2xl md:text-3xl font-bold text-secondary mb-4">
+              Don't miss out on the latest arrivals!
+            </h3>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Be the first to get your hands on our newest bulk products with exclusive launch prices.
+            </p>
+            <motion.button 
+              onClick={() => navigate('/products?filter=new_arrivals')}
+              className="group bg-accent hover:bg-accent/90 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="flex items-center justify-center">
+                View All New Arrivals
+                <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.button>
+          </div>
         </motion.div>
 
         {/* Quick View Modal */}
@@ -277,4 +293,4 @@ const BestSellers = () => {
   );
 };
 
-export default BestSellers;
+export default NewArrivals;

@@ -52,10 +52,13 @@ const Header = () => {
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <img 
               src={logoImage} 
-              alt="BulkBoxs Logo" 
+              alt="BulkBuyStore Logo" 
               className="w-8 h-8 object-contain"
             />
-            <span className="heading-md text-primary hidden xs:block">BulkBoxs</span>
+            <div className="hidden xs:block">
+              <span className="text-2xl font-bold text-primary">BulkBuyStore</span>
+              <div className="text-xs text-muted-foreground -mt-1">Bulk Shopping Made Easy</div>
+            </div>
           </Link>
 
           {/* Spacer for layout */}

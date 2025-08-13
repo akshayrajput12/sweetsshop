@@ -1,7 +1,7 @@
 -- =====================================================
--- BULKBOXS COMPLETE DATABASE MIGRATION
+-- BULKBUYSTORE COMPLETE DATABASE MIGRATION
 -- =====================================================
--- This migration creates the complete database schema for BulkBoxs
+-- This migration creates the complete database schema for BulkBuyStore
 -- A comprehensive bulk shopping e-commerce platform
 -- 
 -- Version: 3.0 (Complete Analysis-Based Migration)
@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   storage_instructions TEXT,
   marketing_info JSONB,
   is_bestseller BOOLEAN DEFAULT FALSE,
+  new_arrival BOOLEAN DEFAULT FALSE,
   is_active BOOLEAN DEFAULT TRUE,
   stock_quantity INTEGER DEFAULT 0,
   sku TEXT UNIQUE,
@@ -258,7 +259,7 @@ DECLARE
   receipt_id TEXT;
 BEGIN
   -- Generate unique receipt ID for Razorpay
-  receipt_id := 'BULKBOXS_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 8);
+  receipt_id := 'BULKBUYSTORE_' || extract(epoch from now())::bigint || '_' || substr(md5(random()::text), 1, 8);
   
   RETURN receipt_id;
 END;
@@ -475,6 +476,7 @@ CREATE TRIGGER track_sales_on_order_update
 -- Products indexes
 CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_is_bestseller ON public.products(is_bestseller) WHERE is_bestseller = true;
+CREATE INDEX IF NOT EXISTS idx_products_new_arrival ON public.products(new_arrival) WHERE new_arrival = true;
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON public.products(is_active) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_products_sku ON public.products(sku);
 
@@ -566,7 +568,7 @@ CREATE POLICY "Admins can delete coupon images" ON storage.objects FOR DELETE
 USING (bucket_id = 'coupon-images' AND public.is_admin());
 
 -- =====================================================
--- INITIAL DATA FOR BULKBOXS
+-- INITIAL DATA FOR BULKBUYSTORE
 -- =====================================================
 
 -- Insert default categories for bulk shopping with images
@@ -604,7 +606,7 @@ INSERT INTO public.product_features (name, description, is_active) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Insert sample bulk products with images and complete data
-INSERT INTO public.products (name, description, price, original_price, weight, category_id, features, is_bestseller, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
+INSERT INTO public.products (name, description, price, original_price, weight, category_id, features, is_bestseller, new_arrival, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
 SELECT 
   'Bulk Rice - Premium Basmati (25kg)', 
   'Premium quality basmati rice in 25kg bulk pack. Perfect for restaurants, hotels, and large families. Sourced directly from Punjab farms.',
@@ -614,16 +616,17 @@ SELECT
   c.id,
   '["Bulk Pack", "Wholesale Price", "Restaurant Grade", "Premium Quality", "Made in India", "Organic"]'::jsonb,
   true,
+  true,
   100,
   'BULK-RICE-25KG',
-  '{"material": "Premium Basmati Rice", "origin": "Punjab, India", "brand": "BulkBoxs Premium", "certification": "FSSAI Approved", "weight_per_unit": "25kg", "dimensions": "45x30x15 cm"}'::jsonb,
+  '{"material": "Premium Basmati Rice", "origin": "Punjab, India", "brand": "BulkBuyStore Premium", "certification": "FSSAI Approved", "weight_per_unit": "25kg", "dimensions": "45x30x15 cm"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800', 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800'],
   'Store in a cool, dry place away from direct sunlight. Keep in airtight container after opening.',
-  '{"marketedBy": "BulkBoxs Premium Foods Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
+  '{"marketedBy": "BulkBuyStore Premium Foods Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
-INSERT INTO public.products (name, description, price, original_price, weight, category_id, features, is_bestseller, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
+INSERT INTO public.products (name, description, price, original_price, weight, category_id, features, is_bestseller, new_arrival, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
 SELECT 
   'Bulk Cooking Oil - Refined Sunflower (15L)', 
   'High-quality refined sunflower cooking oil in 15L bulk container. Ideal for commercial kitchens, restaurants, and large families.',
@@ -633,16 +636,17 @@ SELECT
   c.id,
   '["Bulk Pack", "Commercial Grade", "Long Shelf Life", "Premium Quality", "Heart Healthy", "Cholesterol Free"]'::jsonb,
   true,
+  false,
   75,
   'BULK-OIL-15L',
-  '{"material": "Refined Sunflower Oil", "origin": "India", "brand": "BulkBoxs Commercial", "certification": "FSSAI Approved", "weight_per_unit": "15L", "dimensions": "25x25x35 cm"}'::jsonb,
+  '{"material": "Refined Sunflower Oil", "origin": "India", "brand": "BulkBuyStore Commercial", "certification": "FSSAI Approved", "weight_per_unit": "15L", "dimensions": "25x25x35 cm"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800', 'https://images.unsplash.com/photo-1615485925763-4d5b8c2b2c1e?w=800'],
   'Store in cool, dry place. Avoid direct sunlight. Use within 12 months of opening.',
-  '{"marketedBy": "BulkBoxs Oils & Edibles Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "98765432109876"}'::jsonb
+  '{"marketedBy": "BulkBuyStore Oils & Edibles Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "98765432109876"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
-INSERT INTO public.products (name, description, price, original_price, pieces, category_id, features, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
+INSERT INTO public.products (name, description, price, original_price, pieces, category_id, features, is_bestseller, new_arrival, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
 SELECT 
   'Bulk LED Bulbs - 9W Cool White (Pack of 50)', 
   'Energy-efficient 9W LED bulbs in bulk pack of 50. Perfect for offices, commercial spaces, and bulk lighting projects. 2-year warranty included.',
@@ -651,17 +655,19 @@ SELECT
   '50 pieces',
   c.id,
   '["Energy Efficient", "Bulk Pack", "Bulk Discount Available", "Premium Quality", "Long Lasting", "Eco Friendly"]'::jsonb,
+  false,
+  true,
   50,
   'BULK-LED-50PC',
-  '{"material": "LED with Aluminum Heat Sink", "dimensions": "Standard E27 Base", "warranty": "2 years", "certification": "BIS Approved", "weight_per_unit": "50g per bulb", "brand": "BulkBoxs Electronics"}'::jsonb,
+  '{"material": "LED with Aluminum Heat Sink", "dimensions": "Standard E27 Base", "warranty": "2 years", "certification": "BIS Approved", "weight_per_unit": "50g per bulb", "brand": "BulkBuyStore Electronics"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800', 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800', 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800'],
   'Store in original packaging until use. Avoid moisture and extreme temperatures.',
-  '{"marketedBy": "BulkBoxs Electronics Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
+  '{"marketedBy": "BulkBuyStore Electronics Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
 FROM public.categories c WHERE c.name = 'Electronics'
 ON CONFLICT (sku) DO NOTHING;
 
 -- Insert more sample products for better demo
-INSERT INTO public.products (name, description, price, original_price, weight, category_id, features, is_bestseller, stock_quantity, sku, nutritional_info, images, storage_instructions) 
+INSERT INTO public.products (name, description, price, original_price, weight, category_id, features, is_bestseller, new_arrival, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
 SELECT 
   'Bulk Wheat Flour - Whole Grain (20kg)', 
   'Fresh whole grain wheat flour in 20kg bulk pack. Stone ground for maximum nutrition. Perfect for bakeries and large families.',
@@ -671,15 +677,17 @@ SELECT
   c.id,
   '["Bulk Pack", "Wholesale Price", "Organic", "Stone Ground", "Premium Quality", "Made in India"]'::jsonb,
   false,
+  false,
   80,
   'BULK-FLOUR-20KG',
-  '{"material": "Whole Wheat Flour", "origin": "Rajasthan, India", "brand": "BulkBoxs Naturals", "certification": "Organic Certified", "weight_per_unit": "20kg"}'::jsonb,
+  '{"material": "Whole Wheat Flour", "origin": "Rajasthan, India", "brand": "BulkBuyStore Naturals", "certification": "Organic Certified", "weight_per_unit": "20kg"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800', 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800'],
-  'Store in airtight container in cool, dry place. Use within 6 months for best quality.'
+  'Store in airtight container in cool, dry place. Use within 6 months for best quality.',
+  '{"marketedBy": "BulkBuyStore Naturals Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
-INSERT INTO public.products (name, description, price, original_price, pieces, category_id, features, stock_quantity, sku, nutritional_info, images) 
+INSERT INTO public.products (name, description, price, original_price, pieces, category_id, features, is_bestseller, new_arrival, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
 SELECT 
   'Bulk Office Pens - Blue Ink (Pack of 100)', 
   'High-quality ballpoint pens with smooth blue ink. Bulk pack of 100 pieces ideal for offices, schools, and institutions.',
@@ -688,19 +696,68 @@ SELECT
   '100 pieces',
   c.id,
   '["Bulk Pack", "Commercial Grade", "Bulk Discount Available", "Premium Quality", "Smooth Writing"]'::jsonb,
+  false,
+  false,
   120,
   'BULK-PENS-100PC',
-  '{"material": "Plastic with Metal Tip", "brand": "BulkBoxs Stationery", "warranty": "6 months", "dimensions": "14cm length"}'::jsonb,
-  ARRAY['https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800', 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800']
+  '{"material": "Plastic with Metal Tip", "brand": "BulkBuyStore Stationery", "warranty": "6 months", "dimensions": "14cm length"}'::jsonb,
+  ARRAY['https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800', 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800'],
+  'Store in dry place at room temperature. Keep away from direct sunlight.',
+  '{"marketedBy": "BulkBuyStore Stationery Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
 FROM public.categories c WHERE c.name = 'Office Supplies'
 ON CONFLICT (sku) DO NOTHING;
 
 -- Insert sample coupons for bulk orders
 INSERT INTO public.coupons (code, description, discount_type, discount_value, min_order_amount, is_active, valid_until) VALUES
-  ('BULK50', 'Get 50 rupees off on bulk orders above 2000', 'fixed', 50.00, 2000.00, true, now() + interval '30 days'),
-  ('WHOLESALE10', 'Get 10% off on wholesale orders above 5000', 'percentage', 10.00, 5000.00, true, now() + interval '60 days'),
-  ('NEWBULK', 'Special discount for new bulk customers', 'percentage', 15.00, 1000.00, true, now() + interval '90 days')
+  ('WEEKEND25', 'Get 25% off on all categories - Weekend Special!', 'percentage', 25.00, 1000.00, true, now() + interval '7 days'),
+  ('BULK50', 'Get ₹50 off on bulk orders above ₹2000', 'fixed', 50.00, 2000.00, true, now() + interval '30 days'),
+  ('WHOLESALE10', 'Get 10% off on wholesale orders above ₹5000', 'percentage', 10.00, 5000.00, true, now() + interval '60 days'),
+  ('NEWBULK', 'Special 15% discount for new bulk customers', 'percentage', 15.00, 1000.00, true, now() + interval '90 days'),
+  ('MEGA20', 'Mega Sale - 20% off on orders above ₹3000', 'percentage', 20.00, 3000.00, true, now() + interval '14 days'),
+  ('SAVE100', 'Save ₹100 on orders above ₹2500', 'fixed', 100.00, 2500.00, true, now() + interval '21 days'),
+  ('FIRSTBUY', 'First time buyer special - 30% off', 'percentage', 30.00, 500.00, true, now() + interval '45 days')
 ON CONFLICT (code) DO NOTHING;
+
+-- Insert additional new arrival products
+INSERT INTO public.products (name, description, price, original_price, weight, category_id, features, is_bestseller, new_arrival, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
+SELECT 
+  'Bulk Organic Quinoa - Premium Grade (10kg)', 
+  'Premium organic quinoa in 10kg bulk pack. Superfood packed with protein and nutrients. Perfect for health-conscious bulk buyers.',
+  3499.00,
+  3999.00,
+  '10kg',
+  c.id,
+  '["Bulk Pack", "Organic", "Premium Quality", "Superfood", "High Protein", "Gluten Free"]'::jsonb,
+  false,
+  true,
+  45,
+  'BULK-QUINOA-10KG',
+  '{"material": "Organic Quinoa", "origin": "Bolivia", "brand": "BulkBuyStore Organic", "certification": "Organic Certified", "weight_per_unit": "10kg"}'::jsonb,
+  ARRAY['https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800', 'https://images.unsplash.com/photo-1505576391880-b3f9d713dc4f?w=800'],
+  'Store in airtight container in cool, dry place. Use within 12 months.',
+  '{"marketedBy": "BulkBuyStore Organic Foods Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
+FROM public.categories c WHERE c.name = 'Bulk Groceries'
+ON CONFLICT (sku) DO NOTHING;
+
+INSERT INTO public.products (name, description, price, original_price, pieces, category_id, features, is_bestseller, new_arrival, stock_quantity, sku, nutritional_info, images, storage_instructions, marketing_info) 
+SELECT 
+  'Bulk Wireless Mouse - Optical (Pack of 25)', 
+  'High-precision wireless optical mouse in bulk pack of 25. Perfect for offices, computer labs, and bulk IT purchases.',
+  1999.00,
+  2499.00,
+  '25 pieces',
+  c.id,
+  '["Bulk Pack", "Wireless", "High Precision", "Commercial Grade", "Bulk Discount Available"]'::jsonb,
+  false,
+  true,
+  60,
+  'BULK-MOUSE-25PC',
+  '{"material": "Plastic with Optical Sensor", "brand": "BulkBuyStore Tech", "warranty": "1 year", "dimensions": "11x6x3 cm", "connectivity": "2.4GHz Wireless"}'::jsonb,
+  ARRAY['https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800', 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800'],
+  'Store in original packaging. Keep away from moisture and extreme temperatures.',
+  '{"marketedBy": "BulkBuyStore Electronics Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
+FROM public.categories c WHERE c.name = 'Electronics'
+ON CONFLICT (sku) DO NOTHING;
 
 -- =====================================================
 -- INITIAL SETTINGS DATA
@@ -709,9 +766,9 @@ ON CONFLICT (code) DO NOTHING;
 -- Insert comprehensive default settings
 INSERT INTO public.settings (key, value, description, category, is_public) VALUES
   -- General Store Settings
-  ('store_name', '"BulkBoxs"', 'Store name displayed to customers', 'general', true),
+  ('store_name', '"BulkBuyStore"', 'Store name displayed to customers', 'general', true),
   ('store_description', '"Your ultimate bulk shopping destination with wholesale prices on everything you need"', 'Store description', 'general', true),
-  ('store_email', '"contact@bulkboxs.com"', 'Store contact email', 'general', true),
+  ('store_email', '"contact@bulkbuystore.com"', 'Store contact email', 'general', true),
   ('store_phone', '"+91 9996616153"', 'Store contact phone', 'general', true),
   ('store_address', '"Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102, Near police station"', 'Store address', 'general', true),
   ('store_logo', '"https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"', 'Store logo URL', 'general', true),
@@ -773,7 +830,7 @@ INSERT INTO public.settings (key, value, description, category, is_public) VALUE
   ('netbanking_enabled', 'true', 'Enable net banking', 'payment', true),
   
   -- SEO Settings
-  ('site_title', '"BulkBoxs - Bulk Shopping at Wholesale Prices"', 'Site title for SEO', 'seo', true),
+  ('site_title', '"BulkBuyStore - Bulk Shopping at Wholesale Prices"', 'Site title for SEO', 'seo', true),
   ('site_description', '"Shop bulk products at wholesale prices. Perfect for businesses, restaurants, and bulk buyers. Free delivery on orders above ₹1000."', 'Site meta description', 'seo', true),
   ('site_keywords', '"bulk shopping, wholesale prices, bulk groceries, bulk electronics, business supplies"', 'Site meta keywords', 'seo', true),
   
@@ -956,7 +1013,7 @@ $$;
 -- Insert invoice-related settings
 INSERT INTO public.settings (key, value, description, category, is_public) VALUES
   ('invoice_terms', '"Payment is due within 30 days of invoice date. Late payments may incur additional charges."', 'Invoice payment terms', 'invoice', false),
-  ('invoice_footer', '"Thank you for choosing BulkBoxs! For any queries, contact us at contact@bulkboxs.com"', 'Invoice footer text', 'invoice', false),
+  ('invoice_footer', '"Thank you for choosing BulkBuyStore! For any queries, contact us at contact@bulkbuystore.com"', 'Invoice footer text', 'invoice', false),
   ('invoice_logo', '"https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"', 'Invoice logo URL', 'invoice', false),
   ('company_registration', '"CIN: U12345MH2024PTC123456"', 'Company registration details', 'invoice', false),
   ('gst_number', '"27ABCDE1234F1Z5"', 'GST registration number', 'invoice', false),
@@ -1138,7 +1195,7 @@ NOTIFY pgrst, 'reload schema';
 -- =====================================================
 -- MIGRATION COMPLETE
 -- =====================================================
--- BulkBoxs database schema has been successfully created
+-- BulkBuyStore database schema has been successfully created
 -- with all necessary tables, policies, functions, initial data,
 -- invoice generation capabilities, and comprehensive analytics
 -- =====================================================

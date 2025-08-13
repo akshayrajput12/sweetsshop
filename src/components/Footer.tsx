@@ -12,10 +12,10 @@ const Footer = () => {
             <div className="flex items-center space-x-2">
               <img 
                 src={logoImage} 
-                alt="BulkBoxs Logo" 
+                alt="BulkBuyStore Logo" 
                 className="w-8 h-8 object-contain"
               />
-              <h3 className="text-2xl font-bold text-primary">BulkBoxs</h3>
+              <h3 className="text-2xl font-bold text-primary">BulkBuyStore</h3>
             </div>
             <p className="text-gray-300">
               Your ultimate bulk shopping destination. Buy everything in bulk at wholesale prices. 
@@ -77,7 +77,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-gray-300">contact@bulkboxs.com</span>
+                <span className="text-gray-300">contact@bulkbuystore.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <MapPin className="h-4 w-4 text-primary mt-1" />
@@ -94,7 +94,7 @@ const Footer = () => {
         <div className="border-t border-gray-700 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300 text-sm">
-              © 2024 BulkBoxs. All rights reserved.
+              © 2024 BulkBuyStore. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-300 hover:text-primary text-sm transition-colors">

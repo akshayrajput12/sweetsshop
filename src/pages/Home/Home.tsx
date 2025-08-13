@@ -1,15 +1,19 @@
 import React from 'react';
 import HeroBanner from './components/HeroBanner';
-import BestSellers from './components/BestSellers';
 import CategoriesCarousel from './components/CategoriesCarousel';
+import BestSellers from './components/BestSellers';
+import NewArrivals from './components/NewArrivals';
+import SpecialOffers from './components/SpecialOffers';
 import WhyChooseUs from './components/WhyChooseUs';
 
 const Home = () => {
   return (
-    <main>
+    <main className="min-h-screen">
       <HeroBanner />
-      <BestSellers />
       <CategoriesCarousel />
+      <BestSellers />
+      <NewArrivals />
+      <SpecialOffers />
       <WhyChooseUs />
     </main>
   );

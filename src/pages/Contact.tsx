@@ -72,7 +72,7 @@ const Contact = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-medium">contact@bulkboxs.com</p>
+              <p className="text-lg font-medium">contact@bulkbuystore.com</p>
               <p className="text-muted-foreground">We'll respond within 24 hours</p>
             </CardContent>
           </Card>

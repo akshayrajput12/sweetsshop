@@ -233,10 +233,10 @@ const AdminOrderDetail = () => {
           due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN'),
           order_date: formatDate(order.orderDate),
           store_info: {
-            store_name: storeSettings.store_name || 'BulkBoxs',
+            store_name: storeSettings.store_name || 'BulkBuyStore',
             store_address: storeSettings.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
             store_phone: storeSettings.store_phone || '+91 9996616153',
-            store_email: storeSettings.store_email || 'contact@bulkboxs.com',
+            store_email: storeSettings.store_email || 'contact@bulkbuystore.com',
             currency_symbol: storeSettings.currency_symbol || '₹'
           },
           customer_info: {

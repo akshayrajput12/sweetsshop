@@ -91,7 +91,7 @@ export const createRazorpayOrder = async (orderData: OrderData): Promise<{
     // Generate a unique order ID for tracking
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 9);
-    const orderId = `BULKBOXS_${timestamp}_${randomString}`;
+    const orderId = `BULKBUYSTORE_${timestamp}_${randomString}`;
 
     const amount = Math.round(orderData.amount * 100); // Convert to paise
 
@@ -188,7 +188,7 @@ export const initiateRazorpayPayment = async (
       key: razorpayKey,
       amount: order.amount,
       currency: order.currency,
-      name: import.meta.env.VITE_APP_NAME || 'BulkBoxs',
+      name: import.meta.env.VITE_APP_NAME || 'BulkBuyStore',
       description: `Bulk order for ${orderData.items.length} items - ${orderData.items.map(item => item.name).join(', ').substring(0, 100)}`,
       // Note: No order_id for direct payment integration
       image: '/logo.png', // Uses the logo from public directory
@@ -263,5 +263,5 @@ export const formatRazorpayAmount = (amount: number): string => {
 // Generate order receipt
 export const generateOrderReceipt = (orderData: OrderData): string => {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  return `BULKBOXS_${timestamp}_${orderData.orderId.substring(orderData.orderId.length - 6)}`;
+  return `BULKBUYSTORE_${timestamp}_${orderData.orderId.substring(orderData.orderId.length - 6)}`;
 };

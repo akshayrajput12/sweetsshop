@@ -182,7 +182,7 @@ const ProductDetail = () => {
               className="w-full h-full object-cover"
             />
             
-            {/* BulkBoxs Badge */}
+            {/* BulkBuyStore Badge */}
             <div className="absolute top-4 left-4 bg-white rounded-full p-2 shadow-md">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                 <span className="text-primary-foreground text-xs font-bold">B</span>
@@ -581,7 +581,7 @@ const ProductDetail = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>Company information not available.</p>
-                    <p className="text-sm">Contact BulkBoxs for supplier details.</p>
+                    <p className="text-sm">Contact BulkBuyStore for supplier details.</p>
                   </div>
                 )}
               </CardContent>
