@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, TrendingUp, Star, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, Star } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +20,20 @@ const BestSellers = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Auto-scroll carousel
+  useEffect(() => {
+    if (bestSellers.length > itemsPerView) {
+      const interval = setInterval(() => {
+        setCurrentIndex(prev => {
+          const maxIndex = bestSellers.length - itemsPerView;
+          return prev >= maxIndex ? 0 : prev + 1;
+        });
+      }, 4000);
+
+      return () => clearInterval(interval);
+    }
+  }, [bestSellers, itemsPerView]);
 
   const handleResize = () => {
     if (window.innerWidth < 640) {
@@ -81,56 +94,19 @@ const BestSellers = () => {
     setQuickViewProduct(null);
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-white via-gray-50 to-blue-50 relative overflow-hidden">
+    <section className="py-12 bg-gradient-to-br from-white via-gray-50 to-blue-50 relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-10 left-10 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl"
-          animate={{ 
-            scale: [1, 1.1, 1],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
+        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute bottom-10 left-10 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl opacity-20"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Enhanced Section Header */}
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
+        <div className="text-center mb-10">
           <div className="inline-flex items-center bg-primary/10 text-primary px-6 py-3 rounded-full text-sm font-semibold mb-6">
             <TrendingUp className="w-4 h-4 mr-2" />
             Customer Favorites
@@ -145,17 +121,11 @@ const BestSellers = () => {
             Discover the products our customers love most! These top-rated items offer unbeatable quality, 
             amazing bulk prices, and have earned thousands of 5-star reviews.
           </p>
-        </motion.div>
+        </div>
 
         {/* Enhanced Carousel Controls */}
         {!loading && bestSellers.length > itemsPerView && (
-          <motion.div 
-            className="flex items-center justify-between mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          <div className="flex items-center justify-between mb-12">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100">
                 <Star className="w-4 h-4 text-yellow-500 fill-current" />
@@ -166,47 +136,39 @@ const BestSellers = () => {
             </div>
             
             <div className="flex items-center space-x-3">
-              <motion.button
+              <button
                 onClick={prevSlide}
                 disabled={!canGoPrev}
                 className={`p-3 rounded-2xl border-2 transition-all duration-200 ${
                   canGoPrev 
-                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl' 
+                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
-                whileHover={canGoPrev ? { scale: 1.05 } : {}}
-                whileTap={canGoPrev ? { scale: 0.95 } : {}}
               >
                 <ChevronLeft className="w-6 h-6" />
-              </motion.button>
-              <motion.button
+              </button>
+              <button
                 onClick={nextSlide}
                 disabled={!canGoNext}
                 className={`p-3 rounded-2xl border-2 transition-all duration-200 ${
                   canGoNext 
-                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl' 
+                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
-                whileHover={canGoNext ? { scale: 1.05 } : {}}
-                whileTap={canGoNext ? { scale: 0.95 } : {}}
               >
                 <ChevronRight className="w-6 h-6" />
-              </motion.button>
+              </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Enhanced Products Carousel */}
         <div className="relative overflow-hidden rounded-3xl">
-          <motion.div 
+          <div 
             className="flex transition-transform duration-500 ease-out"
             style={{ 
               transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
             }}
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
           >
             {loading ? (
               // Enhanced Loading skeleton
@@ -227,11 +189,10 @@ const BestSellers = () => {
               ))
             ) : (
               bestSellers.map((product: any) => (
-                <motion.div 
+                <div 
                   key={product.id} 
                   className="flex-shrink-0 px-4" 
                   style={{ width: `${100 / itemsPerView}%` }}
-                  variants={itemVariants}
                 >
                   <ProductCard 
                     product={{
@@ -242,29 +203,21 @@ const BestSellers = () => {
                     onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
                     onQuickView={() => handleQuickView(product)}
                   />
-                </motion.div>
+                </div>
               ))
             )}
-          </motion.div>
+          </div>
         </div>
 
         {/* Simple CTA Section */}
-        <motion.div 
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <motion.button 
+        <div className="text-center mt-10">
+          <button 
             onClick={() => navigate('/products')}
-            className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200"
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
+            className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 hover:-translate-y-1"
           >
             View All Products
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
 
         {/* Quick View Modal */}
         <QuickViewModal

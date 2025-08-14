@@ -1,7 +1,7 @@
 {
-  "name": "BulkBoxs - Bulk Shopping for Everything",
-  "short_name": "BulkBoxs",
-  "description": "Your one-stop bulk shopping destination. Buy groceries, electronics, home essentials, and more in bulk at wholesale prices.",
+  "name": "BulkBuyStore - Your Online Indian Marketplace",
+  "short_name": "BulkBuyStore",
+  "description": "Discover authentic treasures of India. From aromatic spices to handcrafted apparel, find all your favorite Indian products in one place.",
   "icons": [
     {
       "src": "/android-chrome-36x36.png",
@@ -50,14 +50,18 @@
       "purpose": "maskable any"
     }
   ],
-  "theme_color": "#dc2626",
+  "theme_color": "#FF6B35",
   "background_color": "#ffffff",
   "display": "standalone",
   "orientation": "portrait-primary",
   "start_url": "/",
   "scope": "/",
   "lang": "en",
-  "categories": ["shopping", "business", "lifestyle"],
+  "categories": [
+    "shopping",
+    "business",
+    "lifestyle"
+  ],
   "screenshots": [
     {
       "src": "/screenshot-wide.png",

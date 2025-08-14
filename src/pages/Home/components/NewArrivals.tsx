@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Sparkles, Star, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +20,20 @@ const NewArrivals = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Auto-scroll carousel
+  useEffect(() => {
+    if (newArrivals.length > itemsPerView) {
+      const interval = setInterval(() => {
+        setCurrentIndex(prev => {
+          const maxIndex = newArrivals.length - itemsPerView;
+          return prev >= maxIndex ? 0 : prev + 1;
+        });
+      }, 4500);
+
+      return () => clearInterval(interval);
+    }
+  }, [newArrivals, itemsPerView]);
 
   const handleResize = () => {
     if (window.innerWidth < 640) {
@@ -82,60 +95,23 @@ const NewArrivals = () => {
     setQuickViewProduct(null);
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  };
 
   if (newArrivals.length === 0 && !loading) {
     return null; // Don't show section if no new arrivals
   }
 
   return (
-    <section className="py-20 bg-white relative overflow-hidden">
+    <section className="py-12 bg-white relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute top-10 right-10 w-64 h-64 bg-accent/5 rounded-full blur-3xl"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute bottom-10 left-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl"
-          animate={{ 
-            scale: [1, 1.1, 1],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        />
+        <div className="absolute top-10 right-10 w-64 h-64 bg-accent/5 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute bottom-10 left-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl opacity-20"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Enhanced Section Header */}
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
+        <div className="text-center mb-10">
           <div className="inline-flex items-center bg-accent/10 text-accent px-6 py-3 rounded-full text-sm font-semibold mb-6">
             <Sparkles className="w-4 h-4 mr-2" />
             Fresh Arrivals
@@ -150,17 +126,11 @@ const NewArrivals = () => {
             Discover the latest additions to our bulk collection! Fresh products, new brands, and exciting deals 
             that have just arrived in our warehouse.
           </p>
-        </motion.div>
+        </div>
 
         {/* Enhanced Carousel Controls */}
         {!loading && newArrivals.length > itemsPerView && (
-          <motion.div 
-            className="flex items-center justify-between mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+          <div className="flex items-center justify-between mb-12">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100">
                 <Sparkles className="w-4 h-4 text-accent fill-current" />
@@ -171,47 +141,39 @@ const NewArrivals = () => {
             </div>
             
             <div className="flex items-center space-x-3">
-              <motion.button
+              <button
                 onClick={prevSlide}
                 disabled={!canGoPrev}
                 className={`p-3 rounded-2xl border-2 transition-all duration-200 ${
                   canGoPrev 
-                    ? 'border-accent text-accent hover:bg-accent hover:text-white shadow-lg hover:shadow-xl' 
+                    ? 'border-accent text-accent hover:bg-accent hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
-                whileHover={canGoPrev ? { scale: 1.05 } : {}}
-                whileTap={canGoPrev ? { scale: 0.95 } : {}}
               >
                 <ChevronLeft className="w-6 h-6" />
-              </motion.button>
-              <motion.button
+              </button>
+              <button
                 onClick={nextSlide}
                 disabled={!canGoNext}
                 className={`p-3 rounded-2xl border-2 transition-all duration-200 ${
                   canGoNext 
-                    ? 'border-accent text-accent hover:bg-accent hover:text-white shadow-lg hover:shadow-xl' 
+                    ? 'border-accent text-accent hover:bg-accent hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
-                whileHover={canGoNext ? { scale: 1.05 } : {}}
-                whileTap={canGoNext ? { scale: 0.95 } : {}}
               >
                 <ChevronRight className="w-6 h-6" />
-              </motion.button>
+              </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Enhanced Products Carousel */}
         <div className="relative overflow-hidden rounded-3xl">
-          <motion.div 
+          <div 
             className="flex transition-transform duration-500 ease-out"
             style={{ 
               transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
             }}
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
           >
             {loading ? (
               // Enhanced Loading skeleton
@@ -232,11 +194,10 @@ const NewArrivals = () => {
               ))
             ) : (
               newArrivals.map((product: any) => (
-                <motion.div 
+                <div 
                   key={product.id} 
                   className="flex-shrink-0 px-4" 
                   style={{ width: `${100 / itemsPerView}%` }}
-                  variants={itemVariants}
                 >
                   <ProductCard 
                     product={{
@@ -247,20 +208,14 @@ const NewArrivals = () => {
                     onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
                     onQuickView={() => handleQuickView(product)}
                   />
-                </motion.div>
+                </div>
               ))
             )}
-          </motion.div>
+          </div>
         </div>
 
         {/* Enhanced CTA Section */}
-        <motion.div 
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
+        <div className="text-center mt-10">
           <div className="bg-accent/5 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-accent/20 shadow-xl">
             <h3 className="text-2xl md:text-3xl font-bold text-secondary mb-4">
               Don't miss out on the latest arrivals!
@@ -268,19 +223,17 @@ const NewArrivals = () => {
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
               Be the first to get your hands on our newest bulk products with exclusive launch prices.
             </p>
-            <motion.button 
+            <button 
               onClick={() => navigate('/products?filter=new_arrivals')}
-              className="group bg-accent hover:bg-accent/90 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl"
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+              className="group bg-accent hover:bg-accent/90 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl hover:scale-105 hover:-translate-y-1 transition-all duration-200"
             >
               <div className="flex items-center justify-center">
                 View All New Arrivals
                 <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
               </div>
-            </motion.button>
+            </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Quick View Modal */}
         <QuickViewModal

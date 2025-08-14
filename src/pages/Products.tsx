@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Grid, List, Search } from 'lucide-react';
+import { Filter, Grid, List, Search, Package, ShoppingCart } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import ProductCard from '../components/ProductCard';
 import ProductFiltersComponent, { ProductFilters } from '../components/ProductFilters';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { scrollToTopInstant } from '@/utils/scrollToTop';
 
 const Products = () => {
   const { selectedCategory, setSelectedCategory } = useStore();
@@ -28,6 +29,7 @@ const Products = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    scrollToTopInstant();
     fetchProducts();
     fetchCategories();
   }, []);
@@ -154,34 +156,56 @@ const Products = () => {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Simple Header */}
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
+      {/* Modern Header */}
       <motion.div 
-        className="py-8"
+        className="py-12 bg-gradient-to-r from-orange-500 to-red-500 text-white"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl font-bold text-secondary mb-2">All Products</h1>
-          <p className="text-gray-600">
-            Browse our complete collection of bulk products at wholesale prices.
-          </p>
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Discover Amazing Products
+            </h1>
+            <p className="text-xl text-orange-100 mb-6">
+              Browse our complete collection of bulk products at wholesale prices
+            </p>
+            <div className="flex items-center justify-center space-x-6 text-orange-100">
+              <div className="flex items-center space-x-2">
+                <Package className="w-5 h-5" />
+                <span>5000+ Products</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <ShoppingCart className="w-5 h-5" />
+                <span>Bulk Savings</span>
+              </div>
+            </div>
+          </div>
         </div>
       </motion.div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
-          <div className="lg:w-64 flex-shrink-0">
-            <ProductFiltersComponent
-              onFiltersChange={setFilters}
-              categories={categories}
-            />
+          <div className="lg:w-72 flex-shrink-0">
+            <div className="sticky top-24">
+              <div className="bg-white rounded-2xl shadow-lg border border-orange-100 p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                  <Filter className="w-5 h-5 mr-2 text-orange-500" />
+                  Filters
+                </h3>
+                <ProductFiltersComponent
+                  onFiltersChange={setFilters}
+                  categories={categories}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 bg-white rounded-2xl shadow-lg border border-orange-100 p-6">
             {/* Search and Controls */}
             <motion.div 
               className="space-y-4 mb-8"
@@ -201,43 +225,43 @@ const Products = () => {
               </div>
 
               {/* Quick Filters */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => setFilters(prev => ({ ...prev, inStock: !prev.inStock }))}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm ${
                     filters.inStock
-                      ? 'bg-green-100 text-green-800 border border-green-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
+                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
-                  In Stock Only
+                  ✓ In Stock Only
                 </button>
                 <button
                   onClick={() => setFilters(prev => ({ ...prev, isBestseller: !prev.isBestseller }))}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm ${
                     filters.isBestseller
-                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg'
+                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
                   ⭐ Bestsellers
                 </button>
                 <button
                   onClick={() => setFilters(prev => ({ ...prev, priceRange: [0, 1000] }))}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm ${
                     filters.priceRange[0] === 0 && filters.priceRange[1] === 1000
-                      ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
-                  Under ₹1,000
+                  💰 Under ₹1,000
                 </button>
                 <button
                   onClick={() => setFilters(prev => ({ ...prev, features: prev.features.includes('Bulk Pack') ? prev.features.filter(f => f !== 'Bulk Pack') : [...prev.features, 'Bulk Pack'] }))}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm ${
                     filters.features.includes('Bulk Pack')
-                      ? 'bg-orange-100 text-orange-800 border border-orange-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
                   📦 Bulk Pack
@@ -247,15 +271,15 @@ const Products = () => {
               {/* Category Filter & Controls */}
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
                 {/* Category Filters */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {categories.map((category) => (
                     <button
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
                         selectedCategory === category
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg transform scale-105'
+                          : 'bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-600 border border-gray-200 hover:border-orange-200'
                       }`}
                     >
                       {category}
@@ -268,7 +292,7 @@ const Products = () => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-4 py-2 border border-border rounded-lg bg-background"
+                    className="px-4 py-2.5 border border-gray-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   >
                     <option value="name">Sort by Name</option>
                     <option value="price-low">Price: Low to High</option>
@@ -276,16 +300,24 @@ const Products = () => {
                     <option value="rating">Rating</option>
                   </select>
 
-                  <div className="flex items-center border border-border rounded-lg">
+                  <div className="flex items-center bg-white border border-gray-200 rounded-xl shadow-sm">
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`p-2 ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'} transition-colors`}
+                      className={`p-3 rounded-l-xl transition-all duration-200 ${
+                        viewMode === 'grid' 
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' 
+                          : 'hover:bg-gray-50 text-gray-600'
+                      }`}
                     >
                       <Grid className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setViewMode('list')}
-                      className={`p-2 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'} transition-colors`}
+                      className={`p-3 rounded-r-xl transition-all duration-200 ${
+                        viewMode === 'list' 
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' 
+                          : 'hover:bg-gray-50 text-gray-600'
+                      }`}
                     >
                       <List className="w-4 h-4" />
                     </button>
@@ -295,15 +327,25 @@ const Products = () => {
             </motion.div>
 
             {/* Results Count */}
-            <motion.p 
-              className="body-text text-muted-foreground mb-6"
+            <motion.div 
+              className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-100"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              Showing {sortedProducts.length} products
-              {selectedCategory !== 'All' && ` in ${selectedCategory}`}
-            </motion.p>
+              <p className="text-gray-700 font-medium">
+                Showing <span className="font-bold text-orange-600">{sortedProducts.length}</span> products
+                {selectedCategory !== 'All' && (
+                  <span className="text-gray-600"> in <span className="font-semibold text-orange-600">{selectedCategory}</span></span>
+                )}
+              </p>
+              {sortedProducts.length > 0 && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Package className="w-4 h-4" />
+                  <span>Bulk savings available</span>
+                </div>
+              )}
+            </motion.div>
 
             {/* Products Grid */}
             <motion.div 

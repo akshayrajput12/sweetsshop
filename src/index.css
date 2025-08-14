@@ -31,17 +31,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 9%;
 
-    /* Primary - Modern Teal */
-    --primary: 173 80% 40%;
+    /* Primary - Vibrant Orange */
+    --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 173 80% 35%;
+    --primary-hover: 25 95% 48%;
 
     /* Secondary - Pure Black */
     --secondary: 0 0% 9%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Accent - Vibrant Orange */
-    --accent: 25 95% 53%;
+    /* Accent - Deep Orange */
+    --accent: 20 90% 48%;
     --accent-foreground: 0 0% 100%;
 
     /* Blue Accent */
@@ -61,12 +61,12 @@
     /* UI Elements */
     --border: 0 0% 90%;
     --input: 0 0% 100%;
-    --ring: 173 80% 40%;
+    --ring: 25 95% 53%;
 
     /* Admin Theme Colors */
     --admin-primary: 0 0% 9%;
-    --admin-secondary: 173 80% 40%;
-    --admin-accent: 25 95% 53%;
+    --admin-secondary: 25 95% 53%;
+    --admin-accent: 20 90% 48%;
     --admin-background: 0 0% 98%;
     --admin-card: 0 0% 100%;
 
@@ -84,7 +84,7 @@
     --sidebar-accent: 0 0% 96%;
     --sidebar-accent-foreground: 0 0% 9%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 173 80% 40%;
+    --sidebar-ring: 25 95% 53%;
   }
 
   .dark {

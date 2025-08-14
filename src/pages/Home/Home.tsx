@@ -10,11 +10,13 @@ const Home = () => {
   return (
     <main className="min-h-screen">
       <HeroBanner />
-      <CategoriesCarousel />
-      <BestSellers />
-      <NewArrivals />
-      <SpecialOffers />
-      <WhyChooseUs />
+      <div className="space-y-4">
+        <CategoriesCarousel />
+        <BestSellers />
+        <NewArrivals />
+        <SpecialOffers />
+        <WhyChooseUs />
+      </div>
     </main>
   );
 };

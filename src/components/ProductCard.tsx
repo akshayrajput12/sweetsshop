@@ -55,8 +55,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
   return (
     <motion.div
-      className="group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
-      whileHover={{ y: -8 }}
+      className="group cursor-pointer bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-50 hover:border-gray-100"
+      whileHover={{ y: -12 }}
       whileTap={{ scale: 0.98 }}
       onClick={onViewDetail}
       onMouseEnter={handleMouseEnter}
@@ -64,55 +64,40 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
       layout
     >
       {/* Image Container */}
-      <div className="relative overflow-hidden bg-gray-50">
+      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
         <motion.img
           src={images[currentImageIndex] || product.image}
           alt={product.name}
-          className="w-full h-56 object-cover transition-all duration-500"
-          animate={{ scale: isHovered ? 1.1 : 1 }}
+          className="w-full h-64 object-cover transition-all duration-700"
+          animate={{ scale: isHovered ? 1.05 : 1 }}
         />
         
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {/* Minimal Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
-        {/* Action Buttons Overlay */}
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center gap-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
+        {/* Floating Action Button */}
+        <motion.button
+          onClick={handleAddToCart}
+          disabled={isOutOfStock}
+          className="absolute bottom-4 right-4 bg-white hover:bg-gray-50 text-gray-800 p-3 rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 opacity-0 group-hover:opacity-100"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          initial={{ y: 20 }}
+          animate={{ y: isHovered ? 0 : 20 }}
+          transition={{ duration: 0.3 }}
         >
-          {onQuickView && (
-            <motion.button
-              onClick={handleQuickView}
-              className="bg-white/95 backdrop-blur-sm hover:bg-white text-gray-800 p-3 rounded-full shadow-lg border border-white/20"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <Eye className="w-5 h-5" />
-            </motion.button>
-          )}
-          
-          <motion.button
-            onClick={handleAddToCart}
-            disabled={isOutOfStock}
-            className="bg-primary/95 backdrop-blur-sm hover:bg-primary text-white p-3 rounded-full shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <ShoppingCart className="w-5 h-5" />
-          </motion.button>
-        </motion.div>
+          <ShoppingCart className="w-5 h-5" />
+        </motion.button>
         
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+        {/* Top Elements */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
           {/* Discount Badge */}
           {discount > 0 && (
             <motion.div 
-              className="bg-accent text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1 }}
+              className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm"
+              initial={{ scale: 0, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.1, type: "spring" }}
             >
               -{discount}%
             </motion.div>
@@ -121,10 +106,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
           {/* Wishlist Button */}
           <motion.button
             onClick={handleLike}
-            className={`p-2 rounded-full backdrop-blur-sm border transition-all duration-200 ${
+            className={`p-2.5 rounded-full backdrop-blur-md transition-all duration-300 ${
               isLiked 
-                ? 'bg-red-500 text-white border-red-500' 
-                : 'bg-white/80 text-gray-600 border-white/20 hover:bg-white'
+                ? 'bg-red-500 text-white shadow-lg' 
+                : 'bg-white/80 text-gray-600 hover:bg-white shadow-md'
             }`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -135,33 +120,31 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
         {/* Stock Status Overlay */}
         {isOutOfStock && (
-          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-            <div className="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full">
-              <span className="text-gray-800 font-semibold">Out of Stock</span>
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-gray-800 text-white px-4 py-2 rounded-full text-sm font-medium">
+              Out of Stock
             </div>
           </div>
         )}
 
-        {/* Image Indicators */}
-        {hasMultipleImages && (
-          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {images.slice(0, 3).map((_, index) => (
-              <motion.div
-                key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                  index === currentImageIndex ? 'bg-white scale-125' : 'bg-white/60'
-                }`}
-                whileHover={{ scale: 1.2 }}
-              />
-            ))}
-          </div>
+        {/* Quick View Button */}
+        {onQuickView && (
+          <motion.button
+            onClick={handleQuickView}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm hover:bg-white text-gray-800 px-4 py-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Eye className="w-4 h-4 mr-2 inline" />
+            Quick View
+          </motion.button>
         )}
       </div>
 
       {/* Product Info */}
-      <div className="p-5 space-y-3">
+      <div className="p-6 space-y-4">
         {/* Product Name */}
-        <h3 className="font-semibold text-secondary group-hover:text-primary transition-colors line-clamp-2 text-lg leading-tight">
+        <h3 className="font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-2 text-lg leading-tight">
           {product.name}
         </h3>
 
@@ -172,58 +155,66 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
           </p>
         )}
 
-        {/* Weight & Pieces */}
-        {(product.weight || product.pieces) && (
-          <div className="flex items-center space-x-2 text-gray-500 text-sm">
-            {product.weight && <span className="bg-muted px-2 py-1 rounded-md font-medium">{product.weight}</span>}
-            {product.pieces && <span className="bg-muted px-2 py-1 rounded-md font-medium">{product.pieces}</span>}
-          </div>
-        )}
-
-        {/* Rating */}
+        {/* Rating & Reviews */}
         {product.rating && (
           <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-0.5">
               {[...Array(5)].map((_, i) => (
                 <Star 
                   key={i} 
                   className={`w-4 h-4 ${
                     i < Math.floor(product.rating) 
-                      ? 'fill-accent text-accent' 
-                      : 'text-gray-300'
+                      ? 'fill-yellow-400 text-yellow-400' 
+                      : 'text-gray-200'
                   }`} 
                 />
               ))}
             </div>
-            <span className="text-sm text-gray-600 font-medium">{product.rating}</span>
+            <span className="text-sm text-gray-500 font-medium">({product.rating})</span>
+          </div>
+        )}
+
+        {/* Weight & Pieces */}
+        {(product.weight || product.pieces) && (
+          <div className="flex items-center space-x-2">
+            {product.weight && (
+              <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                {product.weight}
+              </span>
+            )}
+            {product.pieces && (
+              <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                {product.pieces}
+              </span>
+            )}
           </div>
         )}
 
         {/* Price Section */}
         <div className="flex items-center justify-between pt-2">
           <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-secondary">
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl font-bold text-gray-900">
                 {formatPrice(product.price)}
               </span>
               {product.originalPrice && (
-                <span className="text-lg text-gray-400 line-through">
+                <span className="text-base text-gray-400 line-through">
                   {formatPrice(product.originalPrice)}
                 </span>
               )}
             </div>
             {discount > 0 && (
-              <div className="text-sm text-primary font-medium">
+              <div className="text-sm text-orange-600 font-semibold">
                 Save {formatPrice(product.originalPrice - product.price)}
               </div>
             )}
           </div>
 
-          {/* Quick Add Button */}
+          {/* Add to Cart Button */}
           <motion.button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className="bg-primary hover:bg-primary-hover text-white p-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200"
+            className="bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white p-3 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
