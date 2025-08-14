@@ -59,25 +59,17 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      // Try to find product by SKU first, then by ID
       let { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          categories(name)
-        `)
+        .select(`*, categories(name)`)
         .eq('sku', slug)
         .eq('is_active', true)
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // If not found by SKU, try by ID
         ({ data, error } = await supabase
           .from('products')
-          .select(`
-            *,
-            categories(name)
-          `)
+          .select(`*, categories(name)`)
           .eq('id', slug)
           .eq('is_active', true)
           .single());
@@ -86,7 +78,6 @@ const ProductDetail = () => {
       if (error) throw error;
       setProduct(data);
 
-      // Fetch related products if product found
       if (data?.category_id) {
         fetchRelatedProducts(data.category_id, data.id);
       }
@@ -114,7 +105,6 @@ const ProductDetail = () => {
     }
   };
 
-  // Auto-scroll for related products
   useEffect(() => {
     if (relatedProducts.length > itemsPerView) {
       const interval = setInterval(() => {
@@ -160,8 +150,6 @@ const ProductDetail = () => {
               <div className="h-8 bg-muted rounded w-3/4"></div>
               <div className="h-4 bg-muted rounded w-1/4"></div>
               <div className="h-4 bg-muted rounded w-full"></div>
-              <div className="h-4 bg-muted rounded w-full"></div>
-              <div className="h-4 bg-muted rounded w-2/3"></div>
             </div>
           </div>
         </div>
@@ -173,9 +161,7 @@ const ProductDetail = () => {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-        <Button onClick={() => navigate('/products')}>
-          Back to Products
-        </Button>
+        <Button onClick={() => navigate('/products')}>Back to Products</Button>
       </div>
     );
   }
@@ -235,7 +221,6 @@ const ProductDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Product Images */}
             <div className="space-y-4">
-              {/* Main Image */}
               <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 to-red-50 shadow-lg">
                 <img
                   src={product.images?.[currentImageIndex] || '/placeholder.svg'}
@@ -243,70 +228,27 @@ const ProductDetail = () => {
                   className="w-full h-full object-cover"
                 />
 
-                {/* BulkBuyStore Badge */}
                 <div className="absolute top-4 left-4 bg-white rounded-2xl p-3 shadow-lg border border-orange-100">
                   <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
                     <span className="text-white text-sm font-bold">B</span>
                   </div>
                 </div>
 
-                {/* Navigation arrows - only show if multiple images */}
                 {product.images && product.images.length > 1 && (
                   <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-muted transition-colors"
-                    >
+                    <button onClick={prevImage} className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-muted transition-colors">
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-muted transition-colors"
-                    >
+                    <button onClick={nextImage} className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md hover:bg-muted transition-colors">
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </>
                 )}
-
-                {/* Image indicators */}
-                {product.images && product.images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {product.images.map((_: any, index: number) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                          }`}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
-
-              {/* Thumbnail Images */}
-              {product.images && product.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {product.images.slice(0, 4).map((image: string, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${index === currentImageIndex ? 'border-primary' : 'border-transparent'
-                        }`}
-                    >
-                      <img
-                        src={image}
-                        alt={`${product.name} ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Product Info */}
             <div className="space-y-6">
-              {/* Header */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h1 className="text-3xl font-bold">{product.name}</h1>
@@ -337,36 +279,12 @@ const ProductDetail = () => {
                   )}
                 </div>
 
-                {/* Product Quick Info */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                  {product.weight && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Package className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{product.weight}</span>
-                    </div>
-                  )}
-                  {product.pieces && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Info className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{product.pieces}</span>
-                    </div>
-                  )}
-                  {product.serves && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Award className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">{product.serves} Units</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Description */}
                 {product.description && (
                   <p className="text-muted-foreground mb-4 leading-relaxed">
                     {product.description}
                   </p>
                 )}
 
-                {/* Price */}
                 <div className="flex items-center space-x-3 mb-4">
                   <span className="text-4xl font-bold text-foreground">
                     {formatPrice(product.price)}
@@ -382,336 +300,241 @@ const ProductDetail = () => {
                     </>
                   )}
                 </div>
-
-                <p className="text-xs text-muted-foreground mb-4">(inclusive of all taxes)</p>
-
-                {/* Bulk Benefits */}
-                <div className="flex items-center space-x-3 text-orange-700 text-sm mb-6 bg-gradient-to-r from-orange-100 to-red-100 p-4 rounded-2xl border border-orange-200">
-                  <Package className="w-5 h-5" />
-                  <span className="font-semibold">🎉 Bulk Shopping Benefits - Wholesale Prices!</span>
+              </div>  
+            {/* Quantity and Add to Cart */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <span className="font-medium">Quantity:</span>
+                  <div className="flex items-center border border-orange-200 rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="p-2 hover:bg-orange-50 transition-colors"
+                      disabled={quantity <= 1}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="px-4 py-2 font-medium min-w-[3rem] text-center">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="p-2 hover:bg-orange-50 transition-colors"
+                      disabled={product.stock_quantity <= quantity}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
-                {/* Delivery Info */}
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-                  <Truck className="w-4 h-4" />
-                  <span>Fast delivery available</span>
+                <div className="flex space-x-3">
+                  <Button
+                    onClick={handleAddToCart}
+                    disabled={product.stock_quantity === 0}
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl py-3 font-semibold"
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Add to Cart
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="px-6 border-orange-200 hover:bg-orange-50 rounded-xl"
+                    onClick={() => navigate('/products')}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
 
-              {/* Quantity Selector */}
-              <div className="flex items-center space-x-4">
-                <span className="font-medium">Quantity:</span>
-                <div className="flex items-center border rounded-lg">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </Button>
-                  <span className="px-4 py-2 font-medium">{quantity}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setQuantity(quantity + 1)}
-                    disabled={quantity >= product.stock_quantity}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
+              {/* Trust Indicators */}
+              <div className="grid grid-cols-2 gap-4 pt-6 border-t border-orange-100">
+                <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-xl">
+                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                    <Truck className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Fast Delivery</p>
+                    <p className="text-xs text-muted-foreground">Same day delivery</p>
+                  </div>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  ({product.stock_quantity} available)
-                </span>
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-xl">
+                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Quality Assured</p>
+                    <p className="text-xs text-muted-foreground">Premium products</p>
+                  </div>
+                </div>
               </div>
-
-              {/* Add to Cart Button */}
-              <Button
-                className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={handleAddToCart}
-                disabled={product.stock_quantity <= 0}
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                {product.stock_quantity <= 0 ? 'Out of Stock' : 'Add to Cart'}
-              </Button>
             </div>
           </div>
         </div>
 
-        {/* Product Information - Collapsible Sections */}
-        <div className="space-y-4 mb-8">
-          {/* Product Features Dropdown */}
-          {product.features && Array.isArray(product.features) && product.features.length > 0 && (
-            <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden">
-              <button
-                onClick={() => toggleSection('features')}
-                className="w-full flex items-center justify-between p-6 hover:bg-orange-50 transition-colors duration-200"
-              >
-                <div className="flex items-center space-x-3">
-                  <Award className="w-6 h-6 text-orange-500" />
-                  <h3 className="text-xl font-bold text-gray-900">Product Features</h3>
-                </div>
-                {expandedSections.features ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500" />
-                )}
-              </button>
-              {expandedSections.features && (
-                <div className="px-6 pb-6 border-t border-orange-100">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                    {product.features.map((feature: string, index: number) => {
-                      const IconComponent = getFeatureIcon(feature);
-                      return (
-                        <div key={index} className="flex items-center space-x-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
-                          <IconComponent className="w-5 h-5 text-orange-600 flex-shrink-0" />
-                          <span className="text-sm font-medium text-gray-700">{feature}</span>
-                        </div>
-                      );
-                    })}
+        {/* Product Information Sections */}
+        <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden mb-8">
+          <div className="p-8">
+            <h2 className="text-2xl font-bold mb-6">Product Information</h2>
+            
+            {/* Features Section */}
+            {product.features && product.features.length > 0 && (
+              <div className="mb-6">
+                <button
+                  onClick={() => toggleSection('features')}
+                  className="flex items-center justify-between w-full p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Award className="w-5 h-5 text-orange-600" />
+                    <span className="font-semibold text-lg">Key Features</span>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Product Specifications Dropdown */}
-          {product.nutritional_info && Object.keys(product.nutritional_info).length > 0 && (
-            <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden">
-              <button
-                onClick={() => toggleSection('specifications')}
-                className="w-full flex items-center justify-between p-6 hover:bg-orange-50 transition-colors duration-200"
-              >
-                <div className="flex items-center space-x-3">
-                  <Info className="w-6 h-6 text-orange-500" />
-                  <h3 className="text-xl font-bold text-gray-900">Product Specifications</h3>
-                </div>
-                {expandedSections.specifications ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500" />
-                )}
-              </button>
-              {expandedSections.specifications && (
-                <div className="px-6 pb-6 border-t border-orange-100">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    {Object.entries(product.nutritional_info).map(([key, value]) => {
-                      if (!value) return null;
-
-                      const formatKey = (key: string) => {
-                        return key
-                          .replace(/([A-Z])/g, ' $1')
-                          .replace(/^./, str => str.toUpperCase())
-                          .replace('_', ' ');
-                      };
-
-                      return (
-                        <div key={key} className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                          <div className="text-sm font-medium text-gray-700">
-                            {formatKey(key)}
-                          </div>
-                          <div className="text-sm font-semibold text-gray-900">
-                            {String(value)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Product & Company Details Dropdown */}
-          <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden">
-            <button
-              onClick={() => toggleSection('details')}
-              className="w-full flex items-center justify-between p-6 hover:bg-orange-50 transition-colors duration-200"
-            >
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-6 h-6 text-orange-500" />
-                <h3 className="text-xl font-bold text-gray-900">Product & Company Details</h3>
-              </div>
-              {expandedSections.details ? (
-                <ChevronUp className="w-5 h-5 text-gray-500" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500" />
-              )}
-            </button>
-            {expandedSections.details && (
-              <div className="px-6 pb-6 border-t border-orange-100">
-                <div className="space-y-4 mt-4">
-                  {/* Product Details */}
-                  <div className="grid grid-cols-1 gap-3">
-                    {product.sku && (
-                      <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                        <div className="text-sm font-medium text-gray-700">SKU</div>
-                        <div className="font-mono text-sm font-semibold text-gray-900">
-                          {product.sku}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                      <div className="text-sm font-medium text-gray-700">Stock Status</div>
-                      <div className={`text-sm font-semibold ${product.stock_quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {product.stock_quantity > 0
-                          ? `${product.stock_quantity} units available`
-                          : 'Out of stock'
-                        }
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                      <div className="text-sm font-medium text-gray-700">Category</div>
-                      <div className="text-sm font-semibold text-gray-900">
-                        {product.categories?.name || 'General Products'}
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                      <div className="text-sm font-medium text-gray-700">Added</div>
-                      <div className="text-sm font-semibold text-gray-900">
-                        {new Date(product.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-
-                    {/* Storage Instructions */}
-                    {product.storage_instructions && (
-                      <div className="p-3 bg-orange-50 rounded-xl border border-orange-100">
-                        <div className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                          <Shield className="w-4 h-4 mr-2" />
-                          Storage Instructions
-                        </div>
-                        <div className="text-sm text-gray-600 leading-relaxed">
-                          {product.storage_instructions}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Company Information */}
-                  {product.marketing_info && Object.keys(product.marketing_info).length > 0 && (
-                    <div className="border-t border-orange-200 pt-4 mt-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">Company Information</h4>
-                      <div className="space-y-3">
-                        {product.marketing_info.marketedBy && (
-                          <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                            <div className="text-sm font-medium text-gray-700">Marketed By</div>
-                            <div className="text-sm font-semibold text-gray-900">{product.marketing_info.marketedBy}</div>
-                          </div>
-                        )}
-
-                        {(product.marketing_info.address || product.marketing_info.city || product.marketing_info.state) && (
-                          <div className="p-3 bg-orange-50 rounded-xl border border-orange-100">
-                            <div className="text-sm font-medium text-gray-700 mb-1">Address</div>
-                            <div className="text-sm text-gray-600">
-                              {[
-                                product.marketing_info.address,
-                                product.marketing_info.city,
-                                product.marketing_info.state
-                              ].filter(Boolean).join(', ')}
-                            </div>
-                          </div>
-                        )}
-
-                        {product.marketing_info.fssaiLicense && (
-                          <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl border border-orange-100">
-                            <div className="text-sm font-medium text-gray-700">FSSAI License</div>
-                            <div className="font-mono text-sm font-semibold text-gray-900">
-                              {product.marketing_info.fssaiLicense}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                  {expandedSections.features ? (
+                    <ChevronUp className="w-5 h-5 text-orange-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-orange-600" />
                   )}
-                </div>
-              )}
+                </button>
+                
+                {expandedSections.features && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {product.features.map((feature: string, index: number) => {
+                        const IconComponent = getFeatureIcon(feature);
+                        return (
+                          <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+                            <IconComponent className="w-5 h-5 text-orange-600" />
+                            <span className="text-sm">{feature}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-          </div>
 
-          {/* Related Products Section with Carousel */}
-          {relatedProducts.length > 0 && (
-            <div className="bg-white rounded-3xl shadow-xl border border-orange-100 p-8 mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                    <Package className="w-5 h-5 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Related Bulk Products</h2>
-                </div>
-
-                {/* Carousel Controls */}
-                {relatedProducts.length > itemsPerView && (
+            {/* Specifications Section */}
+            {product.specifications && Object.keys(product.specifications).length > 0 && (
+              <div className="mb-6">
+                <button
+                  onClick={() => toggleSection('specifications')}
+                  className="flex items-center justify-between w-full p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors"
+                >
                   <div className="flex items-center space-x-3">
-                    <button
-                      onClick={prevRelatedSlide}
-                      disabled={!canGoPrevRelated}
-                      className={`p-3 rounded-2xl border-2 transition-all duration-200 ${canGoPrevRelated
-                        ? 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg hover:shadow-xl hover:scale-105'
-                        : 'border-gray-200 text-gray-300 cursor-not-allowed'
-                        }`}
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={nextRelatedSlide}
-                      disabled={!canGoNextRelated}
-                      className={`p-3 rounded-2xl border-2 transition-all duration-200 ${canGoNextRelated
-                        ? 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg hover:shadow-xl hover:scale-105'
-                        : 'border-gray-200 text-gray-300 cursor-not-allowed'
-                        }`}
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
+                    <Info className="w-5 h-5 text-orange-600" />
+                    <span className="font-semibold text-lg">Specifications</span>
+                  </div>
+                  {expandedSections.specifications ? (
+                    <ChevronUp className="w-5 h-5 text-orange-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-orange-600" />
+                  )}
+                </button>
+                
+                {expandedSections.specifications && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.entries(product.specifications).map(([key, value]) => (
+                        <div key={key} className="flex justify-between p-3 bg-white rounded-lg">
+                          <span className="font-medium text-sm capitalize">{key.replace('_', ' ')}</span>
+                          <span className="text-sm text-muted-foreground">{value as string}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
+            )}
 
-              {/* Carousel */}
-              <div className="relative overflow-hidden rounded-3xl">
+            {/* Additional Details Section */}
+            <div className="mb-6">
+              <button
+                onClick={() => toggleSection('details')}
+                className="flex items-center justify-between w-full p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <Package className="w-5 h-5 text-orange-600" />
+                  <span className="font-semibold text-lg">Additional Details</span>
+                </div>
+                {expandedSections.details ? (
+                  <ChevronUp className="w-5 h-5 text-orange-600" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-orange-600" />
+                )}
+              </button>
+              
+              {expandedSections.details && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                      <span className="font-medium text-sm">SKU</span>
+                      <span className="text-sm text-muted-foreground">{product.sku}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                      <span className="font-medium text-sm">Stock Quantity</span>
+                      <span className="text-sm text-muted-foreground">{product.stock_quantity} units</span>
+                    </div>
+                    {product.weight && (
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <span className="font-medium text-sm">Weight</span>
+                        <span className="text-sm text-muted-foreground">{product.weight}</span>
+                      </div>
+                    )}
+                    {product.dimensions && (
+                      <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <span className="font-medium text-sm">Dimensions</span>
+                        <span className="text-sm text-muted-foreground">{product.dimensions}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Related Products</h2>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={prevRelatedSlide}
+                    disabled={!canGoPrevRelated}
+                    className="p-2 rounded-full bg-orange-100 hover:bg-orange-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-orange-600" />
+                  </button>
+                  <button
+                    onClick={nextRelatedSlide}
+                    disabled={!canGoNextRelated}
+                    className="p-2 rounded-full bg-orange-100 hover:bg-orange-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4 text-orange-600" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-hidden">
                 <div
-                  className="flex transition-transform duration-500 ease-out"
+                  className="flex transition-transform duration-300 ease-in-out"
                   style={{
                     transform: `translateX(-${relatedCurrentIndex * (100 / itemsPerView)}%)`,
+                    width: `${(relatedProducts.length / itemsPerView) * 100}%`
                   }}
                 >
                   {relatedProducts.map((relatedProduct: any) => (
                     <div
                       key={relatedProduct.id}
-                      className="flex-shrink-0 px-3"
-                      style={{ width: `${100 / itemsPerView}%` }}
+                      className="px-2"
+                      style={{ width: `${100 / relatedProducts.length}%` }}
                     >
-                      <ProductCard
-                        product={{
-                          ...relatedProduct,
-                          image: relatedProduct.images?.[0] || '/placeholder.svg',
-                          slug: relatedProduct.sku || relatedProduct.id,
-                          category: relatedProduct.categories?.name || 'General'
-                        }}
-                        onViewDetail={() => navigate(`/product/${relatedProduct.sku || relatedProduct.id}`)}
-                      />
+                      <ProductCard product={relatedProduct} />
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Back to Products Button */}
-          <div className="text-center">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/products')}
-              className="px-8 py-3 rounded-2xl border-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 font-semibold"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to All Products
-            </Button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
