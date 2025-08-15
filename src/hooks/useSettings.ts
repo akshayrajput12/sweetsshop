@@ -28,6 +28,8 @@ export interface AppSettings {
   store_phone: string;
   store_email: string;
   store_address: string;
+  business_hours_start: string;
+  business_hours_end: string;
 }
 
 // Only minimal defaults for type safety - real values come from database
@@ -50,7 +52,9 @@ const defaultSettings: AppSettings = {
   store_name: '',
   store_phone: '',
   store_email: '',
-  store_address: ''
+  store_address: '',
+  business_hours_start: '09:00',
+  business_hours_end: '20:00'
 };
 
 export const useSettings = () => {
@@ -84,7 +88,13 @@ export const useSettings = () => {
             'min_order_amount',
             'currency_symbol',
             'cod_enabled',
-            'razorpay_enabled'
+            'razorpay_enabled',
+            'store_name',
+            'store_phone',
+            'store_email',
+            'store_address',
+            'business_hours_start',
+            'business_hours_end'
           ]);
         data = result.data;
         fetchError = result.error;

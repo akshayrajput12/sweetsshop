@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import CategoryDeleteModal from '@/components/CategoryDeleteModal';
 
 interface Category {
   id: string;
@@ -29,6 +30,15 @@ const AdminCategories = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    categoryId: string;
+    categoryName: string;
+  }>({
+    isOpen: false,
+    categoryId: '',
+    categoryName: ''
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -73,28 +83,24 @@ const AdminCategories = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
+  const handleDeleteClick = (id: string, name: string) => {
+    setDeleteModal({
+      isOpen: true,
+      categoryId: id,
+      categoryName: name
+    });
+  };
 
-      if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Category deleted successfully",
-      });
-      
-      fetchCategories();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const handleDeleteConfirm = () => {
+    fetchCategories(); // Refresh the list after deletion
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({
+      isOpen: false,
+      categoryId: '',
+      categoryName: ''
+    });
   };
 
   if (loading) {
@@ -212,7 +218,7 @@ const AdminCategories = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => handleDeleteClick(category.id, category.name)}
                         className="text-red-600 hover:text-red-800"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -225,6 +231,15 @@ const AdminCategories = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Delete Modal */}
+      <CategoryDeleteModal
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        categoryId={deleteModal.categoryId}
+        categoryName={deleteModal.categoryName}
+      />
     </div>
   );
 };

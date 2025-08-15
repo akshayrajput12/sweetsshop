@@ -9,6 +9,7 @@ import { ArrowLeft, Upload, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import CategoryProductManager from '@/components/CategoryProductManager';
 
 interface Category {
   id: string;
@@ -39,6 +40,7 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
 
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [productCount, setProductCount] = useState(0);
 
   useEffect(() => {
     if (id && isEdit) {
@@ -60,7 +62,10 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select(`
+          *,
+          products(count)
+        `)
         .eq('id', id)
         .single();
 
@@ -72,6 +77,8 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
         is_active: data.is_active,
         image_url: data.image_url
       });
+
+      setProductCount(data.products?.length || 0);
     } catch (error) {
       console.error('Error fetching category:', error);
       toast({
@@ -82,6 +89,10 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleProductRemoved = () => {
+    setProductCount(prev => Math.max(0, prev - 1));
   };
 
   const handleInputChange = (field: keyof Category, value: any) => {
@@ -267,6 +278,15 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
             </CardContent>
           </Card>
 
+          {/* Product Management - Only show in edit mode */}
+          {isEdit && id && (
+            <CategoryProductManager
+              categoryId={id}
+              categoryName={formData.name || 'Category'}
+              onProductRemoved={handleProductRemoved}
+            />
+          )}
+
         </div>
 
         <div className="space-y-6">
@@ -329,6 +349,29 @@ const CategoryForm = ({ category: propCategory, isEdit = false }: CategoryFormPr
               )}
             </CardContent>
           </Card>
+
+          {/* Category Stats - Only show in edit mode */}
+          {isEdit && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Category Stats</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Total Products</span>
+                    <span className="font-semibold">{productCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Status</span>
+                    <span className={`text-sm font-medium ${formData.is_active ? 'text-green-600' : 'text-gray-500'}`}>
+                      {formData.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardContent className="pt-6">

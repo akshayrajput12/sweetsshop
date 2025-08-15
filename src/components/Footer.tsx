@@ -1,8 +1,19 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import logoImage from '../assets/logo.png';
+import { useSettings } from '@/hooks/useSettings';
 
 const Footer = () => {
+  const { settings, loading } = useSettings();
+
+  // Show loading state or fallback values
+  const contactInfo = {
+    phone: settings?.store_phone || '+91 9996616153',
+    email: settings?.store_email || 'contact@bulkbuystore.com',
+    address: settings?.store_address || 'Shop number 5, Patel Nagar,\nHansi road, Patiala chowk,\nJIND (Haryana) 126102',
+    storeName: settings?.store_name || 'BulkBuyStore'
+  };
+
   return (
     <footer className="bg-secondary text-white mt-16">
       <div className="container mx-auto px-4 py-12">
@@ -15,7 +26,7 @@ const Footer = () => {
                 alt="BulkBuyStore Logo" 
                 className="w-8 h-8 object-contain"
               />
-              <h3 className="text-2xl font-bold text-primary">BulkBuyStore</h3>
+              <h3 className="text-2xl font-bold text-primary">{contactInfo.storeName}</h3>
             </div>
             <p className="text-gray-300">
               Your Online Indian Marketplace. Discover authentic treasures of India - from aromatic spices 
@@ -101,18 +112,25 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-primary" />
-                <span className="text-gray-300">+91 9996616153</span>
+                <span className="text-gray-300">
+                  {loading ? 'Loading...' : contactInfo.phone}
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-gray-300">contact@bulkbuystore.com</span>
+                <span className="text-gray-300">
+                  {loading ? 'Loading...' : contactInfo.email}
+                </span>
               </div>
               <div className="flex items-start space-x-3">
                 <MapPin className="h-4 w-4 text-primary mt-1" />
                 <span className="text-gray-300">
-                  Shop number 5, Patel Nagar,<br />
-                  Hansi road, Patiala chowk,<br />
-                  JIND (Haryana) 126102
+                  {loading ? 'Loading...' : contactInfo.address.split('\n').map((line, index) => (
+                    <span key={index}>
+                      {line}
+                      {index < contactInfo.address.split('\n').length - 1 && <br />}
+                    </span>
+                  ))}
                 </span>
               </div>
             </div>
@@ -122,7 +140,7 @@ const Footer = () => {
         <div className="border-t border-gray-700 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-300 text-sm">
-              © 2024 BulkBuyStore. All rights reserved.
+              © 2024 {contactInfo.storeName}. All rights reserved.
             </p>
             <div className="flex flex-wrap gap-6 mt-4 md:mt-0">
               <Link to="/about" className="text-gray-300 hover:text-primary text-sm transition-colors">

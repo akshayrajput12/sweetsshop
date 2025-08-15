@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/hooks/useSettings';
+import { supabase } from '@/integrations/supabase/client';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -15,21 +17,81 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+  const { settings, loading } = useSettings();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Dynamic contact information from database
+  const contactInfo = {
+    phone: settings?.store_phone || '+91 9996616153',
+    email: settings?.store_email || 'contact@bulkbuystore.com',
+    address: settings?.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
+    storeName: settings?.store_name || 'BulkBuyStore',
+    businessHoursStart: settings?.business_hours_start || '09:00',
+    businessHoursEnd: settings?.business_hours_end || '20:00'
+  };
+
+  // Format business hours for display
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Message sent!",
-      description: "We'll get back to you within 24 hours.",
-    });
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      subject: '',
-      message: ''
-    });
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || null,
+          subject: formData.subject.trim(),
+          message: formData.message.trim(),
+          status: 'new'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Message sent successfully!",
+        description: "We'll get back to you within 24 hours. Thank you for contacting us!",
+      });
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast({
+        title: "Failed to send message",
+        description: "There was an error sending your message. Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -59,8 +121,12 @@ const Contact = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-medium">+91 98765 43210</p>
-              <p className="text-muted-foreground">Mon-Sat 9AM-8PM</p>
+              <p className="text-lg font-medium">
+                {loading ? 'Loading...' : contactInfo.phone}
+              </p>
+              <p className="text-muted-foreground">
+                Mon-Sat {formatTime(contactInfo.businessHoursStart)}-{formatTime(contactInfo.businessHoursEnd)}
+              </p>
             </CardContent>
           </Card>
 
@@ -72,7 +138,9 @@ const Contact = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-medium">contact@bulkbuystore.com</p>
+              <p className="text-lg font-medium">
+                {loading ? 'Loading...' : contactInfo.email}
+              </p>
               <p className="text-muted-foreground">We'll respond within 24 hours</p>
             </CardContent>
           </Card>
@@ -85,8 +153,17 @@ const Contact = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg font-medium">456 Commerce Hub</p>
-              <p className="text-muted-foreground">Mumbai, Maharashtra 400001</p>
+              {loading ? (
+                <p className="text-lg font-medium">Loading...</p>
+              ) : (
+                <div className="space-y-1">
+                  {contactInfo.address.split(',').map((line, index) => (
+                    <p key={index} className={index === 0 ? "text-lg font-medium" : "text-muted-foreground"}>
+                      {line.trim()}
+                    </p>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -99,8 +176,9 @@ const Contact = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                <p>Monday - Saturday: 9:00 AM - 8:00 PM</p>
+                <p>Monday - Saturday: {formatTime(contactInfo.businessHoursStart)} - {formatTime(contactInfo.businessHoursEnd)}</p>
                 <p>Sunday: 10:00 AM - 6:00 PM</p>
+                {loading && <p className="text-muted-foreground">Loading business hours...</p>}
               </div>
             </CardContent>
           </Card>
@@ -177,9 +255,9 @@ const Contact = () => {
                   />
                 </div>
 
-                <Button type="submit" size="lg" className="w-full">
+                <Button type="submit" size="lg" className="w-full" disabled={submitting}>
                   <Send className="h-4 w-4 mr-2" />
-                  Send Message
+                  {submitting ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
             </CardContent>

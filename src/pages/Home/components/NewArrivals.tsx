@@ -21,10 +21,16 @@ const NewArrivals = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto-scroll carousel
+  // Auto-scroll carousel with manual override
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [lastManualAction, setLastManualAction] = useState(0);
+
   useEffect(() => {
-    if (newArrivals.length > itemsPerView) {
+    if (newArrivals.length > itemsPerView && autoScroll) {
       const interval = setInterval(() => {
+        // Pause auto-scroll for 10 seconds after manual action
+        if (Date.now() - lastManualAction < 10000) return;
+        
         setCurrentIndex(prev => {
           const maxIndex = newArrivals.length - itemsPerView;
           return prev >= maxIndex ? 0 : prev + 1;
@@ -33,7 +39,7 @@ const NewArrivals = () => {
 
       return () => clearInterval(interval);
     }
-  }, [newArrivals, itemsPerView]);
+  }, [newArrivals, itemsPerView, autoScroll, lastManualAction]);
 
   const handleResize = () => {
     if (window.innerWidth < 640) {
@@ -69,12 +75,41 @@ const NewArrivals = () => {
   const nextSlide = () => {
     if (currentIndex < newArrivals.length - itemsPerView) {
       setCurrentIndex(currentIndex + 1);
+      setLastManualAction(Date.now());
     }
   };
 
   const prevSlide = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+      setLastManualAction(Date.now());
+    }
+  };
+
+  // Touch/swipe support for mobile
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && canGoNext) {
+      nextSlide();
+    }
+    if (isRightSwipe && canGoPrev) {
+      prevSlide();
     }
   };
 
@@ -167,6 +202,26 @@ const NewArrivals = () => {
           </div>
         )}
 
+        {/* Carousel Indicators */}
+        {!loading && newArrivals.length > itemsPerView && (
+          <div className="flex justify-center space-x-2 mb-6">
+            {Array.from({ length: Math.ceil(newArrivals.length / itemsPerView) }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setCurrentIndex(index * itemsPerView);
+                  setLastManualAction(Date.now());
+                }}
+                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                  Math.floor(currentIndex / itemsPerView) === index
+                    ? 'bg-accent scale-110'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Enhanced Products Carousel */}
         <div className="relative overflow-hidden rounded-3xl">
           <div 
@@ -174,6 +229,9 @@ const NewArrivals = () => {
             style={{ 
               transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
             }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             {loading ? (
               // Enhanced Loading skeleton
