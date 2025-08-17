@@ -254,6 +254,22 @@ export default function Auth() {
                       required
                     />
                   </div>
+                  
+                  {/* Spam folder notice */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="flex items-start space-x-2">
+                      <span className="text-blue-600 mt-0.5">📧</span>
+                      <div>
+                        <p className="text-sm text-blue-800 font-medium">
+                          Check your spam folder
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          After signing up, please check your spam/junk folder for the verification email if you don't see it in your inbox within a few minutes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <Button 
                     type="submit" 
                     className="w-full" 

@@ -12,6 +12,7 @@ import { initiateRazorpayPayment, OrderData } from '@/utils/razorpay';
 
 import AddressManager from '@/components/AddressManager';
 import Stepper from '@/components/Stepper';
+import GuestOrderPopup from '@/components/GuestOrderPopup';
 // Removed Porter API integration
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +38,9 @@ const Checkout = () => {
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [useExistingAddress, setUseExistingAddress] = useState(false);
+  const [showGuestOrderPopup, setShowGuestOrderPopup] = useState(false);
+  const [guestOrderData, setGuestOrderData] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   // Form validation states
   const [contactErrors, setContactErrors] = useState<string[]>([]);
@@ -74,7 +78,18 @@ const Checkout = () => {
   useEffect(() => {
     fetchProductCoupons();
     fetchSavedAddresses();
+    getCurrentUser();
   }, [cartItems]);
+
+  const getCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      setCurrentUser(null);
+    }
+  };
 
   // Remove fetchSettings since we're using static settings now
 
@@ -82,7 +97,11 @@ const Checkout = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) return;
+      if (!user) {
+        // For guest users, no saved addresses
+        setSavedAddresses([]);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('addresses')
@@ -121,7 +140,20 @@ const Checkout = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) return;
+      if (!user) {
+        // For guest users, we don't save addresses
+        return;
+      }
+
+      // Check if user already has 3 addresses
+      if (savedAddresses.length >= 3) {
+        toast({
+          title: "Address Limit Reached",
+          description: "You can only save up to 3 addresses. Please delete an existing address first.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const addressData = {
         user_id: user.id,
@@ -145,7 +177,7 @@ const Checkout = () => {
       if (error) throw error;
 
       toast({
-        title: "Address Saved!",
+        title: "Address Saved",
         description: "Your address has been saved to your profile for future use.",
       });
 
@@ -488,8 +520,8 @@ const Checkout = () => {
           throw new Error(`Database error: ${dbError.message}`);
         }
 
-        // Save address to profile if it's a new address
-        if (!useExistingAddress) {
+        // Save address to profile if it's a new address and user is authenticated
+        if (!useExistingAddress && currentUser) {
           await saveAddressToProfile();
         }
 
@@ -501,17 +533,60 @@ const Checkout = () => {
             .eq('id', appliedCoupon.id);
         }
 
-        // Stock quantities will be automatically updated by database trigger
-
-        // Order confirmation email removed - no longer sending emails
-
-        toast({
-          title: "Order Placed Successfully!",
-          description: `Your COD order #${orderNumber} has been placed. You'll pay ${settings.currency_symbol}${total.toFixed(2)} on delivery.`,
-        });
+        // Check if user is authenticated
+        if (!currentUser) {
+          // Guest user - show popup with order details
+          const guestOrder = {
+            orderNumber: orderNumber,
+            customerInfo: customerInfo,
+            items: cartItems.map(item => ({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              weight: item.weight,
+              image: item.image,
+              category: item.category || 'bulk'
+            })),
+            subtotal: subtotal,
+            tax: tax,
+            deliveryFee: deliveryFee,
+            codFee: codFee,
+            discount: discount,
+            total: total,
+            paymentMethod: paymentMethod,
+            paymentStatus: 'pending',
+            deliveryAddress: {
+              plotNumber: addressDetails.plotNumber,
+              buildingName: addressDetails.buildingName,
+              street: addressDetails.street,
+              city: addressDetails.city,
+              state: addressDetails.state,
+              pincode: addressDetails.pincode,
+              landmark: addressDetails.landmark
+            },
+            orderDate: new Date().toISOString(),
+            couponCode: appliedCoupon?.code
+          };
+          
+          setGuestOrderData(guestOrder);
+          setShowGuestOrderPopup(true);
+          
+          toast({
+            title: "Order Placed Successfully!",
+            description: `Your COD order #${orderNumber} has been placed. Please save the order details as you won't be able to view them again.`,
+          });
+        } else {
+          // Authenticated user - redirect to profile
+          toast({
+            title: "Order Placed Successfully!",
+            description: `Your COD order #${orderNumber} has been placed. You'll pay ${settings.currency_symbol}${total.toFixed(2)} on delivery.`,
+          });
+          
+          navigate('/profile?tab=orders');
+        }
         
         clearCart();
-        navigate('/profile?tab=orders');
       } else {
         // Handle online payment with Razorpay
         const razorpayOrderData: OrderData = {
@@ -522,7 +597,8 @@ const Checkout = () => {
           customerInfo,
           deliveryAddress: {
             address: completeAddress,
-            ...addressDetails
+            lat: 0,
+            lng: 0
           }
         };
 
@@ -550,8 +626,8 @@ const Checkout = () => {
                 throw new Error(`Database error: ${dbError.message}`);
               }
 
-              // Save address to profile if it's a new address
-              if (!useExistingAddress) {
+              // Save address to profile if it's a new address and user is authenticated
+              if (!useExistingAddress && currentUser) {
                 await saveAddressToProfile();
               }
 
@@ -563,17 +639,60 @@ const Checkout = () => {
                   .eq('id', appliedCoupon.id);
               }
 
-              // Stock quantities will be automatically updated by database trigger
-
-              // Order confirmation email removed - no longer sending emails
-
-              toast({
-                title: "Payment Successful!",
-                description: `Order #${orderNumber} confirmed and paid. Your bulk order is being processed.`,
-              });
+              // Check if user is authenticated
+              if (!currentUser) {
+                // Guest user - show popup with order details
+                const guestOrder = {
+                  orderNumber: orderNumber,
+                  customerInfo: customerInfo,
+                  items: cartItems.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    weight: item.weight,
+                    image: item.image,
+                    category: item.category || 'bulk'
+                  })),
+                  subtotal: subtotal,
+                  tax: tax,
+                  deliveryFee: deliveryFee,
+                  codFee: codFee,
+                  discount: discount,
+                  total: total,
+                  paymentMethod: paymentMethod,
+                  paymentStatus: 'paid',
+                  deliveryAddress: {
+                    plotNumber: addressDetails.plotNumber,
+                    buildingName: addressDetails.buildingName,
+                    street: addressDetails.street,
+                    city: addressDetails.city,
+                    state: addressDetails.state,
+                    pincode: addressDetails.pincode,
+                    landmark: addressDetails.landmark
+                  },
+                  orderDate: new Date().toISOString(),
+                  couponCode: appliedCoupon?.code
+                };
+                
+                setGuestOrderData(guestOrder);
+                setShowGuestOrderPopup(true);
+                
+                toast({
+                  title: "Payment Successful!",
+                  description: `Order #${orderNumber} confirmed and paid. Please save the order details as you won't be able to view them again.`,
+                });
+              } else {
+                // Authenticated user - redirect to profile
+                toast({
+                  title: "Payment Successful!",
+                  description: `Order #${orderNumber} confirmed and paid. Your bulk order is being processed.`,
+                });
+                
+                navigate('/profile?tab=orders');
+              }
               
               clearCart();
-              navigate('/profile?tab=orders');
             } catch (error) {
               console.error('Post-payment processing error:', error);
               toast({
@@ -1110,41 +1229,44 @@ const Checkout = () => {
                   />
                 </div>
 
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Save this address as</Label>
-                  <RadioGroup
-                    value={addressDetails.addressType}
-                    onValueChange={(value: 'home' | 'work' | 'other') =>
-                      setAddressDetails({...addressDetails, addressType: value})
-                    }
-                    className="flex space-x-6"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="home" id="home" />
-                      <Label htmlFor="home" className="cursor-pointer">🏠 Home</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="work" id="work" />
-                      <Label htmlFor="work" className="cursor-pointer">🏢 Work</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="other" id="other" />
-                      <Label htmlFor="other" className="cursor-pointer">📍 Other</Label>
-                    </div>
-                  </RadioGroup>
+                {/* Address saving options - only show for authenticated users */}
+                {currentUser && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Save this address as</Label>
+                    <RadioGroup
+                      value={addressDetails.addressType}
+                      onValueChange={(value: 'home' | 'work' | 'other') =>
+                        setAddressDetails({...addressDetails, addressType: value})
+                      }
+                      className="flex space-x-6"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="home" id="home" />
+                        <Label htmlFor="home" className="cursor-pointer">🏠 Home</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="work" id="work" />
+                        <Label htmlFor="work" className="cursor-pointer">🏢 Work</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="other" id="other" />
+                        <Label htmlFor="other" className="cursor-pointer">📍 Other</Label>
+                      </div>
+                    </RadioGroup>
 
-                  {addressDetails.addressType === 'other' && (
-                    <Input
-                      placeholder="Enter custom name (e.g., Friend's Place)"
-                      value={addressDetails.saveAs}
-                      onChange={(e) => setAddressDetails({...addressDetails, saveAs: e.target.value})}
-                      className="h-12 mt-2"
-                    />
-                  )}
-                </div>
+                    {addressDetails.addressType === 'other' && (
+                      <Input
+                        placeholder="Enter custom name (e.g., Friend's Place)"
+                        value={addressDetails.saveAs}
+                        onChange={(e) => setAddressDetails({...addressDetails, saveAs: e.target.value})}
+                        className="h-12 mt-2"
+                      />
+                    )}
+                  </div>
+                )}
 
-                {/* Save Address Option */}
-                {!useExistingAddress && (
+                {/* Save Address Option - only show for authenticated users */}
+                {currentUser && !useExistingAddress && (
                   <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <input
                       type="checkbox"
@@ -1155,6 +1277,11 @@ const Checkout = () => {
                     />
                     <Label htmlFor="saveAddress" className="text-sm text-blue-800">
                       Save this address to your profile for future orders
+                      {savedAddresses.length >= 3 && (
+                        <span className="block text-xs text-orange-600 mt-1">
+                          ⚠️ You have reached the maximum limit of 3 saved addresses
+                        </span>
+                      )}
                     </Label>
                   </div>
                 )}
@@ -1894,6 +2021,18 @@ const Checkout = () => {
 
       {/* Add bottom padding to prevent content from being hidden behind sticky bar */}
       <div className="xl:hidden h-20"></div>
+
+      {/* Guest Order Popup */}
+      {showGuestOrderPopup && guestOrderData && (
+        <GuestOrderPopup
+          isOpen={showGuestOrderPopup}
+          onClose={() => {
+            setShowGuestOrderPopup(false);
+            setGuestOrderData(null);
+          }}
+          orderData={guestOrderData}
+        />
+      )}
     </div>
   );
 };

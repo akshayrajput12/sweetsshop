@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import { useSettings } from '@/hooks/useSettings';
+import QRCodeComponent from './QRCode';
 
 const Footer = () => {
   const { settings, loading } = useSettings();
@@ -142,7 +143,7 @@ const Footer = () => {
             <p className="text-gray-300 text-sm">
               © 2024 {contactInfo.storeName}. All rights reserved.
             </p>
-            <div className="flex flex-wrap gap-6 mt-4 md:mt-0">
+            <div className="flex flex-wrap gap-6 mt-4 md:mt-0 items-center">
               <Link to="/about" className="text-gray-300 hover:text-primary text-sm transition-colors">
                 About Us
               </Link>
@@ -155,6 +156,7 @@ const Footer = () => {
               <Link to="/auth" className="text-gray-300 hover:text-primary text-sm transition-colors">
                 Login
               </Link>
+              <QRCodeComponent />
             </div>
           </div>
         </div>

@@ -84,15 +84,10 @@ const AppContent = () => {
             element={user ? <Navigate to="/" replace /> : <Auth />} 
           />
           
+          {/* Checkout route - accessible to both guests and authenticated users */}
+          <Route path="/checkout" element={<Checkout />} />
+          
           {/* Protected routes */}
-          <Route 
-            path="/checkout" 
-            element={
-              <ProtectedRoute>
-                <Checkout />
-              </ProtectedRoute>
-            } 
-          />
           <Route 
             path="/profile" 
             element={
