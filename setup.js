@@ -112,7 +112,7 @@ if (fs.existsSync(migrationPath)) {
 }
 
 console.log('\n🎉 Setup check complete!');
-console.log('\n📚 For detailed setup instructions, see: BULKBOXS_SETUP_GUIDE.md');
+console.log('\n📚 For detailed setup instructions, see: DARETODIET_SETUP_GUIDE.md');
 console.log('🚀 To start development: npm run dev');
 
 // Check package.json scripts
@@ -127,6 +127,6 @@ if (fs.existsSync(packageJsonPath)) {
 }
 
 console.log('\n' + '='.repeat(50));
-console.log('BulkBoxs - Bulk Shopping Platform');
+console.log('Dare To Diet - Fitness Supplements Platform');
 console.log('Ready for bulk e-commerce! 🛒');
 console.log('='.repeat(50));

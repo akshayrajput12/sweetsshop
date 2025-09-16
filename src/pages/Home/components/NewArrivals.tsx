@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, Dumbbell } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
+import { Product } from '@/store/useStore';
 
 const NewArrivals = () => {
   const navigate = useNavigate();
-  const [newArrivals, setNewArrivals] = useState([]);
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
-  const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
@@ -55,16 +56,39 @@ const NewArrivals = () => {
 
   const fetchNewArrivals = async () => {
     try {
-      const { data, error } = await supabase
+      // First, get all products and then filter for new arrivals on the client side
+      // This avoids the type issue with the missing new_arrival field in generated types
+      const result = await supabase
         .from('products')
         .select('*')
-        .eq('new_arrival', true)
         .eq('is_active', true)
         .order('created_at', { ascending: false })
-        .limit(12);
+        .limit(20); // Get more products to filter from
 
-      if (error) throw error;
-      setNewArrivals(data || []);
+      if (result.error) throw result.error;
+      
+      // Filter for new arrivals on the client side and transform to Product interface
+      const filteredProducts = (result.data || [])
+        .filter((product: any) => product.new_arrival === true) // Filter for new arrivals
+        .slice(0, 12) // Limit to 12 new arrivals
+        .map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          originalPrice: product.original_price,
+          image: product.images?.[0] || '/placeholder.svg',
+          images: product.images,
+          category: product.category_id || 'Uncategorized',
+          weight: product.weight,
+          pieces: product.pieces,
+          description: product.description,
+          stock_quantity: product.stock_quantity,
+          slug: product.id, // Use id as slug since sku might not exist
+          inStock: product.stock_quantity !== undefined ? product.stock_quantity > 0 : true,
+          isBestSeller: product.is_bestseller || false
+        } as Product));
+      
+      setNewArrivals(filteredProducts);
     } catch (error) {
       console.error('Error fetching new arrivals:', error);
     } finally {
@@ -120,7 +144,7 @@ const NewArrivals = () => {
     setQuickViewProduct({
       ...product,
       image: product.images?.[0] || '/placeholder.svg',
-      slug: product.sku || product.id
+      slug: product.id
     });
     setIsQuickViewOpen(true);
   };
@@ -130,8 +154,6 @@ const NewArrivals = () => {
     setQuickViewProduct(null);
   };
 
-
-
   if (newArrivals.length === 0 && !loading) {
     return null; // Don't show section if no new arrivals
   }
@@ -140,26 +162,24 @@ const NewArrivals = () => {
     <section className="py-12 bg-white relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-accent/5 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-10 left-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl opacity-20"></div>
+        <div className="absolute top-10 right-10 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute bottom-10 left-10 w-48 h-48 bg-red-500/5 rounded-full blur-3xl opacity-20"></div>
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      {/* Added max-width container with proper padding and margins */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Enhanced Section Header */}
+        {/* Improved responsive font sizing */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center bg-accent/10 text-accent px-6 py-3 rounded-full text-sm font-semibold mb-6">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Fresh Arrivals
-          </div>
-          
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-secondary mb-6">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-4 font-raleway">
             New{' '}
-            <span className="text-accent">Arrivals</span>
+            <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+              Fitness Products
+            </span>
           </h2>
           
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Discover the latest additions to our bulk collection! Fresh products, new brands, and exciting deals 
-            that have just arrived in our warehouse.
+          <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-raleway">
+            Discover the latest additions to our fitness collection! Fresh supplements, new gear, and exciting products that have just arrived.
           </p>
         </div>
 
@@ -167,9 +187,10 @@ const NewArrivals = () => {
         {!loading && newArrivals.length > itemsPerView && (
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100">
-                <Sparkles className="w-4 h-4 text-accent fill-current" />
-                <span className="text-sm font-medium text-gray-700">
+              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100 font-raleway">
+                <Sparkles className="w-4 h-4 text-orange-500 fill-current" />
+                {/* Improved responsive font sizing */}
+                <span className="text-xs sm:text-sm font-medium text-gray-700 font-raleway">
                   {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, newArrivals.length)} of {newArrivals.length} new products
                 </span>
               </div>
@@ -179,24 +200,26 @@ const NewArrivals = () => {
               <button
                 onClick={prevSlide}
                 disabled={!canGoPrev}
-                className={`p-3 rounded-2xl border-2 transition-all duration-200 ${
+                className={`p-2 rounded-full border-2 transition-all duration-200 ${
                   canGoPrev 
-                    ? 'border-accent text-accent hover:bg-accent hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
+                    ? 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                <ChevronLeft className="w-6 h-6" />
+                {/* Improved responsive icon sizing */}
+                <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={nextSlide}
                 disabled={!canGoNext}
-                className={`p-3 rounded-2xl border-2 transition-all duration-200 ${
+                className={`p-2 rounded-full border-2 transition-all duration-200 ${
                   canGoNext 
-                    ? 'border-accent text-accent hover:bg-accent hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
+                    ? 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                <ChevronRight className="w-6 h-6" />
+                {/* Improved responsive icon sizing */}
+                <ChevronRight className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -204,7 +227,7 @@ const NewArrivals = () => {
 
         {/* Carousel Indicators */}
         {!loading && newArrivals.length > itemsPerView && (
-          <div className="flex justify-center space-x-2 mb-6">
+          <div className="flex justify-center mb-8 space-x-2">
             {Array.from({ length: Math.ceil(newArrivals.length / itemsPerView) }).map((_, index) => (
               <button
                 key={index}
@@ -212,9 +235,9 @@ const NewArrivals = () => {
                   setCurrentIndex(index * itemsPerView);
                   setLastManualAction(Date.now());
                 }}
-                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
                   Math.floor(currentIndex / itemsPerView) === index
-                    ? 'bg-accent scale-110'
+                    ? 'bg-orange-500 w-6 sm:w-8'
                     : 'bg-gray-300 hover:bg-gray-400'
                 }`}
               />
@@ -222,84 +245,80 @@ const NewArrivals = () => {
           </div>
         )}
 
-        {/* Enhanced Products Carousel */}
-        <div className="relative overflow-hidden rounded-3xl">
-          <div 
-            className="flex transition-transform duration-500 ease-out"
-            style={{ 
-              transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
-            }}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {loading ? (
-              // Enhanced Loading skeleton
-              Array.from({ length: itemsPerView }).map((_, index) => (
-                <div key={index} className="flex-shrink-0 px-4" style={{ width: `${100 / itemsPerView}%` }}>
-                  <div className="animate-pulse bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-                    <div className="bg-gray-200 h-56"></div>
-                    <div className="p-5 space-y-3">
-                      <div className="h-6 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                      <div className="flex justify-between items-center pt-2">
-                        <div className="h-8 bg-gray-200 rounded w-20"></div>
-                        <div className="h-10 w-10 bg-gray-200 rounded-xl"></div>
-                      </div>
+        {/* Product Carousel */}
+        <div 
+          className="relative"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="animate-pulse">
+                  <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100">
+                    <div className="h-64 bg-gray-200 rounded-t-3xl"></div>
+                    <div className="p-6">
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+                      <div className="h-10 bg-gray-200 rounded-lg"></div>
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              newArrivals.map((product: any) => (
-                <div 
-                  key={product.id} 
-                  className="flex-shrink-0 px-4" 
-                  style={{ width: `${100 / itemsPerView}%` }}
-                >
-                  <ProductCard 
-                    product={{
-                      ...product,
-                      image: product.images?.[0] || '/placeholder.svg',
-                      slug: product.sku || product.id
-                    }}
-                    onViewDetail={() => navigate(`/product/${product.sku || product.id}`)}
-                    onQuickView={() => handleQuickView(product)}
-                  />
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Enhanced CTA Section */}
-        <div className="text-center mt-10">
-          <div className="bg-accent/5 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-accent/20 shadow-xl">
-            <h3 className="text-2xl md:text-3xl font-bold text-secondary mb-4">
-              Don't miss out on the latest arrivals!
-            </h3>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Be the first to get your hands on our newest bulk products with exclusive launch prices.
-            </p>
-            <button 
-              onClick={() => navigate('/products?filter=new_arrivals')}
-              className="group bg-accent hover:bg-accent/90 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl hover:scale-105 hover:-translate-y-1 transition-all duration-200"
-            >
-              <div className="flex items-center justify-center">
-                View All New Arrivals
-                <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+              ))}
+            </div>
+          ) : newArrivals.length > 0 ? (
+            <div className="overflow-hidden">
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ 
+                  transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
+                }}
+              >
+                {newArrivals.map((product) => (
+                  <div 
+                    key={product.id} 
+                    className="flex-shrink-0 px-2 w-full sm:w-1/2 lg:w-1/4"
+                  >
+                    <ProductCard 
+                      product={{
+                        ...product,
+                        image: product.images?.[0] || '/placeholder.svg',
+                        slug: product.id
+                      }} 
+                      onQuickView={handleQuickView}
+                    />
+                  </div>
+                ))}
               </div>
-            </button>
-          </div>
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <Dumbbell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-500 mb-2 font-raleway">No new arrivals available</h3>
+              <p className="text-gray-400 font-raleway">Check back later for new fitness products</p>
+            </div>
+          )}
         </div>
 
-        {/* Quick View Modal */}
-        <QuickViewModal
-          product={quickViewProduct}
-          isOpen={isQuickViewOpen}
-          onClose={closeQuickView}
-        />
+        <div className="text-center mt-12">
+          <button
+            onClick={() => navigate('/products')}
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
+          >
+            View All New Products
+          </button>
+        </div>
       </div>
+
+      {/* Quick View Modal */}
+      {isQuickViewOpen && quickViewProduct && (
+        <QuickViewModal 
+          product={quickViewProduct} 
+          isOpen={isQuickViewOpen} 
+          onClose={closeQuickView} 
+        />
+      )}
     </section>
   );
 };

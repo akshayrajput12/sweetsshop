@@ -24,9 +24,9 @@ const Contact = () => {
   // Dynamic contact information from database
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
-    email: settings?.store_email || 'contact@bulkbuystore.com',
+    email: settings?.store_email || 'contact@daretodiet.fit',
     address: settings?.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
-    storeName: settings?.store_name || 'BulkBuyStore',
+    storeName: settings?.store_name || 'Dare To Diet',
     businessHoursStart: settings?.business_hours_start || '09:00',
     businessHoursEnd: settings?.business_hours_end || '20:00'
   };
@@ -58,14 +58,14 @@ const Contact = () => {
     try {
       const { error } = await supabase
         .from('contact_messages')
-        .insert({
+        .insert([{
           name: formData.name.trim(),
           email: formData.email.trim(),
           phone: formData.phone.trim() || null,
           subject: formData.subject.trim(),
           message: formData.message.trim(),
           status: 'new'
-        });
+        }]);
 
       if (error) throw error;
 

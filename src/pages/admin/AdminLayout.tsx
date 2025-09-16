@@ -11,7 +11,9 @@ import {
   X,
   LogOut,
   Tags,
-  Star
+  Star,
+  Image,
+  MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,6 +34,8 @@ const AdminLayout = () => {
     { name: 'Customers', href: '/admin/customers', icon: Users },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Best Sellers', href: '/admin/bestsellers', icon: Star },
+    { name: 'Instagram Posts', href: '/admin/instagram-posts', icon: Image },
+    { name: 'Testimonials', href: '/admin/testimonials', icon: MessageCircle },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 

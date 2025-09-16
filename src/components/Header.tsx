@@ -16,7 +16,16 @@ import {
 import { Button } from '@/components/ui/button';
 import SearchSidebar from './SearchSidebar';
 
-const Header = () => {
+interface HeaderProps {
+  isAdminRoute?: boolean;
+}
+
+const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
+  // Don't render header content for admin routes
+  if (isAdminRoute) {
+    return null;
+  }
+
   const { cartItems, toggleCart } = useStore();
   const { user, isAdmin, signOut, profile } = useAuth();
   const navigate = useNavigate();
@@ -52,12 +61,12 @@ const Header = () => {
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <img 
               src={logoImage} 
-              alt="BulkBuyStore Logo" 
+              alt="Dare To Diet Logo" 
               className="w-8 h-8 object-contain"
             />
             <div className="hidden xs:block">
-              <span className="text-2xl font-bold text-primary">BulkBuyStore</span>
-              <div className="text-xs text-muted-foreground -mt-1">Bulk Shopping Made Easy</div>
+              <span className="text-2xl font-bold text-primary">Dare To Diet</span>
+              <div className="text-xs text-muted-foreground -mt-1">Fitness Supplements & Health Products</div>
             </div>
           </Link>
 
@@ -263,11 +272,8 @@ const Header = () => {
                       )}
                       
                       <button
-                        onClick={() => {
-                          signOut();
-                          closeMobileMenu();
-                        }}
-                        className="flex items-center space-x-3 w-full p-3 hover:bg-red-50 text-red-600 rounded-lg transition-colors text-left"
+                        onClick={signOut}
+                        className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left text-destructive"
                       >
                         <LogOut className="w-5 h-5" />
                         <span className="font-medium">Sign Out</span>
@@ -275,18 +281,15 @@ const Header = () => {
                     </div>
                   ) : (
                     <div className="border-t pt-4">
-                      <Button
+                      <button
                         onClick={() => handleNavigation('/auth')}
-                        className="w-full"
-                        size="lg"
+                        className="flex items-center justify-center space-x-2 w-full p-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
                       >
-                        <User className="w-5 h-5 mr-2" />
-                        Sign In / Sign Up
-                      </Button>
+                        <User className="w-5 h-5" />
+                        <span className="font-medium">Sign In / Register</span>
+                      </button>
                     </div>
                   )}
-
-
                 </div>
               </motion.div>
             </>
@@ -294,10 +297,7 @@ const Header = () => {
         </AnimatePresence>
 
         {/* Search Sidebar */}
-        <SearchSidebar 
-          isOpen={isSearchOpen} 
-          onClose={() => setIsSearchOpen(false)} 
-        />
+        <SearchSidebar isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       </div>
     </motion.header>
   );

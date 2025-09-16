@@ -35,6 +35,8 @@ import CouponAssignment from '@/pages/admin/CouponAssignment';
 import BestSellers from '@/pages/admin/BestSellers';
 import Analytics from '@/pages/admin/Analytics';
 import Settings from '@/pages/admin/Settings';
+import InstagramPosts from '@/pages/admin/InstagramPosts';
+import Testimonials from '@/pages/admin/Testimonials';
 
 // Protected Route Component
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
@@ -65,89 +67,89 @@ const AppContent = () => {
   }
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-background">
-        <ScrollToTop />
-        {!isAdminRoute && <Header />}
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/product/:slug" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<About />} />
-          
-          {/* Auth routes */}
-          <Route 
-            path="/auth" 
-            element={user ? <Navigate to="/" replace /> : <Auth />} 
-          />
-          
-          {/* Checkout route - accessible to both guests and authenticated users */}
-          <Route path="/checkout" element={<Checkout />} />
-          
-          {/* Protected routes */}
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/order-detail/:id" 
-            element={
-              <ProtectedRoute>
-                <UserOrderDetail />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Admin routes */}
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute requireAdmin>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="products" element={<AdminProducts />} />
-            <Route path="products/add" element={<ProductForm />} />
-            <Route path="products/edit/:id" element={<ProductForm isEdit={true} />} />
-            <Route path="categories" element={<Categories />} />
-            <Route path="categories/add" element={<CategoryForm />} />
-            <Route path="categories/edit/:id" element={<CategoryForm isEdit={true} />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="orders/:id" element={<OrderDetail />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="coupons" element={<Coupons />} />
-            <Route path="coupons/add" element={<CouponForm />} />
-            <Route path="coupons/edit/:id" element={<CouponForm isEdit={true} />} />
-            <Route path="coupons/assign" element={<CouponAssignment />} />
-            <Route path="bestsellers" element={<BestSellers />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        {!isAdminRoute && <Footer />}
-        {!isAdminRoute && <CartSidebar />}
-        <Toaster />
-        <Sonner />
-      </div>
-    </TooltipProvider>
+    <ErrorBoundary>
+      <TooltipProvider>
+        <div className="min-h-screen bg-background">
+          <ScrollToTop />
+          <Header isAdminRoute={isAdminRoute} />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/product/:slug" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/about" element={<About />} />
+            
+            {/* Auth routes */}
+            <Route 
+              path="/auth" 
+              element={user ? <Navigate to="/" replace /> : <Auth />} 
+            />
+            
+            {/* Checkout route - accessible to both guests and authenticated users */}
+            <Route path="/checkout" element={<Checkout />} />
+            
+            {/* Protected routes */}
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/order-detail/:id" 
+              element={
+                <ProtectedRoute>
+                  <UserOrderDetail />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Admin routes */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="products/add" element={<ProductForm />} />
+              <Route path="products/edit/:id" element={<ProductForm isEdit={true} />} />
+              <Route path="categories" element={<Categories />} />
+              <Route path="categories/add" element={<CategoryForm />} />
+              <Route path="categories/edit/:id" element={<CategoryForm isEdit={true} />} />
+              <Route path="orders" element={<Orders />} />
+              <Route path="orders/:id" element={<OrderDetail />} />
+              <Route path="customers" element={<Customers />} />
+              <Route path="coupons" element={<Coupons />} />
+              <Route path="coupons/add" element={<CouponForm />} />
+              <Route path="coupons/edit/:id" element={<CouponForm isEdit={true} />} />
+              <Route path="coupons/assign" element={<CouponAssignment />} />
+              <Route path="bestsellers" element={<BestSellers />} />
+              <Route path="instagram-posts" element={<InstagramPosts />} />
+              <Route path="testimonials" element={<Testimonials />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Footer isAdminRoute={isAdminRoute} />
+          <CartSidebar isAdminRoute={isAdminRoute} />
+          <Toaster />
+          <Sonner />
+        </div>
+      </TooltipProvider>
+    </ErrorBoundary>
   );
 };
 
 export default function App() {
-  return (
-    <ErrorBoundary>
-      <AppContent />
-    </ErrorBoundary>
-  );
+  return <AppContent />;
 }

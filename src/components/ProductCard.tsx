@@ -8,7 +8,7 @@ import { formatPrice } from '../utils/currency';
 interface ProductCardProps {
   product: Product;
   onViewDetail?: () => void;
-  onQuickView?: () => void;
+  onQuickView?: (product?: Product) => void;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuickView }) => {
@@ -27,7 +27,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
   const handleQuickView = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onQuickView?.();
+    onQuickView?.(product);
   };
 
   const handleLike = (e: React.MouseEvent) => {

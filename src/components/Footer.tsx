@@ -4,15 +4,24 @@ import logoImage from '../assets/logo.png';
 import { useSettings } from '@/hooks/useSettings';
 import QRCodeComponent from './QRCode';
 
-const Footer = () => {
+interface FooterProps {
+  isAdminRoute?: boolean;
+}
+
+const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
+  // Don't render footer content for admin routes
+  if (isAdminRoute) {
+    return null;
+  }
+
   const { settings, loading } = useSettings();
 
   // Show loading state or fallback values
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
-    email: settings?.store_email || 'contact@bulkbuystore.com',
+    email: settings?.store_email || 'contact@daretodiet.fit',
     address: settings?.store_address || 'Shop number 5, Patel Nagar,\nHansi road, Patiala chowk,\nJIND (Haryana) 126102',
-    storeName: settings?.store_name || 'BulkBuyStore'
+    storeName: settings?.store_name || 'Dare To Diet'
   };
 
   return (
@@ -24,7 +33,7 @@ const Footer = () => {
             <div className="flex items-center space-x-2">
               <img 
                 src={logoImage} 
-                alt="BulkBuyStore Logo" 
+                alt="Dare To Diet Logo" 
                 className="w-8 h-8 object-contain"
               />
               <h3 className="text-2xl font-bold text-primary">{contactInfo.storeName}</h3>

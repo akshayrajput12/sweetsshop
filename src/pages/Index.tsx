@@ -1,4 +1,4 @@
-// Home page for BulkBuyStore - Bulk Shopping E-commerce Platform
+// Home page for Dare To Diet - Fitness Supplements & Health Products
 import Home from './Home/Home';
 
 const Index = () => {

@@ -154,6 +154,36 @@ export type Database = {
         }
         Relationships: []
       }
+      instagram_posts: {
+        Row: {
+          id: string
+          embed_html: string
+          caption: string | null
+          is_active: boolean | null
+          sort_order: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          embed_html: string
+          caption?: string | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          embed_html?: string
+          caption?: string | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           actual_delivery: string | null
@@ -447,6 +477,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      testimonials: {
+        Row: {
+          id: string
+          name: string
+          role: string
+          company: string | null
+          image_url: string | null
+          text: string
+          rating: number | null
+          is_active: boolean | null
+          sort_order: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          role: string
+          company?: string | null
+          image_url?: string | null
+          text: string
+          rating?: number | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          role?: string
+          company?: string | null
+          image_url?: string | null
+          text?: string
+          rating?: number | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

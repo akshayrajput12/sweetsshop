@@ -21,8 +21,8 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   const { toast } = useToast();
   
   // Get website URL from environment variables
-  const websiteUrl = import.meta.env.VITE_APP_URL || 'https://www.bulkbuystore.com/';
-  const appName = import.meta.env.VITE_APP_NAME || 'BulkBuyStore';
+  const websiteUrl = import.meta.env.VITE_APP_URL || 'https://www.daretodiet.fit/';
+  const appName = import.meta.env.VITE_APP_NAME || 'Dare To Diet';
 
   const handleCopyUrl = async () => {
     try {

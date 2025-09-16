@@ -172,16 +172,7 @@ const Products = () => {
             <p className="text-xl text-orange-100 mb-6">
               Browse our complete collection of bulk products at wholesale prices
             </p>
-            <div className="flex items-center justify-center space-x-6 text-orange-100">
-              <div className="flex items-center space-x-2">
-                <Package className="w-5 h-5" />
-                <span>5000+ Products</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <ShoppingCart className="w-5 h-5" />
-                <span>Bulk Savings</span>
-              </div>
-            </div>
+            {/* Removed "5000+ Products Bulk Savings" section */}
           </div>
         </div>
       </motion.div>

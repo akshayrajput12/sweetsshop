@@ -1,5 +1,5 @@
 {
-  "name": "bulkboxs-ecommerce",
+  "name": "daretodiet-fit",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -52,6 +52,7 @@
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.462.0",
+    "motion": "^12.23.12",
     "next-themes": "^0.3.0",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",

@@ -6,7 +6,16 @@ import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../hooks/useSettings';
 import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '../utils/settingsHelpers';
 
-const CartSidebar = () => {
+interface CartSidebarProps {
+  isAdminRoute?: boolean;
+}
+
+const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
+  // Don't render cart sidebar content for admin routes
+  if (isAdminRoute) {
+    return null;
+  }
+
   const { 
     cartItems, 
     isCartOpen, 

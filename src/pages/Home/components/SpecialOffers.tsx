@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Tag, Copy, Clock, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Tag, Copy, Clock, ArrowRight, Dumbbell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const SpecialOffers = () => {
@@ -54,9 +54,11 @@ const SpecialOffers = () => {
   };
 
   return (
-    <section className="py-12 bg-gradient-to-br from-secondary via-secondary/95 to-secondary/90">
-      <div className="container mx-auto px-4">
+    <section className="py-12 bg-white">
+      {/* Added max-width container with proper padding and margins */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
+        {/* Improved responsive font sizing */}
         <motion.div 
           className="text-center mb-10"
           initial={{ opacity: 0, y: 30 }}
@@ -64,40 +66,39 @@ const SpecialOffers = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center bg-white/20 text-white px-6 py-3 rounded-full text-sm font-semibold mb-6">
-            <Tag className="w-4 h-4 mr-2" />
-            Limited Time Offers
-          </div>
+          {/* Removed "Limited Time Offers" part */}
           
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4">
+          {/* Improved responsive font sizing */}
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 font-raleway">
             Special{' '}
-            <span className="text-accent">Deals</span>
+            <span className="text-orange-600">Fitness Deals</span>
           </h2>
           
-          <p className="text-lg text-white/90 max-w-2xl mx-auto leading-relaxed">
-            Don't miss out on these amazing deals! Save big on your bulk purchases.
+          {/* Improved responsive font sizing */}
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed font-raleway">
+            Don't miss out on these amazing deals! Save big on supplements and fitness gear.
           </p>
         </motion.div>
 
         {/* Dynamic Promotional Banner with Coupon Carousel */}
         <motion.div 
-          className="relative rounded-2xl p-6 md:p-8 text-center shadow-xl overflow-hidden"
+          className="relative rounded-2xl p-6 md:p-8 text-center shadow-xl overflow-hidden border border-gray-200"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          {/* Background Image */}
+          {/* Background Image - using a valid Unsplash image */}
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-10"></div>
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-sm z-10"></div>
             <img 
-              src="https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80" 
-              alt="Sale Background"
+              src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80" 
+              alt="Fitness Sale Background"
               className="w-full h-full object-cover rounded-3xl"
             />
           </div>
 
-          <div className="relative z-20 text-white">
+          <div className="relative z-20">
             {/* Dynamic Coupon Carousel */}
             {coupons.length > 0 ? (
               <div className="mb-8">
@@ -105,7 +106,7 @@ const SpecialOffers = () => {
                   {coupons.length > 1 && (
                     <button
                       onClick={prevCoupon}
-                      className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                      className="p-2 bg-white/80 hover:bg-white text-gray-800 rounded-full transition-colors shadow-md"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -113,25 +114,27 @@ const SpecialOffers = () => {
                   
                   <motion.div
                     key={currentCouponIndex}
-                    className="bg-white/20 backdrop-blur-sm px-6 py-4 rounded-xl border border-white/30 min-w-72"
+                    className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl border border-gray-200 min-w-72 font-raleway shadow-lg"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3 }}
                   >
                     <div className="flex items-center justify-center space-x-3 mb-2">
-                      <Tag className="w-5 h-5" />
-                      <span className="font-bold text-2xl">{coupons[currentCouponIndex]?.code}</span>
+                      <Tag className="w-5 h-5 text-orange-600" />
+                      {/* Improved responsive font sizing */}
+                      <span className="font-bold text-xl sm:text-2xl text-gray-900 font-raleway">{coupons[currentCouponIndex]?.code}</span>
                       <button
                         onClick={() => copyToClipboard(coupons[currentCouponIndex]?.code)}
-                        className="p-1 hover:bg-white/20 rounded transition-colors"
+                        className="p-1 hover:bg-gray-100 rounded transition-colors"
                         title="Copy code"
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy className="w-4 h-4 text-gray-600" />
                       </button>
                     </div>
-                    <p className="text-base opacity-90 mb-2">{coupons[currentCouponIndex]?.description}</p>
-                    <div className="flex items-center justify-center space-x-2 text-sm opacity-75">
+                    {/* Improved responsive font sizing */}
+                    <p className="text-base sm:text-lg text-gray-700 mb-2 font-raleway">{coupons[currentCouponIndex]?.description}</p>
+                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-500 font-raleway">
                       <Clock className="w-3 h-3" />
                       <span>Valid until {new Date(coupons[currentCouponIndex]?.valid_until).toLocaleDateString()}</span>
                     </div>
@@ -140,7 +143,7 @@ const SpecialOffers = () => {
                   {coupons.length > 1 && (
                     <button
                       onClick={nextCoupon}
-                      className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                      className="p-2 bg-white/80 hover:bg-white text-gray-800 rounded-full transition-colors shadow-md"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
@@ -154,8 +157,8 @@ const SpecialOffers = () => {
                       <button
                         key={index}
                         onClick={() => setCurrentCouponIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          index === currentCouponIndex ? 'bg-white scale-125' : 'bg-white/50'
+                        className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${
+                          index === currentCouponIndex ? 'bg-orange-600 scale-125' : 'bg-gray-300'
                         }`}
                       />
                     ))}
@@ -164,18 +167,20 @@ const SpecialOffers = () => {
               </div>
             ) : (
               <div className="mb-6">
-                <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                  Amazing Deals Coming Soon!
+                {/* Improved responsive font sizing */}
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 text-gray-900 font-raleway">
+                  Amazing Fitness Deals Coming Soon!
                 </h3>
-                <p className="text-lg opacity-90">
-                  Stay tuned for exclusive offers and discounts on bulk purchases.
+                {/* Improved responsive font sizing */}
+                <p className="text-base sm:text-lg text-gray-600 font-raleway">
+                  Stay tuned for exclusive offers on supplements and fitness gear.
                 </p>
               </div>
             )}
             
             <motion.button 
               onClick={() => navigate('/products')}
-              className="bg-accent hover:bg-accent/90 text-white px-8 py-3 rounded-xl font-semibold text-base transition-colors shadow-lg"
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-xl font-semibold text-base transition-colors shadow-lg font-raleway"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >

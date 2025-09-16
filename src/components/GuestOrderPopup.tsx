@@ -86,7 +86,7 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
     // Header
     doc.setFontSize(20);
     doc.setTextColor(40, 40, 40);
-    doc.text('BulkBuyStore', 20, 25);
+    doc.text('Dare To Diet', 20, 25);
     
     doc.setFontSize(16);
     doc.text('Order Receipt', 20, 40);
@@ -171,8 +171,8 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
-    doc.text('Thank you for shopping with BulkBuyStore!', 20, doc.internal.pageSize.height - 20);
-    doc.text('For support, contact us at support@bulkbuystore.com', 20, doc.internal.pageSize.height - 10);
+    doc.text('Thank you for shopping with Dare To Diet!', 20, doc.internal.pageSize.height - 20);
+    doc.text('For support, contact us at support@daretodiet.fit', 20, doc.internal.pageSize.height - 10);
     
     // Save PDF
     doc.save(`Order_${orderData.orderNumber}.pdf`);

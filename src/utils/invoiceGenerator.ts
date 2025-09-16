@@ -1,5 +1,5 @@
 /**
- * Invoice generation utilities for BulkBuyStore
+ * Invoice generation utilities for Dare To Diet
  * Generates beautiful PDF invoices for orders
  */
 

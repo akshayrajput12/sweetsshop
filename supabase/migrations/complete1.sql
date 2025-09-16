@@ -1,7 +1,7 @@
 -- =====================================================
--- BULKBUYSTORE COMPLETE DATABASE MIGRATION
+-- DARE TO DIET COMPLETE DATABASE MIGRATION
 -- =====================================================
--- This migration creates the complete database schema for BulkBuyStore
+-- This migration creates the complete database schema for Dare To Diet
 -- A comprehensive bulk shopping e-commerce platform
 -- 
 -- Version: 3.0 (Complete Analysis-Based Migration)
@@ -619,10 +619,10 @@ SELECT
   true,
   100,
   'BULK-RICE-25KG',
-  '{"material": "Premium Basmati Rice", "origin": "Punjab, India", "brand": "BulkBuyStore Premium", "certification": "FSSAI Approved", "weight_per_unit": "25kg", "dimensions": "45x30x15 cm"}'::jsonb,
+  '{"material": "Premium Basmati Rice", "origin": "Punjab, India", "brand": "Dare To Diet Premium", "certification": "FSSAI Approved", "weight_per_unit": "25kg", "dimensions": "45x30x15 cm"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800', 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800', 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800'],
   'Store in a cool, dry place away from direct sunlight. Keep in airtight container after opening.',
-  '{"marketedBy": "BulkBuyStore Premium Foods Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
+  '{"marketedBy": "Dare To Diet Premium Foods Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -639,10 +639,10 @@ SELECT
   false,
   75,
   'BULK-OIL-15L',
-  '{"material": "Refined Sunflower Oil", "origin": "India", "brand": "BulkBuyStore Commercial", "certification": "FSSAI Approved", "weight_per_unit": "15L", "dimensions": "25x25x35 cm"}'::jsonb,
+  '{"material": "Refined Sunflower Oil", "origin": "India", "brand": "Dare To Diet Commercial", "certification": "FSSAI Approved", "weight_per_unit": "15L", "dimensions": "25x25x35 cm"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800', 'https://images.unsplash.com/photo-1615485925763-4d5b8c2b2c1e?w=800'],
   'Store in cool, dry place. Avoid direct sunlight. Use within 12 months of opening.',
-  '{"marketedBy": "BulkBuyStore Oils & Edibles Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "98765432109876"}'::jsonb
+  '{"marketedBy": "Dare To Diet Oils & Edibles Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "98765432109876"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -659,10 +659,10 @@ SELECT
   true,
   50,
   'BULK-LED-50PC',
-  '{"material": "LED with Aluminum Heat Sink", "dimensions": "Standard E27 Base", "warranty": "2 years", "certification": "BIS Approved", "weight_per_unit": "50g per bulb", "brand": "BulkBuyStore Electronics"}'::jsonb,
+  '{"material": "LED with Aluminum Heat Sink", "dimensions": "Standard E27 Base", "warranty": "2 years", "certification": "BIS Approved", "weight_per_unit": "50g per bulb", "brand": "Dare To Diet Electronics"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800', 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800', 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800'],
   'Store in original packaging until use. Avoid moisture and extreme temperatures.',
-  '{"marketedBy": "BulkBuyStore Electronics Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
+  '{"marketedBy": "Dare To Diet Electronics Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
 FROM public.categories c WHERE c.name = 'Electronics'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -680,10 +680,10 @@ SELECT
   false,
   80,
   'BULK-FLOUR-20KG',
-  '{"material": "Whole Wheat Flour", "origin": "Rajasthan, India", "brand": "BulkBuyStore Naturals", "certification": "Organic Certified", "weight_per_unit": "20kg"}'::jsonb,
+  '{"material": "Whole Wheat Flour", "origin": "Rajasthan, India", "brand": "Dare To Diet Naturals", "certification": "Organic Certified", "weight_per_unit": "20kg"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800', 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800'],
   'Store in airtight container in cool, dry place. Use within 6 months for best quality.',
-  '{"marketedBy": "BulkBuyStore Naturals Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
+  '{"marketedBy": "Dare To Diet Naturals Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -700,10 +700,10 @@ SELECT
   false,
   120,
   'BULK-PENS-100PC',
-  '{"material": "Plastic with Metal Tip", "brand": "BulkBuyStore Stationery", "warranty": "6 months", "dimensions": "14cm length"}'::jsonb,
+  '{"material": "Plastic with Metal Tip", "brand": "Dare To Diet Stationery", "warranty": "6 months", "dimensions": "14cm length"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800', 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800'],
   'Store in dry place at room temperature. Keep away from direct sunlight.',
-  '{"marketedBy": "BulkBuyStore Stationery Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
+  '{"marketedBy": "Dare To Diet Stationery Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
 FROM public.categories c WHERE c.name = 'Office Supplies'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -732,10 +732,10 @@ SELECT
   true,
   45,
   'BULK-QUINOA-10KG',
-  '{"material": "Organic Quinoa", "origin": "Bolivia", "brand": "BulkBuyStore Organic", "certification": "Organic Certified", "weight_per_unit": "10kg"}'::jsonb,
+  '{"material": "Organic Quinoa", "origin": "Bolivia", "brand": "Dare To Diet Organic", "certification": "Organic Certified", "weight_per_unit": "10kg"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800', 'https://images.unsplash.com/photo-1505576391880-b3f9d713dc4f?w=800'],
   'Store in airtight container in cool, dry place. Use within 12 months.',
-  '{"marketedBy": "BulkBuyStore Organic Foods Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
+  '{"marketedBy": "Dare To Diet Organic Foods Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": "12345678901234"}'::jsonb
 FROM public.categories c WHERE c.name = 'Bulk Groceries'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -752,10 +752,10 @@ SELECT
   true,
   60,
   'BULK-MOUSE-25PC',
-  '{"material": "Plastic with Optical Sensor", "brand": "BulkBuyStore Tech", "warranty": "1 year", "dimensions": "11x6x3 cm", "connectivity": "2.4GHz Wireless"}'::jsonb,
+  '{"material": "Plastic with Optical Sensor", "brand": "Dare To Diet Tech", "warranty": "1 year", "dimensions": "11x6x3 cm", "connectivity": "2.4GHz Wireless"}'::jsonb,
   ARRAY['https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800', 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800'],
   'Store in original packaging. Keep away from moisture and extreme temperatures.',
-  '{"marketedBy": "BulkBuyStore Electronics Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
+  '{"marketedBy": "Dare To Diet Electronics Pvt Ltd", "address": "Shop number 5, Patel Nagar, Hansi road", "city": "JIND", "state": "Haryana", "fssaiLicense": null}'::jsonb
 FROM public.categories c WHERE c.name = 'Electronics'
 ON CONFLICT (sku) DO NOTHING;
 
@@ -766,9 +766,9 @@ ON CONFLICT (sku) DO NOTHING;
 -- Insert comprehensive default settings
 INSERT INTO public.settings (key, value, description, category, is_public) VALUES
   -- General Store Settings
-  ('store_name', '"BulkBuyStore"', 'Store name displayed to customers', 'general', true),
+  ('store_name', '"Dare To Diet"', 'Store name displayed to customers', 'general', true),
   ('store_description', '"Your ultimate bulk shopping destination with wholesale prices on everything you need"', 'Store description', 'general', true),
-  ('store_email', '"contact@bulkbuystore.com"', 'Store contact email', 'general', true),
+  ('store_email', '"contact@daretodiet.fit"', 'Store contact email', 'general', true),
   ('store_phone', '"+91 9996616153"', 'Store contact phone', 'general', true),
   ('store_address', '"Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102, Near police station"', 'Store address', 'general', true),
   ('store_logo', '"https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"', 'Store logo URL', 'general', true),
@@ -830,8 +830,8 @@ INSERT INTO public.settings (key, value, description, category, is_public) VALUE
   ('netbanking_enabled', 'true', 'Enable net banking', 'payment', true),
   
   -- SEO Settings
-  ('site_title', '"BulkBuyStore - Bulk Shopping at Wholesale Prices"', 'Site title for SEO', 'seo', true),
-  ('site_description', '"Shop bulk products at wholesale prices. Perfect for businesses, restaurants, and bulk buyers. Free delivery on orders above ₹1000."', 'Site meta description', 'seo', true),
+  ('site_title', '"Dare To Diet - Fitness Supplements & Health Products"', 'Site title for SEO', 'seo', true),
+  ('site_description', '"Shop fitness supplements and health products. Premium quality products for your wellness journey."', 'Site meta description', 'seo', true),
   ('site_keywords', '"bulk shopping, wholesale prices, bulk groceries, bulk electronics, business supplies"', 'Site meta keywords', 'seo', true),
   
   -- Social Media
@@ -1013,7 +1013,7 @@ $$;
 -- Insert invoice-related settings
 INSERT INTO public.settings (key, value, description, category, is_public) VALUES
   ('invoice_terms', '"Payment is due within 30 days of invoice date. Late payments may incur additional charges."', 'Invoice payment terms', 'invoice', false),
-  ('invoice_footer', '"Thank you for choosing BulkBuyStore! For any queries, contact us at contact@bulkbuystore.com"', 'Invoice footer text', 'invoice', false),
+  ('invoice_footer', '"Thank you for choosing Dare To Diet! For any queries, contact us at contact@daretodiet.fit"', 'Invoice footer text', 'invoice', false),
   ('invoice_logo', '"https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200"', 'Invoice logo URL', 'invoice', false),
   ('company_registration', '"CIN: U12345MH2024PTC123456"', 'Company registration details', 'invoice', false),
   ('gst_number', '"27ABCDE1234F1Z5"', 'GST registration number', 'invoice', false),
@@ -1195,7 +1195,7 @@ NOTIFY pgrst, 'reload schema';
 -- =====================================================
 -- MIGRATION COMPLETE
 -- =====================================================
--- BulkBuyStore database schema has been successfully created
+-- Dare To Diet database schema has been successfully created
 -- with all necessary tables, policies, functions, initial data,
 -- invoice generation capabilities, and comprehensive analytics
 -- =====================================================
