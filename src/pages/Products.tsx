@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Grid, List, Search, Package, ShoppingCart } from 'lucide-react';
+import { Filter, Grid, List, Search, Cookie, ShoppingCart } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import ProductCard from '../components/ProductCard';
 import ProductFiltersComponent, { ProductFilters } from '../components/ProductFilters';
@@ -167,10 +167,10 @@ const Products = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Discover Amazing Products
+              Discover Amazing Sweets
             </h1>
             <p className="text-xl text-orange-100 mb-6">
-              Browse our complete collection of bulk products at wholesale prices
+              Browse our complete collection of premium sweets and desserts
             </p>
             {/* Removed "5000+ Products Bulk Savings" section */}
           </div>
@@ -208,7 +208,7 @@ const Products = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Search products by name, description, or features..."
+                  placeholder="Search sweets by name, description, or features..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -325,15 +325,15 @@ const Products = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               <p className="text-gray-700 font-medium">
-                Showing <span className="font-bold text-orange-600">{sortedProducts.length}</span> products
+                Showing <span className="font-bold text-orange-600">{sortedProducts.length}</span> sweets
                 {selectedCategory !== 'All' && (
                   <span className="text-gray-600"> in <span className="font-semibold text-orange-600">{selectedCategory}</span></span>
                 )}
               </p>
               {sortedProducts.length > 0 && (
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Package className="w-4 h-4" />
-                  <span>Bulk savings available</span>
+                  <Cookie className="w-4 h-4" />
+                  <span>Premium quality sweets</span>
                 </div>
               )}
             </motion.div>
@@ -393,7 +393,7 @@ const Products = () => {
             transition={{ duration: 0.6 }}
           >
             <Filter className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="heading-md mb-2">No products found</h3>
+            <h3 className="heading-md mb-2">No sweets found</h3>
             <p className="body-text text-muted-foreground mb-6">
               Try adjusting your filters or browse all categories.
             </p>
@@ -401,7 +401,7 @@ const Products = () => {
               onClick={() => setSelectedCategory('All')}
               className="btn-primary"
             >
-              View All Products
+              View All Sweets
             </button>
           </motion.div>
         )}

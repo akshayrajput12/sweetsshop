@@ -19,9 +19,9 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
   // Show loading state or fallback values
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
-    email: settings?.store_email || 'contact@daretodiet.fit',
+    email: settings?.store_email || 'contact@sweetdelights.fit',
     address: settings?.store_address || 'Shop number 5, Patel Nagar,\nHansi road, Patiala chowk,\nJIND (Haryana) 126102',
-    storeName: settings?.store_name || 'Dare To Diet'
+    storeName: settings?.store_name || 'Sweet Delights'
   };
 
   return (
@@ -33,14 +33,13 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
             <div className="flex items-center space-x-2">
               <img 
                 src={logoImage} 
-                alt="Dare To Diet Logo" 
+                alt="Sweet Delights Logo" 
                 className="w-8 h-8 object-contain"
               />
               <h3 className="text-2xl font-bold text-primary">{contactInfo.storeName}</h3>
             </div>
             <p className="text-gray-300">
-              Your Online Indian Marketplace. Discover authentic treasures of India - from aromatic spices 
-              to handcrafted apparel. We bring the heart of India to your doorstep with wholesale prices.
+              Your premier destination for premium sweets and desserts. We bring the authentic taste of traditional sweets with a modern twist, delivered fresh to your doorstep.
             </p>
             <div className="flex space-x-4">
               <Facebook className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
@@ -58,7 +57,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
                 Home
               </Link>
               <Link to="/products" className="block text-gray-300 hover:text-primary transition-colors">
-                All Products
+                All Sweets
               </Link>
               <Link to="/about" className="block text-gray-300 hover:text-primary transition-colors">
                 About Us
@@ -94,24 +93,24 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
             </div>
           </div>
 
-          {/* Indian Categories */}
+          {/* Sweet Categories */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Indian Products</h4>
+            <h4 className="text-lg font-semibold">Sweet Categories</h4>
             <div className="space-y-2">
               <Link to="/products" className="block text-gray-300 hover:text-primary transition-colors">
-                Fresh Produce
+                Traditional Sweets
               </Link>
               <Link to="/products" className="block text-gray-300 hover:text-primary transition-colors">
-                Aromatic Spices
+                Fusion Desserts
               </Link>
               <Link to="/products" className="block text-gray-300 hover:text-primary transition-colors">
-                Ethnic Wear
+                Seasonal Specials
               </Link>
               <Link to="/products" className="block text-gray-300 hover:text-primary transition-colors">
-                Handicrafts
+                Gift Boxes
               </Link>
               <Link to="/products" className="block text-gray-300 hover:text-primary transition-colors">
-                Traditional Items
+                Vegan Options
               </Link>
             </div>
           </div>
@@ -160,7 +159,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
                 Contact
               </Link>
               <Link to="/products" className="text-gray-300 hover:text-primary text-sm transition-colors">
-                Products
+                Sweets
               </Link>
               <Link to="/auth" className="text-gray-300 hover:text-primary text-sm transition-colors">
                 Login

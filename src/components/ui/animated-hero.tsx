@@ -9,7 +9,7 @@ function Hero() {
   const navigate = useNavigate();
   
   const titles = useMemo(
-    () => ["amazing", "powerful", "effective", "premium", "quality"],
+    () => ["delicious", "premium", "authentic", "artisanal", "irresistible"],
     []
   );
 
@@ -60,11 +60,11 @@ function Hero() {
                   </motion.span>
                 ))}
               </span>
-              <span className="text-white"> supplements</span>
+              <span className="text-white"> sweets</span>
             </h1>
 
             <p className="text-lg md:text-xl leading-relaxed tracking-tight text-gray-300 max-w-2xl text-center">
-              Transform your fitness journey with our premium quality supplements designed to fuel your body and enhance your performance.
+              Indulge in our premium collection of traditional and artisanal sweets, crafted with love and the finest ingredients.
             </p>
           </div>
           <div className="flex flex-row gap-3">

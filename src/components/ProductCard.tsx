@@ -53,9 +53,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
   const isOutOfStock = product.stock_quantity !== undefined && product.stock_quantity <= 0;
 
+  // Format price with "Inc. GST" text
+  const formatPriceWithGST = (price: number): string => {
+    return `${formatPrice(price)} Inc. GST`;
+  };
+
   return (
+    // Add bordered frame around the card
     <motion.div
-      className="group cursor-pointer bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-50 hover:border-gray-100"
+      className="group cursor-pointer bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border-2 border-gray-200 hover:border-primary"
       whileHover={{ y: -12 }}
       whileTap={{ scale: 0.98 }}
       onClick={onViewDetail}
@@ -63,8 +69,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
       onMouseLeave={handleMouseLeave}
       layout
     >
-      {/* Image Container */}
+      {/* Image Container with decorative elements */}
       <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+        {/* Decorative corner elements */}
+        <div className="absolute top-0 left-0 w-16 h-16 border-l-2 border-t-2 border-primary rounded-bl-3xl opacity-20"></div>
+        <div className="absolute top-0 right-0 w-16 h-16 border-r-2 border-t-2 border-primary rounded-br-3xl opacity-20"></div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 border-l-2 border-b-2 border-primary rounded-tl-3xl opacity-20"></div>
+        <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-primary rounded-tr-3xl opacity-20"></div>
+        
         <motion.img
           src={images[currentImageIndex] || product.image}
           alt={product.name}
@@ -190,16 +202,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
           </div>
         )}
 
-        {/* Price Section */}
+        {/* Price Section with "Inc. GST" */}
         <div className="flex items-center justify-between pt-2">
           <div className="space-y-1">
             <div className="flex items-baseline space-x-2">
               <span className="text-2xl font-bold text-gray-900">
-                {formatPrice(product.price)}
+                {formatPriceWithGST(product.price)}
               </span>
               {product.originalPrice && (
                 <span className="text-base text-gray-400 line-through">
-                  {formatPrice(product.originalPrice)}
+                  {formatPriceWithGST(product.originalPrice)}
                 </span>
               )}
             </div>
@@ -210,7 +222,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
             )}
           </div>
 
-          {/* Add to Cart Button */}
+          {/* Add to Cart Button positioned on the right side */}
           <motion.button
             onClick={handleAddToCart}
             disabled={isOutOfStock}

@@ -61,12 +61,12 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <img 
               src={logoImage} 
-              alt="Dare To Diet Logo" 
+              alt="Sweet Delights Logo" 
               className="w-8 h-8 object-contain"
             />
             <div className="hidden xs:block">
-              <span className="text-2xl font-bold text-primary">Dare To Diet</span>
-              <div className="text-xs text-muted-foreground -mt-1">Fitness Supplements & Health Products</div>
+              <span className="text-2xl font-bold text-primary">Sweet Delights</span>
+              <div className="text-xs text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
             </div>
           </Link>
 
@@ -81,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               Home
             </Link>
             <Link to="/products" className="body-text hover:text-primary transition-colors">
-              Products
+              Sweets
             </Link>
             <Link to="/about" className="body-text hover:text-primary transition-colors">
               About
@@ -199,7 +199,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                       className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left"
                     >
                       <Search className="w-5 h-5 text-primary" />
-                      <span className="font-medium">Search Products</span>
+                      <span className="font-medium">Search Sweets</span>
                     </button>
                   </div>
 
@@ -218,7 +218,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                       className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left"
                     >
                       <Package className="w-5 h-5 text-primary" />
-                      <span className="font-medium">Products</span>
+                      <span className="font-medium">Sweets</span>
                     </button>
                     
                     <button

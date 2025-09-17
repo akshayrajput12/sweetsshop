@@ -35,7 +35,7 @@ const Testimonials = () => {
               What our customers say
             </h2>
             <p className="text-center mt-5 text-gray-600 max-w-md">
-              Hear from fitness enthusiasts who have transformed their health with our premium supplements.
+              Hear from sweet lovers who have delighted their taste buds with our premium sweets.
             </p>
           </div>
 
@@ -86,7 +86,7 @@ const Testimonials = () => {
             What our customers say
           </h2>
           <p className="text-center mt-5 text-gray-600 max-w-md">
-            Hear from fitness enthusiasts who have transformed their health with our premium supplements.
+            Hear from sweet lovers who have delighted their taste buds with our premium sweets.
           </p>
         </motion.div>
 

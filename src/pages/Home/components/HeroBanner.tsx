@@ -1,6 +1,6 @@
 import React from 'react';
 import { Hero } from '@/components/ui/animated-hero';
-import Image from '/src/assets/hero.png'
+import Image from '/src/assets/hero.webp'
 
 const HeroBanner = () => {
   return (
@@ -9,7 +9,7 @@ const HeroBanner = () => {
       <div className="absolute inset-0 z-0">
         <img 
           src={Image} 
-          alt="Fitness Background" 
+          alt="Sweet Delights Background" 
           className="w-full h-full object-cover"
         />
       </div>

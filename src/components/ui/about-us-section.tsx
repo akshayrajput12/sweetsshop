@@ -16,6 +16,10 @@ import {
   Star,
   ArrowRight,
   TrendingUp,
+  Cookie,
+  Cake,
+  IceCream,
+  Candy
 } from "lucide-react"
 import { motion, useScroll, useTransform, useInView, useSpring } from "framer-motion"
 
@@ -63,35 +67,35 @@ export default function AboutUsSection() {
 
   const services = [
     {
-      icon: <Dumbbell className="w-6 h-6" />,
+      icon: <Cookie className="w-6 h-6" />,
       secondaryIcon: <Sparkles className="w-4 h-4 absolute -top-1 -right-1 text-orange-300" />,
-      title: "Premium Supplements",
+      title: "Traditional Sweets",
       description:
-        "High-quality fitness supplements crafted with precision to fuel your body and enhance your performance. Each product is carefully formulated for maximum effectiveness.",
+        "Authentic recipes passed down through generations, crafted with traditional methods to preserve the genuine taste of our heritage sweets.",
       position: "left",
     },
     {
       icon: <Heart className="w-6 h-6" />,
       secondaryIcon: <CheckCircle className="w-4 h-4 absolute -top-1 -right-1 text-orange-300" />,
-      title: "Health & Wellness",
+      title: "Quality Ingredients",
       description:
-        "Our products support overall wellness, from immune system boosters to joint health supplements, ensuring you stay healthy while pursuing your fitness goals.",
+        "We use only the finest ingredients, sourced locally whenever possible, to ensure the highest quality and freshness in every sweet we make.",
       position: "left",
     },
     {
       icon: <Zap className="w-6 h-6" />,
       secondaryIcon: <Star className="w-4 h-4 absolute -top-1 -right-1 text-orange-300" />,
-      title: "Performance Boost",
+      title: "Fresh Daily",
       description:
-        "Experience enhanced energy, focus, and endurance with our performance line designed for athletes and fitness enthusiasts at every level.",
+        "All our sweets are prepared fresh daily to ensure you receive the best possible taste and quality with every order.",
       position: "left",
     },
     {
-      icon: <Apple className="w-6 h-6" />,
+      icon: <Cake className="w-6 h-6" />,
       secondaryIcon: <Sparkles className="w-4 h-4 absolute -top-1 -right-1 text-orange-300" />,
-      title: "Nutrition Support",
+      title: "Custom Creations",
       description:
-        "Complement your diet with our range of nutrition products that provide essential vitamins, minerals, and macronutrients for optimal health.",
+        "Special occasions deserve special treats. We create custom sweets and desserts for birthdays, weddings, and corporate events.",
       position: "right",
     },
     {
@@ -99,23 +103,23 @@ export default function AboutUsSection() {
       secondaryIcon: <CheckCircle className="w-4 h-4 absolute -top-1 -right-1 text-orange-300" />,
       title: "Community Focused",
       description:
-        "We're more than just a supplement store - we're a community of fitness enthusiasts dedicated to helping each other achieve peak performance.",
+        "We're more than just a sweet shop - we're a community of sweet lovers dedicated to sharing the joy of delicious desserts.",
       position: "right",
     },
     {
       icon: <Award className="w-6 h-6" />,
       secondaryIcon: <Star className="w-4 h-4 absolute -top-1 -right-1 text-orange-300" />,
-      title: "Quality Assured",
+      title: "Award Winning",
       description:
-        "Every product undergoes rigorous testing and quality control to ensure purity, potency, and safety. Your health is our highest standard.",
+        "Recognized for our excellence in confectionery, our sweets have won multiple awards for taste, presentation, and innovation.",
       position: "right",
     },
   ]
 
   const stats = [
-    { icon: <Award />, value: 500, label: "Products", suffix: "+" },
-    { icon: <Users />, value: 10000, label: "Happy Customers", suffix: "+" },
-    { icon: <Calendar />, value: 5, label: "Years Experience", suffix: "+" },
+    { icon: <Award />, value: 100, label: "Sweet Varieties", suffix: "+" },
+    { icon: <Users />, value: 50000, label: "Happy Customers", suffix: "+" },
+    { icon: <Calendar />, value: 20, label: "Years Experience", suffix: "+" },
     { icon: <TrendingUp />, value: 99, label: "Quality Guarantee", suffix: "%" },
   ]
 
@@ -174,7 +178,7 @@ export default function AboutUsSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <Zap className="w-4 h-4" />
+            <Cookie className="w-4 h-4" />
             DISCOVER OUR STORY
           </motion.span>
           {/* Improved responsive font sizing */}
@@ -189,9 +193,8 @@ export default function AboutUsSection() {
 
         {/* Improved responsive font sizing */}
         <motion.p className="text-center max-w-2xl mx-auto mb-16 text-base sm:text-lg text-gray-700" variants={itemVariants}>
-          We are a passionate team of fitness experts and nutritionists dedicated to helping you achieve your health and 
-          fitness goals. With attention to detail and commitment to excellence, we provide premium supplements and products 
-          that fuel your journey to peak performance.
+          We are a passionate team of confectioners and sweet enthusiasts dedicated to bringing you the finest sweets and desserts. 
+          With attention to detail and commitment to excellence, we craft each treat with love and the highest quality ingredients.
         </motion.p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
@@ -224,8 +227,8 @@ export default function AboutUsSection() {
                 whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80"
-                  alt="Fitness Supplements"
+                  src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80"
+                  alt="Premium Sweets"
                   className="w-full h-full object-cover"
                 />
                 <motion.div
@@ -239,7 +242,7 @@ export default function AboutUsSection() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    Our Products <ArrowRight className="w-4 h-4" />
+                    Our Sweets <ArrowRight className="w-4 h-4" />
                   </motion.button>
                 </motion.div>
               </motion.div>
@@ -343,9 +346,9 @@ export default function AboutUsSection() {
         >
           <div className="flex-1">
             {/* Improved responsive font sizing */}
-            <h3 className="text-xl sm:text-2xl font-medium mb-2">Ready to transform your fitness journey?</h3>
+            <h3 className="text-xl sm:text-2xl font-medium mb-2">Ready to satisfy your sweet cravings?</h3>
             {/* Improved responsive font sizing */}
-            <p className="text-white/90 text-base sm:text-lg">Let's achieve your goals together with premium supplements.</p>
+            <p className="text-white/90 text-base sm:text-lg">Let's indulge in our premium collection of sweets and desserts.</p>
           </div>
           <motion.button
             className="bg-white text-orange-600 hover:bg-gray-100 px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors"

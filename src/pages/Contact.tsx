@@ -24,9 +24,9 @@ const Contact = () => {
   // Dynamic contact information from database
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
-    email: settings?.store_email || 'contact@daretodiet.fit',
+    email: settings?.store_email || 'contact@sweetdelights.fit',
     address: settings?.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
-    storeName: settings?.store_name || 'Dare To Diet',
+    storeName: settings?.store_name || 'Sweet Delights',
     businessHoursStart: settings?.business_hours_start || '09:00',
     businessHoursEnd: settings?.business_hours_end || '20:00'
   };
@@ -106,7 +106,7 @@ const Contact = () => {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Get in Touch</h1>
         <p className="text-xl text-muted-foreground">
-          Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+          Have questions about our sweets? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
         </p>
       </div>
 
