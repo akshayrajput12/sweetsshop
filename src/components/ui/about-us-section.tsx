@@ -131,7 +131,7 @@ export default function AboutUsSection() {
     >
       {/* Decorative background elements */}
       <motion.div
-        className="absolute top-20 left-10 w-64 h-64 rounded-full bg-orange-500/5 blur-3xl"
+        className="absolute top-20 left-10 w-64 h-64 rounded-full bg-primary/5 blur-3xl"
         style={{ y: y1, rotate: rotate1 }}
       />
       <motion.div
@@ -139,7 +139,7 @@ export default function AboutUsSection() {
         style={{ y: y2, rotate: rotate2 }}
       />
       <motion.div
-        className="absolute top-1/2 left-1/4 w-4 h-4 rounded-full bg-orange-500/30"
+        className="absolute top-1/2 left-1/4 w-4 h-4 rounded-full bg-primary/30"
         animate={{
           y: [0, -15, 0],
           opacity: [0.5, 1, 0.5],
@@ -184,7 +184,7 @@ export default function AboutUsSection() {
           {/* Improved responsive font sizing */}
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-4 text-center">About Us</h2>
           <motion.div
-            className="w-24 h-1 bg-orange-500"
+            className="w-24 h-1 bg-primary"
             initial={{ width: 0 }}
             animate={{ width: 96 }}
             transition={{ duration: 1, delay: 0.5 }}
@@ -238,7 +238,7 @@ export default function AboutUsSection() {
                   transition={{ duration: 0.8, delay: 0.9 }}
                 >
                   <motion.button
-                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium"
+                    className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] text-white px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -247,7 +247,7 @@ export default function AboutUsSection() {
                 </motion.div>
               </motion.div>
               <motion.div
-                className="absolute inset-0 border-4 border-orange-300 rounded-md -m-3 z-[-1]"
+                className="absolute inset-0 border-4 border-primary rounded-md -m-3 z-[-1]"
                 initial={{ opacity: 0, scale: 1.1 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
@@ -255,7 +255,7 @@ export default function AboutUsSection() {
 
               {/* Floating accent elements */}
               <motion.div
-                className="absolute -top-4 -right-8 w-16 h-16 rounded-full bg-orange-500/10"
+                className="absolute -top-4 -right-8 w-16 h-16 rounded-full bg-primary/10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 0.9 }}
@@ -271,7 +271,7 @@ export default function AboutUsSection() {
 
               {/* Additional decorative elements */}
               <motion.div
-                className="absolute -top-10 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-orange-500"
+                className="absolute -top-10 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary"
                 animate={{
                   y: [0, -10, 0],
                   opacity: [0.5, 1, 0.5],
@@ -339,7 +339,7 @@ export default function AboutUsSection() {
 
         {/* CTA Section */}
         <motion.div
-          className="mt-20 bg-gradient-to-r from-orange-600 to-red-600 text-white p-8 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6"
+          className="mt-20 bg-gradient-to-r from-[hsl(25_95%_48%)] to-[hsl(0_84%_55%)] text-white p-8 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6"
           initial={{ opacity: 0, y: 30 }}
           animate={isStatsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ duration: 0.8, delay: 0.5 }}
@@ -351,7 +351,7 @@ export default function AboutUsSection() {
             <p className="text-white/90 text-base sm:text-lg">Let's indulge in our premium collection of sweets and desserts.</p>
           </div>
           <motion.button
-            className="bg-white text-orange-600 hover:bg-gray-100 px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors"
+            className="bg-white text-destructive hover:bg-gray-100 px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -388,14 +388,14 @@ function ServiceItem({ icon, secondaryIcon, title, description, variants, delay,
         transition={{ duration: 0.6, delay: delay + 0.2 }}
       >
         <motion.div
-          className="text-orange-500 bg-orange-500/10 p-3 rounded-lg transition-colors duration-300 group-hover:bg-orange-500/20 relative"
+          className="text-primary bg-primary/10 p-3 rounded-lg transition-colors duration-300 group-hover:bg-primary/20 relative"
           whileHover={{ rotate: [0, -10, 10, -5, 0], transition: { duration: 0.5 } }}
         >
           {icon}
           {secondaryIcon}
         </motion.div>
         {/* Improved responsive font sizing */}
-        <h3 className="text-lg sm:text-xl font-medium text-gray-900 group-hover:text-orange-500 transition-colors duration-300">
+        <h3 className="text-lg sm:text-xl font-medium text-gray-900 group-hover:text-primary transition-colors duration-300">
           {title}
         </h3>
       </motion.div>
@@ -409,7 +409,7 @@ function ServiceItem({ icon, secondaryIcon, title, description, variants, delay,
         {description}
       </motion.p>
       <motion.div
-        className="mt-3 pl-12 flex items-center text-orange-500 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="mt-3 pl-12 flex items-center text-primary text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         initial={{ opacity: 0 }}
         animate={{ opacity: 0 }}
       >
@@ -465,7 +465,7 @@ function StatCounter({ icon, value, label, suffix, delay }: StatCounterProps) {
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
       <motion.div
-        className="w-14 h-14 rounded-full bg-orange-500/10 flex items-center justify-center mb-4 text-orange-500 group-hover:bg-orange-500/20 transition-colors duration-300"
+        className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 text-orange-500 group-hover:bg-primary/20 transition-colors duration-300"
         whileHover={{ rotate: 360, transition: { duration: 0.8 } }}
       >
         {icon}
@@ -477,7 +477,7 @@ function StatCounter({ icon, value, label, suffix, delay }: StatCounterProps) {
       </motion.div>
       {/* Improved responsive font sizing */}
       <p className="text-gray-600 text-sm sm:text-base mt-1">{label}</p>
-      <motion.div className="w-10 h-0.5 bg-orange-500 mt-3 group-hover:w-16 transition-all duration-300" />
+      <motion.div className="w-10 h-0.5 bg-primary mt-3 group-hover:w-16 transition-all duration-300" />
     </motion.div>
   )
 }

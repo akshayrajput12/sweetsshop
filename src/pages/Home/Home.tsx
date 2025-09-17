@@ -12,12 +12,12 @@ const Home = () => {
    <main className="min-h-screen">
   <HeroBanner />
   <div className="space-y-4">
-    <CategoriesCarousel />   {/* let users explore by category early */}
-    <BestSellers />          {/* show proven, popular products next */}
-    <NewArrivals />          {/* highlight freshness and excitement */}
-    <SpecialOffers />        {/* discounts/deals to drive conversions */}
-    <Testimonials />         {/* build trust before social content */}
-    <InstagramCarousel />    {/* lifestyle/social proof at the end */}
+    <CategoriesCarousel />   {/* let users explore sweet categories early */}
+    <BestSellers />          {/* showcase our most popular sweets */}
+    <NewArrivals />          {/* highlight fresh and exciting treats */}
+    <SpecialOffers />        {/* sweet deals and discounts */}
+    <Testimonials />         {/* build trust with customer reviews */}
+    <InstagramCarousel />    {/* showcase our sweet lifestyle */}
   </div>
 </main>
 

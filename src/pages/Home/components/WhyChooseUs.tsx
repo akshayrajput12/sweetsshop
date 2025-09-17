@@ -1,37 +1,37 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Truck, Clock, Award, ArrowRight, CheckCircle, Users, Zap, Dumbbell, Heart } from 'lucide-react';
+import { Shield, Truck, Clock, Award, ArrowRight, CheckCircle, Users, Zap, Candy, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const features = [
   {
     icon: Shield,
     title: 'Premium Quality',
-    description: 'All supplements and fitness products are sourced from trusted manufacturers with third-party testing for purity and potency.',
+    description: 'All our sweets are made with the finest ingredients and undergo strict quality control to ensure the best taste and freshness.',
     color: 'from-orange-400 to-red-500',
     bgColor: 'bg-orange-50',
     textColor: 'text-orange-600'
   },
   {
-    icon: Dumbbell,
-    title: 'Fitness Expertise',
-    description: 'Our team includes certified fitness professionals who personally test and recommend all products.',
+    icon: Candy,
+    title: 'Artisanal Craftsmanship',
+    description: 'Our skilled artisans use traditional techniques and modern innovations to create exceptional sweets.',
     color: 'from-blue-400 to-blue-500',
     bgColor: 'bg-blue-50',
     textColor: 'text-blue-600'
   },
   {
     icon: Clock,
-    title: 'Fast Delivery',
-    description: 'Quick shipping on all orders. Get your supplements and gear delivered to your doorstep within 2-3 business days.',
+    title: 'Fresh Delivery',
+    description: 'We ensure fast delivery of fresh sweets. Get your delicious treats delivered to your doorstep within 2-3 business days.',
     color: 'from-purple-400 to-purple-500',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-600'
   },
   {
     icon: Heart,
-    title: 'Results Guaranteed',
-    description: '100% satisfaction guarantee. If you don\'t see results from our products, we\'ll refund your purchase.',
+    title: 'Satisfaction Guaranteed',
+    description: '100% satisfaction guarantee. If you\'re not delighted with our sweets, we\'ll make it right.',
     color: 'from-green-400 to-emerald-500',
     bgColor: 'bg-green-50',
     textColor: 'text-green-600'
@@ -61,11 +61,11 @@ const WhyChooseUs = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-orange-50 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-[hsl(25_95%_90%)] relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-10 left-10 w-96 h-96 bg-orange-500/3 rounded-full blur-3xl"
+          className="absolute top-10 left-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl"
           animate={{ 
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.5, 0.3]
@@ -91,22 +91,22 @@ const WhyChooseUs = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center bg-gradient-to-r from-orange-500/10 to-red-500/10 backdrop-blur-sm border border-orange-500/20 text-orange-600 px-6 py-3 rounded-full text-sm font-semibold shadow-lg mb-6 font-raleway">
+          <div className="inline-flex items-center bg-gradient-to-r from-primary/10 to-[hsl(0_84%_60%)/10] backdrop-blur-sm border border-primary/20 text-destructive px-6 py-3 rounded-full text-sm font-semibold shadow-lg mb-6 font-raleway">
             <CheckCircle className="w-4 h-4 mr-2" />
             Why Choose Us
           </div>
           
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 font-raleway">
             Why{' '}
-            <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-              Dare To Fit
+            <span className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] bg-clip-text text-transparent">
+              Sweet Delights
             </span>
             ?
           </h2>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-raleway">
-            We're committed to delivering the best fitness products with premium quality, 
-            exceptional service, and guaranteed results that you can trust.
+            We're committed to delivering the finest sweets with premium quality, 
+            exceptional service, and guaranteed satisfaction that you can trust.
           </p>
         </motion.div>
 
@@ -161,7 +161,7 @@ const WhyChooseUs = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.8 }}
         >
-          <div className="bg-gradient-to-br from-white via-gray-50 to-orange-50 rounded-3xl p-8 md:p-16 shadow-xl border border-gray-100 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-white via-gray-50 to-[hsl(25_95%_90%)] rounded-3xl p-8 md:p-16 shadow-xl border border-gray-100 relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0" style={{
@@ -170,30 +170,30 @@ const WhyChooseUs = () => {
             </div>
 
             <div className="relative z-10">
-              <div className="inline-flex items-center bg-gradient-to-r from-orange-500/10 to-red-500/10 backdrop-blur-sm border border-orange-500/20 text-orange-600 px-6 py-3 rounded-full text-sm font-semibold shadow-lg mb-8 font-raleway">
+              <div className="inline-flex items-center bg-gradient-to-r from-primary/10 to-[hsl(0_84%_60%)/10] backdrop-blur-sm border border-primary/20 text-destructive px-6 py-3 rounded-full text-sm font-semibold shadow-lg mb-8 font-raleway">
                 <Users className="w-4 h-4 mr-2" />
-                Join 10,000+ Happy Fitness Enthusiasts
+                Join 10,000+ Happy Sweet Lovers
               </div>
 
               <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 font-raleway">
-                Ready to Transform Your Fitness Journey?
+                Ready to Indulge in Sweet Delights?
               </h3>
               
               <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed font-raleway">
-                Join thousands of satisfied customers who trust Dare To Fit for their fitness needs 
-                and enjoy premium quality supplements with guaranteed results.
+                Join thousands of satisfied customers who trust Sweet Delights for their sweet cravings 
+                and enjoy premium quality treats with guaranteed satisfaction.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <motion.button 
                   onClick={() => navigate('/products')}
-                  className="group bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl font-raleway"
+                  className="group bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] hover:from-[hsl(25_95%_48%)] hover:to-[hsl(0_80%_55%)] text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl font-raleway"
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <div className="flex items-center justify-center">
                     <Zap className="w-6 h-6 mr-3" />
-                    Start Your Transformation
+                    Order Your Sweets
                     <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </motion.button>

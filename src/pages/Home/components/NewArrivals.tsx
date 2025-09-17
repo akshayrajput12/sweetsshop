@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, Dumbbell } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, Candy } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -162,7 +162,7 @@ const NewArrivals = () => {
     <section className="py-12 bg-white relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-30"></div>
         <div className="absolute bottom-10 left-10 w-48 h-48 bg-red-500/5 rounded-full blur-3xl opacity-20"></div>
       </div>
 
@@ -173,13 +173,13 @@ const NewArrivals = () => {
         <div className="text-center mb-10">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-4 font-raleway">
             New{' '}
-            <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-              Fitness Products
+            <span className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] bg-clip-text text-transparent">
+              Sweet Arrivals
             </span>
           </h2>
           
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-raleway">
-            Discover the latest additions to our fitness collection! Fresh supplements, new gear, and exciting products that have just arrived.
+            Discover the latest additions to our sweet collection! Fresh treats, new flavors, and exciting sweets that have just arrived.
           </p>
         </div>
 
@@ -188,7 +188,7 @@ const NewArrivals = () => {
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100 font-raleway">
-                <Sparkles className="w-4 h-4 text-orange-500 fill-current" />
+                <Sparkles className="w-4 h-4 text-primary fill-current" />
                 {/* Improved responsive font sizing */}
                 <span className="text-xs sm:text-sm font-medium text-gray-700 font-raleway">
                   {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, newArrivals.length)} of {newArrivals.length} new products
@@ -202,7 +202,7 @@ const NewArrivals = () => {
                 disabled={!canGoPrev}
                 className={`p-2 rounded-full border-2 transition-all duration-200 ${
                   canGoPrev 
-                    ? 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
+                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
@@ -214,7 +214,7 @@ const NewArrivals = () => {
                 disabled={!canGoNext}
                 className={`p-2 rounded-full border-2 transition-all duration-200 ${
                   canGoNext 
-                    ? 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
+                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
@@ -237,7 +237,7 @@ const NewArrivals = () => {
                 }}
                 className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
                   Math.floor(currentIndex / itemsPerView) === index
-                    ? 'bg-orange-500 w-6 sm:w-8'
+                    ? 'bg-primary w-6 sm:w-8'
                     : 'bg-gray-300 hover:bg-gray-400'
                 }`}
               />
@@ -294,9 +294,9 @@ const NewArrivals = () => {
             </div>
           ) : (
             <div className="text-center py-16">
-              <Dumbbell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <Candy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-500 mb-2 font-raleway">No new arrivals available</h3>
-              <p className="text-gray-400 font-raleway">Check back later for new fitness products</p>
+              <p className="text-gray-400 font-raleway">Check back later for new sweet arrivals</p>
             </div>
           )}
         </div>

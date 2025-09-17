@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useStore } from '../../../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Grid3X3, ChevronLeft, ChevronRight, Dumbbell, Heart, Zap, Apple, Package, Shirt, Sparkles } from 'lucide-react';
+import { Grid3X3, ChevronLeft, ChevronRight, Candy, Heart, Zap, Apple, Package, Shirt, Sparkles } from 'lucide-react';
 
 const CategoriesCarousel = () => {
   const { setSelectedCategory } = useStore();
@@ -70,13 +70,13 @@ const CategoriesCarousel = () => {
   // Map category names to icons
   const getCategoryIcon = (categoryName: string) => {
     const lowerName = categoryName.toLowerCase();
-    if (lowerName.includes('protein') || lowerName.includes('supplement')) return Dumbbell;
-    if (lowerName.includes('health') || lowerName.includes('wellness')) return Heart;
-    if (lowerName.includes('energy') || lowerName.includes('pre-workout')) return Zap;
-    if (lowerName.includes('nutrition') || lowerName.includes('vitamin')) return Apple;
-    if (lowerName.includes('gear') || lowerName.includes('equipment')) return Package;
-    if (lowerName.includes('apparel') || lowerName.includes('clothing')) return Shirt;
-    return Sparkles; // Default icon
+    if (lowerName.includes('traditional') || lowerName.includes('classic')) return Candy;
+    if (lowerName.includes('chocolate') || lowerName.includes('truffle')) return Heart;
+    if (lowerName.includes('fusion') || lowerName.includes('modern')) return Zap;
+    if (lowerName.includes('dry fruits') || lowerName.includes('nuts')) return Apple;
+    if (lowerName.includes('gift') || lowerName.includes('box')) return Package;
+    if (lowerName.includes('seasonal') || lowerName.includes('special')) return Sparkles;
+    return Candy; // Default icon
   };
 
   const containerVariants = {

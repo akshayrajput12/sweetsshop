@@ -156,7 +156,7 @@ const Products = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-[hsl(25_95%_90%)] via-white to-[hsl(25_95%_90%)]">
       {/* Modern Header */}
       <motion.div 
         className="py-12 bg-gradient-to-r from-orange-500 to-red-500 text-white"
@@ -169,7 +169,7 @@ const Products = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Discover Amazing Sweets
             </h1>
-            <p className="text-xl text-orange-100 mb-6">
+            <p className="text-xl text-primary-foreground/80 mb-6">
               Browse our complete collection of premium sweets and desserts
             </p>
             {/* Removed "5000+ Products Bulk Savings" section */}
@@ -184,7 +184,7 @@ const Products = () => {
             <div className="sticky top-24">
               <div className="bg-white rounded-2xl shadow-lg border border-orange-100 p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                  <Filter className="w-5 h-5 mr-2 text-orange-500" />
+                  <Filter className="w-5 h-5 mr-2 text-primary" />
                   Filters
                 </h3>
                 <ProductFiltersComponent
@@ -251,7 +251,7 @@ const Products = () => {
                   onClick={() => setFilters(prev => ({ ...prev, features: prev.features.includes('Bulk Pack') ? prev.features.filter(f => f !== 'Bulk Pack') : [...prev.features, 'Bulk Pack'] }))}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm ${
                     filters.features.includes('Bulk Pack')
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg'
+                      ? 'bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] text-white shadow-lg'
                       : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                   }`}
                 >
@@ -269,8 +269,8 @@ const Products = () => {
                       onClick={() => setSelectedCategory(category)}
                       className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
                         selectedCategory === category
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg transform scale-105'
-                          : 'bg-white text-gray-700 hover:bg-orange-50 hover:text-orange-600 border border-gray-200 hover:border-orange-200'
+                          ? 'bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] text-white shadow-lg transform scale-105'
+                          : 'bg-white text-gray-700 hover:bg-primary/5 hover:text-destructive border border-gray-200 hover:border-primary/20'
                       }`}
                     >
                       {category}
@@ -283,7 +283,7 @@ const Products = () => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-4 py-2.5 border border-gray-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="px-4 py-2.5 border border-gray-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-primary focus:border-primary"
                   >
                     <option value="name">Sort by Name</option>
                     <option value="price-low">Price: Low to High</option>
@@ -296,7 +296,7 @@ const Products = () => {
                       onClick={() => setViewMode('grid')}
                       className={`p-3 rounded-l-xl transition-all duration-200 ${
                         viewMode === 'grid' 
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' 
+                          ? 'bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] text-white shadow-lg' 
                           : 'hover:bg-gray-50 text-gray-600'
                       }`}
                     >
@@ -306,7 +306,7 @@ const Products = () => {
                       onClick={() => setViewMode('list')}
                       className={`p-3 rounded-r-xl transition-all duration-200 ${
                         viewMode === 'list' 
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' 
+                          ? 'bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] text-white shadow-lg' 
                           : 'hover:bg-gray-50 text-gray-600'
                       }`}
                     >
@@ -319,15 +319,15 @@ const Products = () => {
 
             {/* Results Count */}
             <motion.div 
-              className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-100"
+              className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-primary/5 to-[hsl(0_84%_60%)/5] rounded-xl border border-primary/10"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               <p className="text-gray-700 font-medium">
-                Showing <span className="font-bold text-orange-600">{sortedProducts.length}</span> sweets
+                Showing <span className="font-bold text-destructive">{sortedProducts.length}</span> sweets
                 {selectedCategory !== 'All' && (
-                  <span className="text-gray-600"> in <span className="font-semibold text-orange-600">{selectedCategory}</span></span>
+                  <span className="text-gray-600"> in <span className="font-semibold text-destructive">{selectedCategory}</span></span>
                 )}
               </p>
               {sortedProducts.length > 0 && (

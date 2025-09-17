@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, TrendingUp, Star, Dumbbell } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TrendingUp, Star, Candy } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -130,10 +130,10 @@ const BestSellers = () => {
   };
 
   return (
-    <section className="py-12 bg-gradient-to-br from-white via-gray-50 to-orange-50 relative overflow-hidden">
+    <section className="py-12 bg-gradient-to-br from-white via-gray-50 to-[hsl(25_95%_90%)] relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-30"></div>
         <div className="absolute bottom-10 left-10 w-48 h-48 bg-red-500/5 rounded-full blur-3xl opacity-20"></div>
       </div>
 
@@ -144,13 +144,13 @@ const BestSellers = () => {
         <div className="text-center mb-10">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-4 font-raleway">
             Top{' '}
-            <span className="bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-              Selling Supplements
+            <span className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] bg-clip-text text-transparent">
+              Selling Sweets
             </span>
           </h2>
           
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-raleway">
-            Discover the supplements our fitness community loves most! These top-rated products offer unbeatable quality and amazing results.
+            Discover the sweets our customers love most! These top-rated treats offer unbeatable quality and amazing flavors.
           </p>
         </div>
 
@@ -173,7 +173,7 @@ const BestSellers = () => {
                 disabled={!canGoPrev}
                 className={`p-2 rounded-full border-2 transition-all duration-200 font-raleway ${
                   canGoPrev 
-                    ? 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
+                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
@@ -185,7 +185,7 @@ const BestSellers = () => {
                 disabled={!canGoNext}
                 className={`p-2 rounded-full border-2 transition-all duration-200 font-raleway ${
                   canGoNext 
-                    ? 'border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
+                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
@@ -208,7 +208,7 @@ const BestSellers = () => {
                 }}
                 className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 font-raleway ${
                   Math.floor(currentIndex / itemsPerView) === index
-                    ? 'bg-orange-500 w-6 sm:w-8'
+                    ? 'bg-primary w-6 sm:w-8'
                     : 'bg-gray-300 hover:bg-gray-400'
                 }`}
               />
@@ -265,7 +265,7 @@ const BestSellers = () => {
             </div>
           ) : (
             <div className="text-center py-16">
-              <Dumbbell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <Candy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-500 mb-2 font-raleway">No bestsellers available</h3>
               <p className="text-gray-400 font-raleway">Check back later for our top-selling products</p>
             </div>
@@ -275,9 +275,9 @@ const BestSellers = () => {
         <div className="text-center mt-12">
           <button
             onClick={() => navigate('/products')}
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
+            className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] hover:from-[hsl(25_95%_48%)] hover:to-[hsl(0_80%_55%)] text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
           >
-            View All Supplements
+            View All Sweets
           </button>
         </div>
       </div>

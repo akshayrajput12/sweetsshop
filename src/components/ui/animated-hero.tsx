@@ -30,7 +30,7 @@ function Hero() {
         <div className="flex gap-8 py-10 lg:py-20 items-center justify-center flex-col">
           <div>
             <Button variant="secondary" size="sm" className="gap-4">
-              New Collection <MoveRight className="w-4 h-4" />
+              New Sweets <MoveRight className="w-4 h-4" />
             </Button>
           </div>
           <div className="flex gap-4 flex-col">
@@ -41,7 +41,7 @@ function Hero() {
                 {titles.map((title, index) => (
                   <motion.span
                     key={index}
-                    className="absolute font-semibold text-orange-500"
+                    className="absolute font-semibold text-primary"
                     initial={{ opacity: 0, y: "-100" }}
                     transition={{ type: "spring", stiffness: 50 }}
                     animate={
@@ -78,7 +78,7 @@ function Hero() {
             </Button>
             <Button 
               size="lg" 
-              className="gap-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+              className="gap-4 bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] hover:from-[hsl(25_95%_48%)] hover:to-[hsl(0_80%_55%)]"
               onClick={() => navigate('/products')}
             >
               Shop Now <ShoppingCart className="w-4 h-4" />

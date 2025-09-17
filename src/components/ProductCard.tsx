@@ -106,7 +106,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
           {/* Discount Badge */}
           {discount > 0 && (
             <motion.div 
-              className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm"
+              className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm"
               initial={{ scale: 0, rotate: -10 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ delay: 0.1, type: "spring" }}
@@ -216,7 +216,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
               )}
             </div>
             {discount > 0 && (
-              <div className="text-sm text-orange-600 font-semibold">
+              <div className="text-sm text-destructive font-semibold">
                 Save {formatPrice(product.originalPrice - product.price)}
               </div>
             )}

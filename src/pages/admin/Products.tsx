@@ -106,9 +106,9 @@ const AdminProducts = () => {
   });
 
   const getStatusColor = (product: any) => {
-    if (product.stock_quantity <= 0) return 'bg-red-100 text-red-800';
-    if (!product.is_active) return 'bg-gray-100 text-gray-800';
-    return 'bg-green-100 text-green-800';
+    if (product.stock_quantity <= 0) return 'bg-destructive/10 text-destructive';
+    if (!product.is_active) return 'bg-muted text-muted-foreground';
+    return 'bg-success/10 text-success';
   };
 
   const getStatus = (product: any) => {
@@ -230,7 +230,7 @@ const AdminProducts = () => {
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            className="text-red-600"
+                            className="text-destructive"
                             onClick={() => handleDelete(product.id)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />

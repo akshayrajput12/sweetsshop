@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Tag, Copy, Clock, ArrowRight, Dumbbell } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Tag, Copy, Clock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const SpecialOffers = () => {
@@ -71,12 +71,12 @@ const SpecialOffers = () => {
           {/* Improved responsive font sizing */}
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 font-raleway">
             Special{' '}
-            <span className="text-orange-600">Fitness Deals</span>
+            <span className="text-destructive">Sweet Deals</span>
           </h2>
           
           {/* Improved responsive font sizing */}
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed font-raleway">
-            Don't miss out on these amazing deals! Save big on supplements and fitness gear.
+            Don't miss out on these amazing deals! Save big on our delicious sweets and treats.
           </p>
         </motion.div>
 
@@ -93,7 +93,7 @@ const SpecialOffers = () => {
             <div className="absolute inset-0 bg-black/10 backdrop-blur-sm z-10"></div>
             <img 
               src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80" 
-              alt="Fitness Sale Background"
+              alt="Sweet Sale Background"
               className="w-full h-full object-cover rounded-3xl"
             />
           </div>
@@ -121,7 +121,7 @@ const SpecialOffers = () => {
                     transition={{ duration: 0.3 }}
                   >
                     <div className="flex items-center justify-center space-x-3 mb-2">
-                      <Tag className="w-5 h-5 text-orange-600" />
+                      <Tag className="w-5 h-5 text-destructive" />
                       {/* Improved responsive font sizing */}
                       <span className="font-bold text-xl sm:text-2xl text-gray-900 font-raleway">{coupons[currentCouponIndex]?.code}</span>
                       <button
@@ -158,7 +158,7 @@ const SpecialOffers = () => {
                         key={index}
                         onClick={() => setCurrentCouponIndex(index)}
                         className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${
-                          index === currentCouponIndex ? 'bg-orange-600 scale-125' : 'bg-gray-300'
+                          index === currentCouponIndex ? 'bg-destructive scale-125' : 'bg-gray-300'
                         }`}
                       />
                     ))}
@@ -169,18 +169,18 @@ const SpecialOffers = () => {
               <div className="mb-6">
                 {/* Improved responsive font sizing */}
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 text-gray-900 font-raleway">
-                  Amazing Fitness Deals Coming Soon!
+                  Amazing Sweet Deals Coming Soon!
                 </h3>
                 {/* Improved responsive font sizing */}
                 <p className="text-base sm:text-lg text-gray-600 font-raleway">
-                  Stay tuned for exclusive offers on supplements and fitness gear.
+                  Stay tuned for exclusive offers on our delicious sweets and treats.
                 </p>
               </div>
             )}
             
             <motion.button 
               onClick={() => navigate('/products')}
-              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-xl font-semibold text-base transition-colors shadow-lg font-raleway"
+              className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] hover:from-[hsl(25_95%_48%)] hover:to-[hsl(0_80%_55%)] text-white px-8 py-3 rounded-xl font-semibold text-base transition-colors shadow-lg font-raleway"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
