@@ -25,7 +25,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
   };
 
   return (
-    <footer className="bg-secondary text-white mt-16">
+    <footer className="bg-primary text-white mt-16">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
           {/* Brand Section */}
@@ -36,7 +36,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
                 alt="Sweet Delights Logo" 
                 className="w-8 h-8 object-contain"
               />
-              <h3 className="text-2xl font-bold text-primary">{contactInfo.storeName}</h3>
+              <h3 className="text-2xl font-bold text-secondary">{contactInfo.storeName}</h3>
             </div>
             <p className="text-gray-300">
               Your premier destination for premium sweets and desserts. We bring the authentic taste of traditional sweets with a modern twist, delivered fresh to your doorstep.
