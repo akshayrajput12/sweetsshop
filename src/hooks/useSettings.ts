@@ -70,7 +70,7 @@ export const useSettings = () => {
       // Use the settings function to fetch data (fallback to direct query if function doesn't exist)
       let data, fetchError;
       try {
-        const result = await supabase.rpc('get_app_settings');
+        const result = await supabase.rpc('get_app_settings' as any);
         data = result.data;
         fetchError = result.error;
       } catch (rpcError) {

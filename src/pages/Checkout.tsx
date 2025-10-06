@@ -13,13 +13,13 @@ import { initiateRazorpayPayment, OrderData } from '@/utils/razorpay';
 import AddressManager from '@/components/AddressManager';
 import Stepper from '@/components/Stepper';
 import GuestOrderPopup from '@/components/GuestOrderPopup';
-// Removed Porter API integration
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { validateContactInfo, validateAddressDetails, validatePaymentMethod, formatPhoneNumber } from '@/utils/validation';
 import { useSettings } from '@/hooks/useSettings';
 import { toNumber, formatCurrency, calculatePercentage, meetsThreshold, toBoolean } from '@/utils/settingsHelpers';
+import { delhiveryService, PICKUP_LOCATION } from '@/utils/delhivery';
 
 
 const Checkout = () => {
@@ -41,6 +41,7 @@ const Checkout = () => {
   const [showGuestOrderPopup, setShowGuestOrderPopup] = useState(false);
   const [guestOrderData, setGuestOrderData] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [estimatedDeliveryFee, setEstimatedDeliveryFee] = useState<number | null>(null);
   
   // Form validation states
   const [contactErrors, setContactErrors] = useState<string[]>([]);
@@ -74,6 +75,63 @@ const Checkout = () => {
     { id: 'payment', title: 'Payment', description: 'Choose payment method' },
     { id: 'summary', title: 'Order Summary', description: 'Review & confirm' }
   ];
+
+  // Simple pincode to coordinates mapping for major cities in India
+  // This is just a sample - a real implementation would have a comprehensive database
+  const PINCODE_COORDINATES: Record<string, { lat: number; lng: number; city: string; state: string }> = {
+    // Delhi NCR
+    '110001': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
+    '110002': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
+    '110003': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
+    '110021': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
+    '110022': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
+    
+    // Mumbai
+    '400001': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
+    '400002': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
+    '400003': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
+    
+    // Bangalore
+    '560001': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
+    '560002': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
+    '560003': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
+    
+    // Chennai
+    '600001': { lat: 13.0827, lng: 80.2707, city: 'Chennai', state: 'Tamil Nadu' },
+    '600002': { lat: 13.0827, lng: 80.2707, city: 'Chennai', state: 'Tamil Nadu' },
+    
+    // Kolkata
+    '700001': { lat: 22.5726, lng: 88.3639, city: 'Kolkata', state: 'West Bengal' },
+    '700002': { lat: 22.5726, lng: 88.3639, city: 'Kolkata', state: 'West Bengal' },
+    
+    // Hyderabad
+    '500001': { lat: 17.3850, lng: 78.4867, city: 'Hyderabad', state: 'Telangana' },
+    '500002': { lat: 17.3850, lng: 78.4867, city: 'Hyderabad', state: 'Telangana' },
+    
+    // Pune
+    '411001': { lat: 18.5204, lng: 73.8567, city: 'Pune', state: 'Maharashtra' },
+    '411002': { lat: 18.5204, lng: 73.8567, city: 'Pune', state: 'Maharashtra' },
+    
+    // Ahmedabad
+    '380001': { lat: 23.0225, lng: 72.5714, city: 'Ahmedabad', state: 'Gujarat' },
+    '380002': { lat: 23.0225, lng: 72.5714, city: 'Ahmedabad', state: 'Gujarat' },
+    
+    // Jaipur
+    '302001': { lat: 26.9124, lng: 75.7873, city: 'Jaipur', state: 'Rajasthan' },
+    '302002': { lat: 26.9124, lng: 75.7873, city: 'Jaipur', state: 'Rajasthan' },
+    
+    // Default fallback (Delhi coordinates)
+    'default': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' }
+  };
+
+  // Get approximate coordinates for a pincode
+  const getCoordinatesForPincode = (pincode: string): { lat: number; lng: number; city: string; state: string } => {
+    // Clean the pincode
+    const cleanPincode = pincode.replace(/\D/g, '').slice(0, 6);
+    
+    // Return coordinates if found, otherwise return default
+    return PINCODE_COORDINATES[cleanPincode] || PINCODE_COORDINATES['default'];
+  };
 
   useEffect(() => {
     fetchProductCoupons();
@@ -238,13 +296,64 @@ const Checkout = () => {
 
   const subtotal = cartItems.reduce((sum, item) => sum + (toNumber(item.price) * toNumber(item.quantity)), 0);
   const tax = calculatePercentage(subtotal, settings.tax_rate);
-  const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
+  
+  // Calculate delivery fee using Delhivery API
+  let deliveryFee = estimatedDeliveryFee !== null ? estimatedDeliveryFee : (
+    meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge)
+  );
+  
   const codFee = paymentMethod === 'cod' ? toNumber(settings.cod_charge) : 0;
   const total = subtotal + tax + deliveryFee + codFee - discount;
   
   // Check if minimum order amount is met
   const isMinOrderMet = subtotal >= toNumber(settings.min_order_amount);
   const minOrderShortfall = Math.max(0, toNumber(settings.min_order_amount) - subtotal);
+
+  // Estimate delivery fee when address details change
+  useEffect(() => {
+    const estimateDeliveryFee = async () => {
+      // Only estimate if we have a pincode and city/state
+      if (addressDetails.pincode && addressDetails.city && addressDetails.state) {
+        try {
+          // Get customer coordinates from pincode
+          const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
+          
+          // Estimate delivery pricing using Delhivery API
+          const estimate = await delhiveryService.estimateDeliveryPricing(
+            PICKUP_LOCATION.pincode || '110001',
+            addressDetails.pincode,
+            subtotal,
+            1 // weight in kg - default to 1kg
+          );
+          
+          // Check if order qualifies for free delivery
+          const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
+          if (subtotal >= freeDeliveryThreshold && estimate.serviceability) {
+            setEstimatedDeliveryFee(0);
+          } else {
+            setEstimatedDeliveryFee(estimate.shipping_charges);
+          }
+        } catch (error) {
+          console.error('Error estimating delivery fee:', error);
+          // Fallback to standard delivery charge
+          const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
+          if (subtotal >= freeDeliveryThreshold) {
+            setEstimatedDeliveryFee(0);
+          } else {
+            setEstimatedDeliveryFee(toNumber(settings.delivery_charge));
+          }
+        }
+      } else {
+        // Reset estimated delivery fee if we don't have complete address
+        setEstimatedDeliveryFee(null);
+      }
+    };
+    
+    // Only estimate if we're past the contact info step
+    if (currentStep >= 2) {
+      estimateDeliveryFee();
+    }
+  }, [addressDetails, currentStep, subtotal, settings, customerInfo]);
 
   const applyCoupon = async () => {
     try {

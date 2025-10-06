@@ -779,7 +779,6 @@ INSERT INTO public.settings (key, value, description, category, is_public) VALUE
   ('tax_rate', '18', 'Tax rate percentage (GST)', 'business', true),
   ('delivery_charge', '50', 'Standard delivery charge in rupees', 'business', true),
   ('free_delivery_threshold', '1000', 'Minimum order amount for free delivery', 'business', true),
-  ('max_delivery_distance', '25', 'Maximum delivery distance in kilometers', 'business', false),
   ('cod_charge', '25', 'Cash on Delivery charge', 'business', true),
   ('cod_threshold', '2000', 'Maximum order amount for COD', 'business', true),
   ('bulk_discount_threshold', '5000', 'Minimum order for bulk discount', 'business', true),
