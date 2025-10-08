@@ -92,7 +92,7 @@ const AdminOrderDetail = () => {
           items: Array.isArray(orderItems) ? orderItems : [],
           subtotal: data.subtotal,
           deliveryFee: data.delivery_fee,
-          codFee: data.cod_fee || 0,
+          codFee: data.cod_fee || 0,  // This should now work with updated types
           tax: data.tax,
           discount: data.discount || 0,
           total: data.total,
@@ -199,71 +199,61 @@ const AdminOrderDetail = () => {
     if (!order) return;
 
     try {
-      // Try to fetch invoice data from database function first
-      let invoiceData;
+      // Skip the database function call since generate_invoice_data doesn't exist
+      // Directly generate invoice data from current order
       
-      try {
-        const { data, error } = await supabase
-          .rpc('generate_invoice_data', { order_id: id });
-        
-        if (!error && data) {
-          invoiceData = data;
-        }
-      } catch (dbError) {
-        console.warn('Database function not available, using fallback:', dbError);
+      // Fetch store settings
+      const { data: settings, error: settingsError } = await supabase
+        .from('settings')
+        .select('key, value')
+        .in('key', ['store_name', 'store_address', 'store_phone', 'store_email', 'currency_symbol']);
+
+      if (settingsError) {
+        console.warn('Error fetching settings:', settingsError);
       }
 
-      // Fallback: Generate invoice data from current order
-      if (!invoiceData) {
-        // Fetch store settings
-        const { data: settings } = await supabase
-          .from('settings')
-          .select('key, value')
-          .in('key', ['store_name', 'store_address', 'store_phone', 'store_email', 'currency_symbol']);
+      const storeSettings = settings?.reduce((acc: Record<string, any>, setting: any) => {
+        acc[setting.key] = typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value;
+        return acc;
+      }, {}) || {};
 
-        const storeSettings = settings?.reduce((acc: any, setting) => {
-          acc[setting.key] = typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value;
-          return acc;
-        }, {}) || {};
-
-        invoiceData = {
-          invoice_number: `INV-${order.id}`,
-          order_number: order.id,
-          invoice_date: new Date().toLocaleDateString('en-IN'),
-          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN'),
-          order_date: formatDate(order.orderDate),
-          store_info: {
-            store_name: storeSettings.store_name || 'SuperSweets',
-            store_address: storeSettings.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
-            store_phone: storeSettings.store_phone || '+91 9996616153',
-            store_email: storeSettings.store_email || 'contact@supersweets.fit',
-            currency_symbol: storeSettings.currency_symbol || '₹'
-          },
-          customer_info: {
-            name: order.customerName,
-            email: order.customerEmail,
-            phone: order.customerPhone
-          },
-          delivery_address: order.shippingAddress,
-          items: order.items,
-          pricing: {
-            subtotal: order.subtotal,
-            tax: order.tax,
-            delivery_fee: order.deliveryFee,
-            cod_fee: order.codFee,
-            discount: order.discount,
-            total: order.total
-          },
-          payment_info: {
-            method: order.paymentMethod,
-            status: order.paymentStatus,
-            razorpay_payment_id: order.razorpayPaymentId
-          },
-          order_status: order.status,
-          coupon_code: order.couponCode,
-          special_instructions: order.notes
-        };
-      }
+      const invoiceData = {
+        invoice_number: `INV-${order.id}`,
+        order_number: order.id,
+        invoice_date: new Date().toLocaleDateString('en-IN'),
+        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN'),
+        order_date: formatDate(order.orderDate),
+        store_info: {
+          store_name: storeSettings.store_name || 'SuperSweets',
+          store_address: storeSettings.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
+          store_phone: storeSettings.store_phone || '+91 9996616153',
+          store_email: storeSettings.store_email || 'contact@supersweets.fit',
+          currency_symbol: storeSettings.currency_symbol || '₹'
+        },
+        customer_info: {
+          name: order.customerName,
+          email: order.customerEmail,
+          phone: order.customerPhone
+        },
+        delivery_address: order.shippingAddress,
+        items: order.items,
+        pricing: {
+          subtotal: order.subtotal,
+          tax: order.tax,
+          delivery_fee: order.deliveryFee,
+          cod_fee: order.codFee,
+          discount: order.discount,
+          total: order.total
+        },
+        payment_info: {
+          method: order.paymentMethod,
+          status: order.paymentStatus,
+          razorpay_payment_id: order.razorpayPaymentId
+        },
+        order_status: order.status,
+        coupon_code: order.couponCode,
+        special_instructions: order.notes
+      };
 
       if (!validateInvoiceData(invoiceData)) {
         throw new Error('Invalid invoice data');

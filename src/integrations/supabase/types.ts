@@ -214,6 +214,7 @@ export type Database = {
           tracking_url: string | null
           updated_at: string
           user_id: string | null
+          cod_fee: number | null
         }
         Insert: {
           actual_delivery?: string | null
@@ -244,6 +245,7 @@ export type Database = {
           tracking_url?: string | null
           updated_at?: string
           user_id?: string | null
+          cod_fee?: number | null
         }
         Update: {
           actual_delivery?: string | null
@@ -274,6 +276,7 @@ export type Database = {
           tracking_url?: string | null
           updated_at?: string
           user_id?: string | null
+          cod_fee?: number | null
         }
         Relationships: []
       }
@@ -477,6 +480,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      settings: {
+        Row: {
+          id: string
+          key: string
+          value: Json
+          description: string | null
+          category: string | null
+          is_public: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          key: string
+          value: Json
+          description?: string | null
+          category?: string | null
+          is_public?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          key?: string
+          value?: Json
+          description?: string | null
+          category?: string | null
+          is_public?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       testimonials: {
         Row: {
