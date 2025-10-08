@@ -61,11 +61,11 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <img 
               src={logoImage} 
-              alt="Sweet Delights Logo" 
+              alt="SuperSweets Logo" 
               className="w-8 h-8 object-contain"
             />
             <div className="hidden xs:block">
-              <span className="text-2xl font-bold text-primary">Sweet Delights</span>
+              <span className="text-2xl font-bold text-primary">SuperSweets</span>
               <div className="text-xs text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
             </div>
           </Link>

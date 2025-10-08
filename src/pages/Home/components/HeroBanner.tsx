@@ -9,7 +9,7 @@ const HeroBanner = () => {
       <div className="absolute inset-0 z-0">
         <img 
           src={Image} 
-          alt="Sweet Delights Background" 
+          alt="SuperSweets Background" 
           className="w-full h-full object-cover"
         />
       </div>

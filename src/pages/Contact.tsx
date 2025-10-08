@@ -24,9 +24,9 @@ const Contact = () => {
   // Dynamic contact information from database
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
-    email: settings?.store_email || 'contact@sweetdelights.fit',
+    email: settings?.store_email || 'contact@supersweets.fit',
     address: settings?.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
-    storeName: settings?.store_name || 'Sweet Delights',
+    storeName: settings?.store_name || 'SuperSweets',
     businessHoursStart: settings?.business_hours_start || '09:00',
     businessHoursEnd: settings?.business_hours_end || '20:00'
   };

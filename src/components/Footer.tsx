@@ -19,9 +19,9 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
   // Show loading state or fallback values
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
-    email: settings?.store_email || 'contact@sweetdelights.fit',
+    email: settings?.store_email || 'contact@supersweets.fit',
     address: settings?.store_address || 'Shop number 5, Patel Nagar,\nHansi road, Patiala chowk,\nJIND (Haryana) 126102',
-    storeName: settings?.store_name || 'Sweet Delights'
+    storeName: settings?.store_name || 'SuperSweets'
   };
 
   return (
@@ -33,7 +33,7 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
             <div className="flex items-center space-x-2">
               <img 
                 src={logoImage} 
-                alt="Sweet Delights Logo" 
+                alt="SuperSweets Logo" 
                 className="w-8 h-8 object-contain"
               />
               <h3 className="text-2xl font-bold text-secondary">{contactInfo.storeName}</h3>

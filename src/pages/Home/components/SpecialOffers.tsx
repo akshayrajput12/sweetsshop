@@ -88,12 +88,12 @@ const SpecialOffers = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          {/* Background Image - using a valid Unsplash image */}
+          {/* Background Image - using a sweet-related image from Unsplash */}
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-black/10 backdrop-blur-sm z-10"></div>
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10"></div>
             <img 
-              src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80" 
-              alt="Sweet Sale Background"
+              src="https://images.unsplash.com/photo-1514775442470-0d1794622279?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80" 
+              alt="Sweet Deals Background"
               className="w-full h-full object-cover rounded-3xl"
             />
           </div>

@@ -99,7 +99,7 @@ const WhyChooseUs = () => {
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 font-raleway">
             Why{' '}
             <span className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] bg-clip-text text-transparent">
-              Sweet Delights
+              SuperSweets
             </span>
             ?
           </h2>
@@ -176,11 +176,11 @@ const WhyChooseUs = () => {
               </div>
 
               <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 font-raleway">
-                Ready to Indulge in Sweet Delights?
+                Ready to Indulge in SuperSweets?
               </h3>
               
               <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed font-raleway">
-                Join thousands of satisfied customers who trust Sweet Delights for their sweet cravings 
+                Join thousands of satisfied customers who trust SuperSweets for their sweet cravings 
                 and enjoy premium quality treats with guaranteed satisfaction.
               </p>
               

@@ -57,7 +57,7 @@ export const testimonials = [
     role: "Mother of Two",
   },
   {
-    text: "I've tried sweets from many places, but Sweet Delights stands out for freshness and authentic taste. Their kaju katli is unmatched!",
+    text: "I've tried sweets from many places, but SuperSweets stands out for freshness and authentic taste. Their kaju katli is unmatched!",
     image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=150&h=150&fit=crop&crop=faces",
     name: "Vikram Singh",
     role: "Food Critic",
