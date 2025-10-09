@@ -1,5 +1,5 @@
 import React from 'react';
-import HeroBanner from './components/HeroBanner';
+import CuratedGiftingHero from './components/CuratedGiftingHero';
 import CategoriesCarousel from './components/CategoriesCarousel';
 import BestSellers from './components/BestSellers';
 import NewArrivals from './components/NewArrivals';
@@ -10,7 +10,7 @@ import Testimonials from '@/components/ui/testimonials';
 const Home = () => {
   return (
    <main className="min-h-screen">
-  <HeroBanner />
+  <CuratedGiftingHero />
   <div className="space-y-4">
     <CategoriesCarousel />   {/* let users explore sweet categories early */}
     <BestSellers />          {/* showcase our most popular sweets */}

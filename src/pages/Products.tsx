@@ -158,24 +158,6 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[hsl(25_95%_90%)] via-white to-[hsl(25_95%_90%)]">
       {/* Modern Header */}
-      <motion.div 
-        className="py-12 bg-gradient-to-r from-orange-500 to-red-500 text-white"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Discover Amazing Sweets
-            </h1>
-            <p className="text-xl text-primary-foreground/80 mb-6">
-              Browse our complete collection of premium sweets and desserts
-            </p>
-            {/* Removed "5000+ Products Bulk Savings" section */}
-          </div>
-        </div>
-      </motion.div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
