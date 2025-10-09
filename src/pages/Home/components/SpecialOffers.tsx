@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Tag, Copy, Clock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import heroImage from '@/assets/hero.png';
 
 const SpecialOffers = () => {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ const SpecialOffers = () => {
   };
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12">
       {/* Added max-width container with proper padding and margins */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
@@ -66,8 +67,6 @@ const SpecialOffers = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {/* Removed "Limited Time Offers" part */}
-          
           {/* Improved responsive font sizing */}
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-4 font-raleway">
             Special{' '}
@@ -82,19 +81,23 @@ const SpecialOffers = () => {
 
         {/* Dynamic Promotional Banner with Coupon Carousel */}
         <motion.div 
-          className="relative rounded-2xl p-6 md:p-8 text-center shadow-xl overflow-hidden border border-gray-200"
+          className="relative rounded-2xl p-6 md:p-8 text-center shadow-xl overflow-hidden"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
+          whileHover={{
+            scale: 1.02,
+            transition: { duration: 0.3 }
+          }}
         >
-          {/* Background Image - using a sweet-related image from Unsplash */}
+          {/* Background Image - using the hero image from assets */}
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10"></div>
+            <div className="absolute inset-0 bg-black/40 z-10"></div>
             <img 
-              src="https://images.unsplash.com/photo-1514775442470-0d1794622279?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80" 
+              src={heroImage} 
               alt="Sweet Deals Background"
-              className="w-full h-full object-cover rounded-3xl"
+              className="w-full h-full object-cover"
             />
           </div>
 
@@ -104,33 +107,52 @@ const SpecialOffers = () => {
               <div className="mb-8">
                 <div className="flex items-center justify-center gap-4 mb-6">
                   {coupons.length > 1 && (
-                    <button
+                    <motion.button
                       onClick={prevCoupon}
                       className="p-2 bg-white/80 hover:bg-white text-gray-800 rounded-full transition-colors shadow-md"
+                      whileHover={{ 
+                        scale: 1.1,
+                        rotate: -10,
+                        borderRadius: "12px",
+                        transition: { duration: 0.3 }
+                      }}
+                      whileTap={{ scale: 0.9 }}
                     >
                       <ChevronLeft className="w-5 h-5" />
-                    </button>
+                    </motion.button>
                   )}
                   
                   <motion.div
                     key={currentCouponIndex}
-                    className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl border border-gray-200 min-w-72 font-raleway shadow-lg"
+                    className="bg-white/90 backdrop-blur-sm px-6 py-4 rounded-xl min-w-72 font-raleway shadow-lg"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3 }}
+                    whileHover={{
+                      scale: 1.03,
+                      borderRadius: "16px",
+                      boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
+                      transition: { duration: 0.3 }
+                    }}
                   >
                     <div className="flex items-center justify-center space-x-3 mb-2">
                       <Tag className="w-5 h-5 text-destructive" />
                       {/* Improved responsive font sizing */}
                       <span className="font-bold text-xl sm:text-2xl text-gray-900 font-raleway">{coupons[currentCouponIndex]?.code}</span>
-                      <button
+                      <motion.button
                         onClick={() => copyToClipboard(coupons[currentCouponIndex]?.code)}
                         className="p-1 hover:bg-gray-100 rounded transition-colors"
                         title="Copy code"
+                        whileHover={{ 
+                          scale: 1.1,
+                          rotate: 5,
+                          transition: { duration: 0.2 }
+                        }}
+                        whileTap={{ scale: 0.9 }}
                       >
                         <Copy className="w-4 h-4 text-gray-600" />
-                      </button>
+                      </motion.button>
                     </div>
                     {/* Improved responsive font sizing */}
                     <p className="text-base sm:text-lg text-gray-700 mb-2 font-raleway">{coupons[currentCouponIndex]?.description}</p>
@@ -141,12 +163,19 @@ const SpecialOffers = () => {
                   </motion.div>
                   
                   {coupons.length > 1 && (
-                    <button
+                    <motion.button
                       onClick={nextCoupon}
                       className="p-2 bg-white/80 hover:bg-white text-gray-800 rounded-full transition-colors shadow-md"
+                      whileHover={{ 
+                        scale: 1.1,
+                        rotate: 10,
+                        borderRadius: "12px",
+                        transition: { duration: 0.3 }
+                      }}
+                      whileTap={{ scale: 0.9 }}
                     >
                       <ChevronRight className="w-5 h-5" />
-                    </button>
+                    </motion.button>
                   )}
                 </div>
 
@@ -154,12 +183,18 @@ const SpecialOffers = () => {
                 {coupons.length > 1 && (
                   <div className="flex justify-center space-x-2 mb-6">
                     {coupons.map((_, index) => (
-                      <button
+                      <motion.button
                         key={index}
                         onClick={() => setCurrentCouponIndex(index)}
                         className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${
                           index === currentCouponIndex ? 'bg-destructive scale-125' : 'bg-gray-300'
                         }`}
+                        whileHover={{ 
+                          scale: 1.5,
+                          borderRadius: "50%",
+                          transition: { duration: 0.2 }
+                        }}
+                        whileTap={{ scale: 0.8 }}
                       />
                     ))}
                   </div>
@@ -168,11 +203,11 @@ const SpecialOffers = () => {
             ) : (
               <div className="mb-6">
                 {/* Improved responsive font sizing */}
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 text-gray-900 font-raleway">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 text-white font-raleway">
                   Amazing Sweet Deals Coming Soon!
                 </h3>
                 {/* Improved responsive font sizing */}
-                <p className="text-base sm:text-lg text-gray-600 font-raleway">
+                <p className="text-base sm:text-lg text-white/90 font-raleway">
                   Stay tuned for exclusive offers on our delicious sweets and treats.
                 </p>
               </div>
@@ -180,8 +215,13 @@ const SpecialOffers = () => {
             
             <motion.button 
               onClick={() => navigate('/products')}
-              className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] hover:from-[hsl(25_95%_48%)] hover:to-[hsl(0_80%_55%)] text-white px-8 py-3 rounded-xl font-semibold text-base transition-colors shadow-lg font-raleway"
-              whileHover={{ scale: 1.05, y: -2 }}
+              className="bg-white text-primary hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold text-base transition-colors shadow-lg font-raleway"
+              whileHover={{ 
+                scale: 1.05,
+                borderRadius: "12px",
+                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1)",
+                transition: { duration: 0.3 }
+              }}
               whileTap={{ scale: 0.95 }}
             >
               <div className="flex items-center justify-center">
