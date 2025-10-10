@@ -21,7 +21,7 @@ const CuratedGiftingHero = () => {
       </div>
       
       {/* Overlay to enhance text readability */}
-      <div className="absolute inset-0 bg-[#0a1a45]/70 z-10"></div>
+      <div className="absolute inset-0  z-10"></div>
 
       <div className="container mx-auto px-4 py-8 lg:py-12 h-full relative z-20">
         <div className="flex flex-col lg:flex-row items-center justify-between min-h-[80vh] gap-8">
@@ -65,7 +65,7 @@ const CuratedGiftingHero = () => {
                   transition: { duration: 0.3 }
                 }}
               >
-                Curated <span className="text-amber-400">Gifting</span> by Anand
+                Curated <span className="text-amber-400">Gifting</span> by SuperSweets
               </motion.h1>
               
               <motion.p 
