@@ -383,6 +383,12 @@ const AdminOrderDetail = () => {
                         )}
                       </span>
                     </div>
+                    {order.estimatedDeliveryTime && (
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Estimated Delivery Time</span>
+                        <span>{order.estimatedDeliveryTime}</span>
+                      </div>
+                    )}
 
                     {order.codFee > 0 && (
                       <div className="flex justify-between text-sm">

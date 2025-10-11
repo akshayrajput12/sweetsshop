@@ -185,53 +185,20 @@ To test the Delhivery integration:
 
 ## Enabling Real API Calls
 
-To enable actual Delhivery API calls instead of mock responses:
+✅ **Real Delhivery API calls are now enabled!**
 
-1. In `src/utils/delhivery.ts`, uncomment the actual API call sections
-2. Comment out or remove the mock response code
-3. Ensure your API key has the necessary permissions
-4. Test thoroughly in the staging environment first
+The application is now configured to use the actual Delhivery API for:
 
-Example for the pricing estimation method:
-```typescript
-// Uncomment this section to enable real API calls:
-const response = await fetch(`${this.baseUrl}/api/kinko/v1/invoice/charges.json`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${this.apiKey}`,
-    'Accept': 'application/json'
-  },
-  body: JSON.stringify({
-    pickup_pincode: normalizedPickupPincode,
-    delivery_pincode: normalizedDeliveryPincode,
-    order_value: orderValue,
-    weight: weight
-  })
-});
+1. **Delivery Pricing Estimation** - Real-time calculation of shipping charges based on pincode distance
+2. **Order Creation** - Creating delivery orders in the Delhivery system
+3. **Order Tracking** - Retrieving real-time status updates for orders
+4. **Order Cancellation** - Canceling orders in the Delhivery system
 
-// if (!response.ok) {
-//   throw new Error(`Delhivery API error: ${response.status} ${response.statusText}`);
-// }
-
-// const result = await response.json();
-
-// Comment out or remove the mock calculation:
-// const distanceFactor = this.calculateDistanceFactor(normalizedPickupPincode, normalizedDeliveryPincode);
-// const shippingCharges = Math.max(50, Math.round(50 + (distanceFactor * 10) + (weight * 5)));
-
-// Return the actual API response:
-// return {
-//   shipping_charges: result.shipping_charges,
-//   cod_charges: result.cod_charges,
-//   estimated_delivery_time: result.estimated_delivery_time,
-//   serviceability: result.serviceability
-// };
-```
+All API methods have been implemented with proper error handling and fallback mechanisms.
 
 ## Future Improvements
 
-1. Implement caching for delivery estimates to reduce API calls
+1. ~~Implement caching for delivery estimates to reduce API calls~~ (Implemented)
 2. Add delivery time estimates to the checkout process
 3. Implement real-time tracking updates in the customer dashboard
 4. Add support for multiple delivery partners

@@ -42,6 +42,7 @@ const Checkout = () => {
   const [guestOrderData, setGuestOrderData] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [estimatedDeliveryFee, setEstimatedDeliveryFee] = useState<number | null>(null);
+  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<string | null>(null);
   
   // Form validation states
   const [contactErrors, setContactErrors] = useState<string[]>([]);
@@ -318,13 +319,33 @@ const Checkout = () => {
           // Get customer coordinates from pincode
           const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
           
+          // Calculate total weight of items in cart
+          let totalWeight = 0;
+          cartItems.forEach(item => {
+            // Extract numeric weight from string (e.g., "500g" -> 0.5kg, "1kg" -> 1kg)
+            const weightMatch = item.weight.match(/(\d+(?:\.\d+)?)\s*(g|kg)/i);
+            if (weightMatch) {
+              const value = parseFloat(weightMatch[1]);
+              const unit = weightMatch[2].toLowerCase();
+              // Convert to kg
+              totalWeight += unit === 'g' ? value / 1000 : value;
+            }
+          });
+          
+          // Display the actual weight to the user but use buffered weight for API calculations
+          const displayWeight = Math.max(1, totalWeight); // Display actual weight with minimum 1kg
+          const bufferedWeight = Math.max(1, totalWeight * 1.2); // Use 20% buffer for API calculations
+          
           // Estimate delivery pricing using Delhivery API
           const estimate = await delhiveryService.estimateDeliveryPricing(
             PICKUP_LOCATION.pincode || '110001',
             addressDetails.pincode,
             subtotal,
-            1 // weight in kg - default to 1kg
+            bufferedWeight // weight in kg with 20% buffer for API
           );
+          
+          // Set estimated delivery time
+          setEstimatedDeliveryTime(estimate.estimated_delivery_time);
           
           // Check if order qualifies for free delivery
           const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
@@ -336,6 +357,7 @@ const Checkout = () => {
         } catch (error) {
           console.error('Error estimating delivery fee:', error);
           // Fallback to standard delivery charge
+          setEstimatedDeliveryTime('2-5 business days');
           const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
           if (subtotal >= freeDeliveryThreshold) {
             setEstimatedDeliveryFee(0);
@@ -603,6 +625,7 @@ const Checkout = () => {
         subtotal: subtotal,
         tax: tax,
         delivery_fee: deliveryFee,
+        estimated_delivery_time: estimatedDeliveryTime,
         cod_fee: codFee,
         discount: discount,
         total: total,
@@ -660,6 +683,7 @@ const Checkout = () => {
             subtotal: subtotal,
             tax: tax,
             deliveryFee: deliveryFee,
+            estimatedDeliveryTime: estimatedDeliveryTime,
             codFee: codFee,
             discount: discount,
             total: total,
@@ -766,6 +790,7 @@ const Checkout = () => {
                   subtotal: subtotal,
                   tax: tax,
                   deliveryFee: deliveryFee,
+                  estimatedDeliveryTime: estimatedDeliveryTime,
                   codFee: codFee,
                   discount: discount,
                   total: total,
@@ -923,8 +948,21 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between">
                 <span>Delivery</span>
-                <span>{deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}</span>
+                <span>
+                  {estimatedDeliveryFee === null && addressDetails.pincode ? (
+                    <span className="flex items-center">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-400 mr-1"></div>
+                      Calculating...
+                    </span>
+                  ) : deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}
+                </span>
               </div>
+              {estimatedDeliveryTime && (
+                <div className="flex justify-between text-xs">
+                  <span>Est. Delivery Time</span>
+                  <span>{estimatedDeliveryTime}</span>
+                </div>
+              )}
               {paymentMethod === 'cod' && toNumber(settings.cod_charge) > 0 && (
                 <div className="flex justify-between">
                   <span>COD Fee</span>
@@ -1225,6 +1263,18 @@ const Checkout = () => {
                           : 'Please fill in your city, state, and pincode above'
                         }
                       </p>
+                      {estimatedDeliveryFee !== null && estimatedDeliveryTime && (
+                        <div className="text-blue-700 text-sm mt-2">
+                          <span className="font-medium">Estimated Delivery:</span> {estimatedDeliveryTime} 
+                          <span className="font-medium">({formatPrice(estimatedDeliveryFee)})</span>
+                        </div>
+                      )}
+                      {estimatedDeliveryFee === null && addressDetails.pincode && (
+                        <div className="text-blue-700 text-sm mt-2 flex items-center">
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                          Calculating delivery charges...
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1626,6 +1676,22 @@ const Checkout = () => {
                         : 'Address details will appear here'
                       }
                     </div>
+                    {estimatedDeliveryFee !== null && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-sm font-medium text-green-800">Delivery Information</p>
+                            <p className="text-xs text-green-700">Calculated using Delhivery API</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-green-800">
+                              {estimatedDeliveryFee === 0 ? 'FREE' : formatPrice(estimatedDeliveryFee)}
+                            </p>
+                            <p className="text-xs text-green-700">{estimatedDeliveryTime}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1718,6 +1784,12 @@ const Checkout = () => {
                             )}
                           </span>
                         </div>
+                        {estimatedDeliveryTime && (
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Estimated Delivery Time</span>
+                            <span>{estimatedDeliveryTime}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between">
                           <span>Taxes & Charges ({Number(settings.tax_rate || 0).toFixed(0)}%)</span>
                           <span>{formatPrice(tax)}</span>
@@ -1888,6 +1960,13 @@ const Checkout = () => {
                   )}
                 </span>
               </div>
+              
+              {estimatedDeliveryTime && (
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Estimated Delivery Time</span>
+                  <span>{estimatedDeliveryTime}</span>
+                </div>
+              )}
 
               {paymentMethod === 'cod' && toNumber(settings.cod_charge) > 0 && (
                 <div className="flex justify-between">

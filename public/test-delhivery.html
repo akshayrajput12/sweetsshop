@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delhivery API Test</title>
+    <script type="module">
+        // Import the delhivery service
+        import { delhiveryService } from '/src/utils/delhivery.ts';
+
+        async function testDelhiveryAPI() {
+            try {
+                console.log('Testing Delhivery API integration...');
+                document.getElementById('result').innerHTML = 'Testing Delhivery API integration...';
+
+                // Test delivery pricing estimation
+                const pricing = await delhiveryService.estimateDeliveryPricing(
+                    '110001', // Pickup pincode (Delhi)
+                    '400001', // Delivery pincode (Mumbai)
+                    1000,     // Order value
+                    1         // Weight in kg
+                );
+
+                console.log('Delivery pricing estimation result:', pricing);
+                document.getElementById('result').innerHTML = `
+                    <h2>Delhivery API Test Results</h2>
+                    <p><strong>Shipping Charges:</strong> ₹${pricing.shipping_charges}</p>
+                    <p><strong>COD Charges:</strong> ₹${pricing.cod_charges}</p>
+                    <p><strong>Estimated Delivery Time:</strong> ${pricing.estimated_delivery_time}</p>
+                    <p><strong>Serviceability:</strong> ${pricing.serviceability ? 'Yes' : 'No'}</p>
+                `;
+            } catch (error) {
+                console.error('Delhivery API integration test failed:', error);
+                document.getElementById('result').innerHTML = `
+                    <h2>Delhivery API Test Failed</h2>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+
+        // Run the test when the page loads
+        window.onload = testDelhiveryAPI;
+    </script>
+</head>
+<body>
+    <h1>Delhivery API Integration Test</h1>
+    <div id="result">Loading...</div>
+</body>
+</html>
