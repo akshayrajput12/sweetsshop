@@ -1,5 +1,5 @@
 /**
- * Performance monitoring utilities for BulkBox
+ * Performance monitoring utilities for supersweets
  * Helps track page load times and user interactions
  */
 

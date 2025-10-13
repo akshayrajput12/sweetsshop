@@ -42,14 +42,14 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 };
 
 // Specialized loading components
-export const PageLoader: React.FC<{ text?: string }> = ({ text = 'Loading...' }) => (
+export const PageLoader: React.FC<{ text?: string }> = ({ text = 'Supersweets' }) => (
   <div className="min-h-screen flex items-center justify-center">
     <LoadingSpinner size="lg" text={text} />
   </div>
 );
 
 export const ComponentLoader: React.FC<{ text?: string; className?: string }> = ({ 
-  text = 'Loading...', 
+  text = 'Supersweets', 
   className = 'py-8' 
 }) => (
   <div className={`flex items-center justify-center ${className}`}>
@@ -57,7 +57,7 @@ export const ComponentLoader: React.FC<{ text?: string; className?: string }> = 
   </div>
 );
 
-export const ButtonLoader: React.FC<{ text?: string }> = ({ text = 'Loading...' }) => (
+export const ButtonLoader: React.FC<{ text?: string }> = ({ text = 'Supersweets' }) => (
   <div className="flex items-center gap-2">
     <Loader2 className="h-4 w-4 animate-spin" />
     <span>{text}</span>

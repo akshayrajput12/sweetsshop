@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * BulkBoxs Setup Script
+ * supersweetss Setup Script
  * 
- * This script helps set up the BulkBoxs project by:
+ * This script helps set up the supersweetss project by:
  * 1. Checking for required environment variables
  * 2. Validating Supabase connection
  * 3. Providing setup guidance
@@ -12,7 +12,7 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 BulkBoxs Setup Script');
+console.log('🚀 supersweetss Setup Script');
 console.log('======================\n');
 
 // Check if .env file exists
@@ -92,20 +92,20 @@ if (missingVars.length > 0) {
   missingVars.forEach(varName => {
     console.log(`   - ${varName}`);
   });
-  console.log('\n📖 Please refer to BULKBOXS_SETUP_GUIDE.md for detailed setup instructions');
+  console.log('\n📖 Please refer to supersweetsS_SETUP_GUIDE.md for detailed setup instructions');
 } else {
   console.log('\n✅ All required environment variables are configured!');
 }
 
 // Check if migration file exists
-const migrationPath = path.join(__dirname, 'supabase', 'migrations', '20250208000000_bulkboxs_complete_migration.sql');
+const migrationPath = path.join(__dirname, 'supabase', 'migrations', '20250208000000_supersweetss_complete_migration.sql');
 
 if (fs.existsSync(migrationPath)) {
   console.log('✅ Database migration file found');
   console.log('\n📋 Next steps:');
   console.log('   1. Run the migration in your Supabase SQL Editor');
   console.log('   2. Copy the content from:');
-  console.log('      supabase/migrations/20250208000000_bulkboxs_complete_migration.sql');
+  console.log('      supabase/migrations/20250208000000_supersweetss_complete_migration.sql');
   console.log('   3. Paste and execute in Supabase dashboard');
 } else {
   console.log('❌ Database migration file not found!');

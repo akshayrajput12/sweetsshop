@@ -129,6 +129,12 @@ const BestSellers = () => {
     setQuickViewProduct(null);
   };
 
+  // Function to handle navigation to product detail page
+  const handleViewDetail = (product: any) => {
+    const slug = product.sku || product.id;
+    navigate(`/product/${slug}`);
+  };
+
   return (
     <section className="py-12 bg-gradient-to-br from-white via-gray-50 to-[hsl(25_95%_90%)] relative overflow-hidden">
       {/* Background Decorations */}
@@ -258,6 +264,7 @@ const BestSellers = () => {
                         slug: product.sku || product.id
                       }} 
                       onQuickView={(product) => handleQuickView(product)}
+                      onViewDetail={() => handleViewDetail(product)}
                     />
                   </div>
                 ))}

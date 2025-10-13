@@ -17,9 +17,9 @@ serve(async (req) => {
     const { method, path, body } = await req.json();
     
     // Validate the path
-    if (!path || !path.startsWith('/api/')) {
+    if (!path) {
       return new Response(
-        JSON.stringify({ error: 'Invalid API path' }),
+        JSON.stringify({ error: 'API path is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -54,8 +54,16 @@ serve(async (req) => {
     // Get the response data
     const responseData = await response.text();
     
+    // Try to parse JSON response, fallback to text if it fails
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(responseData);
+    } catch (e) {
+      parsedResponse = { message: responseData };
+    }
+    
     // Return the response with appropriate headers
-    return new Response(responseData, {
+    return new Response(JSON.stringify(parsedResponse), {
       status: response.status,
       headers: {
         ...corsHeaders,

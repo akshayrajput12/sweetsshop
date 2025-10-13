@@ -1,5 +1,5 @@
 /**
- * Simple caching utility for BulkBox
+ * Simple caching utility for supersweets
  * Provides in-memory and localStorage caching for API responses
  */
 
@@ -33,7 +33,7 @@ class Cache {
 
     // localStorage cache for persistent data
     try {
-      localStorage.setItem(`bulkbox_cache_${key}`, JSON.stringify(item));
+      localStorage.setItem(`supersweets_cache_${key}`, JSON.stringify(item));
     } catch (error) {
       // localStorage might be full or disabled
       console.warn('Failed to save to localStorage:', error);
@@ -50,7 +50,7 @@ class Cache {
 
     // Try localStorage cache
     try {
-      const stored = localStorage.getItem(`bulkbox_cache_${key}`);
+      const stored = localStorage.getItem(`supersweets_cache_${key}`);
       if (stored) {
         const item: CacheItem<T> = JSON.parse(stored);
         if (this.isValid(item)) {
@@ -59,7 +59,7 @@ class Cache {
           return item.data;
         } else {
           // Remove expired item
-          localStorage.removeItem(`bulkbox_cache_${key}`);
+          localStorage.removeItem(`supersweets_cache_${key}`);
         }
       }
     } catch (error) {
@@ -78,7 +78,7 @@ class Cache {
   remove(key: string): void {
     this.memoryCache.delete(key);
     try {
-      localStorage.removeItem(`bulkbox_cache_${key}`);
+      localStorage.removeItem(`supersweets_cache_${key}`);
     } catch (error) {
       console.warn('Failed to remove from localStorage:', error);
     }
@@ -90,7 +90,7 @@ class Cache {
     try {
       const keys = Object.keys(localStorage);
       keys.forEach(key => {
-        if (key.startsWith('bulkbox_cache_')) {
+        if (key.startsWith('supersweets_cache_')) {
           localStorage.removeItem(key);
         }
       });
@@ -148,7 +148,7 @@ export function invalidateCache(pattern: string): void {
   try {
     const keys = Object.keys(localStorage);
     keys.forEach(key => {
-      if (key.startsWith('bulkbox_cache_') && key.includes(pattern)) {
+      if (key.startsWith('supersweets_cache_') && key.includes(pattern)) {
         localStorage.removeItem(key);
       }
     });

@@ -72,24 +72,22 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
           {/* Spacer for layout */}
           <div className="hidden sm:flex flex-1 justify-center">
-            {/* Removed location display */}
+            {/* Desktop Navigation */}
+            <nav className="flex items-center space-x-8">
+              <Link to="/" className="body-text hover:text-primary transition-colors">
+                Home
+              </Link>
+              <Link to="/products" className="body-text hover:text-primary transition-colors">
+                Sweets
+              </Link>
+              <Link to="/about" className="body-text hover:text-primary transition-colors">
+                About
+              </Link>
+              <Link to="/contact" className="body-text hover:text-primary transition-colors">
+                Contact
+              </Link>
+            </nav>
           </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="body-text hover:text-primary transition-colors">
-              Home
-            </Link>
-            <Link to="/products" className="body-text hover:text-primary transition-colors">
-              Sweets
-            </Link>
-            <Link to="/about" className="body-text hover:text-primary transition-colors">
-              About
-            </Link>
-            <Link to="/contact" className="body-text hover:text-primary transition-colors">
-              Contact
-            </Link>
-          </nav>
 
           {/* Right Section */}
           <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">

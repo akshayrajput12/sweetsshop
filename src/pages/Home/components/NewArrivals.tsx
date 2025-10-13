@@ -154,6 +154,12 @@ const NewArrivals = () => {
     setQuickViewProduct(null);
   };
 
+  // Function to handle navigation to product detail page
+  const handleViewDetail = (product: any) => {
+    const slug = product.sku || product.id;
+    navigate(`/product/${slug}`);
+  };
+
   if (newArrivals.length === 0 && !loading) {
     return null; // Don't show section if no new arrivals
   }
@@ -287,6 +293,7 @@ const NewArrivals = () => {
                         slug: product.id
                       }} 
                       onQuickView={handleQuickView}
+                      onViewDetail={() => handleViewDetail(product)}
                     />
                   </div>
                 ))}

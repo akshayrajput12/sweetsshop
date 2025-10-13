@@ -29,7 +29,7 @@
                 // Generate order ID like the utility function does
                 const timestamp = Date.now();
                 const randomString = Math.random().toString(36).substring(2, 9);
-                const orderId = `BULKBOXS_${timestamp}_${randomString}`;
+                const orderId = `supersweetsS_${timestamp}_${randomString}`;
                 const amount = 100 * 100; // ₹100 in paise
                 
                 const order = {
@@ -54,7 +54,7 @@
                 // Create client-side order
                 const timestamp = Date.now();
                 const randomString = Math.random().toString(36).substring(2, 9);
-                const orderId = `BULKBOXS_${timestamp}_${randomString}`;
+                const orderId = `supersweetsS_${timestamp}_${randomString}`;
                 const amount = 100 * 100; // ₹100 in paise
                 
                 log('Created order for payment:', { orderId, amount });
@@ -64,7 +64,7 @@
                     key: RAZORPAY_KEY,
                     amount: amount,
                     currency: 'INR',
-                    name: 'BulkBoxs Test',
+                    name: 'supersweetss Test',
                     description: 'Test direct payment without Edge Functions',
                     handler: function(response) {
                         log('Payment successful:');

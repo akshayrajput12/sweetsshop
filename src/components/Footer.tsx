@@ -122,19 +122,19 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-primary" />
                 <span className="text-gray-300">
-                  {loading ? 'Loading...' : contactInfo.phone}
+                  {loading ? 'Supersweets' : contactInfo.phone}
                 </span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-primary" />
                 <span className="text-gray-300">
-                  {loading ? 'Loading...' : contactInfo.email}
+                  {loading ? 'Supersweets' : contactInfo.email}
                 </span>
               </div>
               <div className="flex items-start space-x-3">
                 <MapPin className="h-4 w-4 text-primary mt-1" />
                 <span className="text-gray-300">
-                  {loading ? 'Loading...' : contactInfo.address.split('\n').map((line, index) => (
+                  {loading ? 'Supersweets' : contactInfo.address.split('\n').map((line, index) => (
                     <span key={index}>
                       {line}
                       {index < contactInfo.address.split('\n').length - 1 && <br />}

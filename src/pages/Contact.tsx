@@ -272,14 +272,17 @@ const Contact = () => {
             <CardTitle>Find Us</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-12 w-12 text-primary mx-auto mb-2" />
-                <p className="text-muted-foreground">
-                  Interactive map will be displayed here<br />
-                  (Google Maps integration required)
-                </p>
-              </div>
+            <div className="aspect-video rounded-lg overflow-hidden">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3465.046698160929!2d75.90044067605358!3d29.718406533943902!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3911977ef5c7c397%3A0xd93c1bbd1ea25041!2sSuper%20Sweets%20-%20A%20sweets%20shop!5e0!3m2!1sen!2sin!4v1760083220231!5m2!1sen!2sin" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Super Sweets Location"
+              />
             </div>
           </CardContent>
         </Card>

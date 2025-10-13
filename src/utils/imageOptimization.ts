@@ -1,5 +1,5 @@
 /**
- * Image optimization utilities for BulkBox
+ * Image optimization utilities for supersweets
  * Provides lazy loading, WebP support, and responsive images
  */
 

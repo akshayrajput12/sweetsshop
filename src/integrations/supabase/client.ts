@@ -1,4 +1,4 @@
-// BulkBox Supabase Client Configuration
+// supersweets Supabase Client Configuration
 // Uses environment variables for secure configuration
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
@@ -30,7 +30,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
   },
   global: {
     headers: {
-      'X-Client-Info': 'bulkbox-web-app'
+      'X-Client-Info': 'supersweets-web-app'
     }
   }
 });

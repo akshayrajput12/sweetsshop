@@ -63,7 +63,7 @@ const AppContent = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   if (loading) {
-    return <PageLoader text="Loading BulkBox..." />;
+    return <PageLoader text="Loading supersweets..." />;
   }
 
   return (

@@ -21,6 +21,11 @@ import { useSettings } from '@/hooks/useSettings';
 import { toNumber, formatCurrency, calculatePercentage, meetsThreshold, toBoolean } from '@/utils/settingsHelpers';
 import { delhiveryService, PICKUP_LOCATION } from '@/utils/delhivery';
 
+// Import the new components
+import CheckoutContactInfo from './Checkout/CheckoutContactInfo';
+import CheckoutAddressDetails from './Checkout/CheckoutAddressDetails';
+import CheckoutPayment from './Checkout/CheckoutPayment';
+import CheckoutSummary from './Checkout/CheckoutSummary';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -319,7 +324,7 @@ const Checkout = () => {
           // Get customer coordinates from pincode
           const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
           
-          // Calculate total weight of items in cart
+          // Calculate total weight of items in cart (considering quantity)
           let totalWeight = 0;
           cartItems.forEach(item => {
             // Extract numeric weight from string (e.g., "500g" -> 0.5kg, "1kg" -> 1kg)
@@ -327,8 +332,9 @@ const Checkout = () => {
             if (weightMatch) {
               const value = parseFloat(weightMatch[1]);
               const unit = weightMatch[2].toLowerCase();
-              // Convert to kg
-              totalWeight += unit === 'g' ? value / 1000 : value;
+              // Convert to kg and multiply by quantity
+              const weightInKg = unit === 'g' ? value / 1000 : value;
+              totalWeight += weightInKg * item.quantity;
             }
           });
           
@@ -1007,849 +1013,79 @@ const Checkout = () => {
         <div className="xl:col-span-2 order-2 xl:order-1">
           {/* Step 1: Contact Information */}
           {currentStep === 1 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <User className="h-5 w-5 mr-2" />
-                  Contact Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-medium">
-                      Full Name *
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        id="name"
-                        type="text"
-                        placeholder="Enter your full name"
-                        value={customerInfo.name}
-                        onChange={(e) => {
-                          setCustomerInfo({...customerInfo, name: e.target.value});
-                          // Clear errors when user starts typing
-                          if (contactErrors.length > 0) {
-                            setContactErrors([]);
-                          }
-                        }}
-                        className={`pl-10 h-12 ${contactErrors.some(e => e.includes('name') || e.includes('Name')) ? 'border-red-500' : ''}`}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">
-                      Phone Number *
-                    </Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="Enter your phone number"
-                        value={customerInfo.phone}
-                        onChange={(e) => {
-                          setCustomerInfo({...customerInfo, phone: e.target.value});
-                          if (contactErrors.length > 0) {
-                            setContactErrors([]);
-                          }
-                        }}
-                        className={`pl-10 h-12 ${contactErrors.some(e => e.includes('phone') || e.includes('Phone')) ? 'border-red-500' : ''}`}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    Email Address *
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email address"
-                      value={customerInfo.email}
-                      onChange={(e) => {
-                        setCustomerInfo({...customerInfo, email: e.target.value});
-                        if (contactErrors.length > 0) {
-                          setContactErrors([]);
-                        }
-                      }}
-                      className={`pl-10 h-12 ${contactErrors.some(e => e.includes('email') || e.includes('Email')) ? 'border-red-500' : ''}`}
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Validation Errors */}
-                {contactErrors.length > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="h-5 w-5 text-red-600 mt-0.5">⚠️</div>
-                      <div>
-                        <h4 className="font-medium text-red-900 text-sm mb-1">
-                          Please fix the following errors:
-                        </h4>
-                        <ul className="text-red-700 text-sm space-y-1">
-                          {contactErrors.map((error, index) => (
-                            <li key={index}>• {error}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-blue-900 text-sm">
-                        Your information is secure
-                      </h4>
-                      <p className="text-blue-700 text-sm mt-1">
-                        We use your contact details only for order updates and delivery coordination.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-4">
-                  <Button onClick={handleNextStep} size="lg" className="px-8">
-                    Continue to Location
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CheckoutContactInfo
+              customerInfo={customerInfo}
+              setCustomerInfo={setCustomerInfo}
+              onNext={handleNextStep}
+            />
           )}
 
           {/* Step 2: Address Details */}
           {currentStep === 2 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MapPin className="h-5 w-5 mr-2" />
-                  Complete Address Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Delivery Information */}
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <Clock className="h-5 w-5 text-orange-600 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-orange-900 text-sm">
-                        Fast Delivery Available
-                      </h4>
-                      <p className="text-orange-700 text-sm mt-1">
-                        Get your bulk orders delivered within 2-3 business days nationwide.
-                        {!meetsThreshold(subtotal, settings.free_delivery_threshold) && (
-                          <span className="block mt-1 font-medium">
-                            Add {formatCurrency(toNumber(settings.free_delivery_threshold) - subtotal, settings.currency_symbol)} more for FREE delivery!
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Saved Addresses Section */}
-                {savedAddresses.length > 0 && !useExistingAddress && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-gray-900">Use Saved Address</h4>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAddressForm(true)}
-                      >
-                        Add New Address
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-3">
-                      {savedAddresses.map((address) => (
-                        <div
-                          key={address.id}
-                          className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                            selectedAddress?.id === address.id 
-                              ? 'border-primary bg-primary/5' 
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          onClick={() => handleSavedAddressSelect(address)}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <span className="font-medium text-sm">{address.name}</span>
-                                <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                                  {address.type.charAt(0).toUpperCase() + address.type.slice(1)}
-                                </span>
-                                {address.is_default && (
-                                  <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-                                    Default
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600">
-                                {address.address_line_1}
-                                {address.address_line_2 && `, ${address.address_line_2}`}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                {address.city}, {address.state} - {address.pincode}
-                              </p>
-                              {address.landmark && (
-                                <p className="text-xs text-gray-500">Near {address.landmark}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="text-center">
-                      <Button
-                        variant="ghost"
-                        onClick={() => setShowAddressForm(true)}
-                        className="text-primary"
-                      >
-                        + Add New Address Instead
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Show address form if no saved addresses or user wants to add new */}
-                {(savedAddresses.length === 0 || showAddressForm || useExistingAddress) && (
-                  <>
-                    {useExistingAddress && (
-                      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-sm font-medium text-green-800">
-                            Using saved address: {selectedAddress?.name}
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setUseExistingAddress(false);
-                            setSelectedAddress(null);
-                            setShowAddressForm(true);
-                          }}
-                          className="text-green-700 hover:text-green-800"
-                        >
-                          Change
-                        </Button>
-                      </div>
-                    )}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <MapPin className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-blue-900 text-sm">
-                        Delivery Address
-                      </h4>
-                      <p className="text-blue-700 text-sm mt-1">
-                        {addressDetails.city && addressDetails.state && addressDetails.pincode 
-                          ? `${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`
-                          : 'Please fill in your city, state, and pincode above'
-                        }
-                      </p>
-                      {estimatedDeliveryFee !== null && estimatedDeliveryTime && (
-                        <div className="text-blue-700 text-sm mt-2">
-                          <span className="font-medium">Estimated Delivery:</span> {estimatedDeliveryTime} 
-                          <span className="font-medium">({formatPrice(estimatedDeliveryFee)})</span>
-                        </div>
-                      )}
-                      {estimatedDeliveryFee === null && addressDetails.pincode && (
-                        <div className="text-blue-700 text-sm mt-2 flex items-center">
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
-                          Calculating delivery charges...
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="plotNumber" className="text-sm font-medium">
-                      Plot/House Number *
-                    </Label>
-                    <Input
-                      id="plotNumber"
-                      type="text"
-                      placeholder="e.g., 123, A-45"
-                      value={addressDetails.plotNumber}
-                      onChange={(e) => setAddressDetails({...addressDetails, plotNumber: e.target.value})}
-                      className="h-12"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="buildingName" className="text-sm font-medium">
-                      Building/Society Name
-                    </Label>
-                    <Input
-                      id="buildingName"
-                      type="text"
-                      placeholder="e.g., Green Valley Apartments"
-                      value={addressDetails.buildingName}
-                      onChange={(e) => setAddressDetails({...addressDetails, buildingName: e.target.value})}
-                      className="h-12"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="street" className="text-sm font-medium">
-                    Street/Area *
-                  </Label>
-                  <Input
-                    id="street"
-                    type="text"
-                    placeholder="e.g., MG Road, Sector 15"
-                    value={addressDetails.street}
-                    onChange={(e) => setAddressDetails({...addressDetails, street: e.target.value})}
-                    className="h-12"
-                    required
-                  />
-                </div>
-
-                {/* City, State, and Pincode */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="city" className="text-sm font-medium">
-                      City *
-                    </Label>
-                    <Input
-                      id="city"
-                      type="text"
-                      placeholder="Enter your city"
-                      value={addressDetails.city}
-                      onChange={(e) => setAddressDetails({...addressDetails, city: e.target.value})}
-                      className="h-12"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="state" className="text-sm font-medium">
-                      State *
-                    </Label>
-                    <Input
-                      id="state"
-                      type="text"
-                      placeholder="Enter your state"
-                      value={addressDetails.state}
-                      onChange={(e) => setAddressDetails({...addressDetails, state: e.target.value})}
-                      className="h-12"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="pincode" className="text-sm font-medium">
-                      Pincode *
-                    </Label>
-                    <Input
-                      id="pincode"
-                      type="text"
-                      placeholder="Enter 6-digit pincode"
-                      value={addressDetails.pincode}
-                      onChange={(e) => setAddressDetails({...addressDetails, pincode: e.target.value})}
-                      className="h-12"
-                      maxLength={6}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="landmark" className="text-sm font-medium">
-                    Nearby Landmark
-                  </Label>
-                  <Input
-                    id="landmark"
-                    type="text"
-                    placeholder="e.g., Near Metro Station"
-                    value={addressDetails.landmark}
-                    onChange={(e) => setAddressDetails({...addressDetails, landmark: e.target.value})}
-                    className="h-12"
-                  />
-                </div>
-
-                {/* Address saving options - only show for authenticated users */}
-                {currentUser && (
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Save this address as</Label>
-                    <RadioGroup
-                      value={addressDetails.addressType}
-                      onValueChange={(value: 'home' | 'work' | 'other') =>
-                        setAddressDetails({...addressDetails, addressType: value})
-                      }
-                      className="flex space-x-6"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="home" id="home" />
-                        <Label htmlFor="home" className="cursor-pointer">🏠 Home</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="work" id="work" />
-                        <Label htmlFor="work" className="cursor-pointer">🏢 Work</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="other" id="other" />
-                        <Label htmlFor="other" className="cursor-pointer">📍 Other</Label>
-                      </div>
-                    </RadioGroup>
-
-                    {addressDetails.addressType === 'other' && (
-                      <Input
-                        placeholder="Enter custom name (e.g., Friend's Place)"
-                        value={addressDetails.saveAs}
-                        onChange={(e) => setAddressDetails({...addressDetails, saveAs: e.target.value})}
-                        className="h-12 mt-2"
-                      />
-                    )}
-                  </div>
-                )}
-
-                {/* Save Address Option - only show for authenticated users */}
-                {currentUser && !useExistingAddress && (
-                  <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="saveAddress"
-                      checked={true}
-                      readOnly
-                      className="rounded"
-                    />
-                    <Label htmlFor="saveAddress" className="text-sm text-blue-800">
-                      Save this address to your profile for future orders
-                      {savedAddresses.length >= 3 && (
-                        <span className="block text-xs text-orange-600 mt-1">
-                          ⚠️ You have reached the maximum limit of 3 saved addresses
-                        </span>
-                      )}
-                    </Label>
-                  </div>
-                )}
-                </>
-                )}
-
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={handlePrevStep} size="lg" className="px-8">
-                    Back to Contact
-                  </Button>
-                  <Button
-                    onClick={handleNextStep}
-                    disabled={
-                      useExistingAddress 
-                        ? !selectedAddress || !addressDetails.city || !addressDetails.state || !addressDetails.pincode
-                        : !addressDetails.plotNumber || !addressDetails.street || !addressDetails.city || !addressDetails.state || !addressDetails.pincode
-                    }
-                    size="lg"
-                    className="px-8"
-                  >
-                    Continue to Payment
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CheckoutAddressDetails
+              addressDetails={addressDetails}
+              setAddressDetails={setAddressDetails}
+              savedAddresses={savedAddresses}
+              selectedAddress={selectedAddress}
+              setSelectedAddress={setSelectedAddress}
+              useExistingAddress={useExistingAddress}
+              setUseExistingAddress={setUseExistingAddress}
+              showAddressForm={showAddressForm}
+              setShowAddressForm={setShowAddressForm}
+              settings={settings}
+              subtotal={subtotal}
+              currentUser={currentUser}
+              onNext={handleNextStep}
+              onPrev={handlePrevStep}
+              estimatedDeliveryFee={estimatedDeliveryFee}
+              setEstimatedDeliveryFee={setEstimatedDeliveryFee}
+              estimatedDeliveryTime={estimatedDeliveryTime}
+              setEstimatedDeliveryTime={setEstimatedDeliveryTime}
+              cartItems={cartItems}
+            />
           )}
 
           {/* Step 3: Payment */}
           {currentStep === 3 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  Payment Method
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                  {/* Pay Online Option */}
-                  {settings.razorpay_enabled && (
-                    <div className="relative">
-                      <div className="flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-blue-300 transition-colors cursor-pointer">
-                        <RadioGroupItem value="online" id="online" />
-                        <Label htmlFor="online" className="flex-1 cursor-pointer">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-base">Pay Online</div>
-                              <div className="text-sm text-gray-600 mt-1">
-                                {[
-                                  settings.card_enabled && 'Credit/Debit Card',
-                                  settings.upi_enabled && 'UPI',
-                                  settings.netbanking_enabled && 'Net Banking'
-                                ].filter(Boolean).join(', ')}
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {settings.card_enabled && (
-                                <>
-                                  <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">
-                                    VISA
-                                  </div>
-                                  <div className="w-8 h-5 bg-red-600 rounded text-white text-xs flex items-center justify-center font-bold">
-                                    MC
-                                  </div>
-                                </>
-                              )}
-                              {settings.upi_enabled && (
-                                <div className="w-8 h-5 bg-orange-500 rounded text-white text-xs flex items-center justify-center font-bold">
-                                  UPI
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </Label>
-                      </div>
-                      {paymentMethod === 'online' && (
-                        <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center space-x-2">
-                            <Shield className="h-4 w-4 text-green-600" />
-                            <span className="text-sm text-green-700 font-medium">
-                              Secure payment powered by Razorpay
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Cash on Delivery Option */}
-                  {settings.cod_enabled && total <= Number(settings.cod_threshold) && (
-                    <div className="relative">
-                      <div className="flex items-center space-x-3 p-4 border-2 rounded-lg hover:border-blue-300 transition-colors cursor-pointer">
-                        <RadioGroupItem value="cod" id="cod" />
-                        <Label htmlFor="cod" className="flex-1 cursor-pointer">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-medium text-base">Cash on Delivery</div>
-                              <div className="text-sm text-gray-600 mt-1">
-                                Pay when your order is delivered
-                                {Number(settings.cod_charge) > 0 && (
-                                  <span className="text-orange-600 font-medium">
-                                    {' '}+ {settings.currency_symbol}{Number(settings.cod_charge).toFixed(2)} COD fee
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-2xl">💵</div>
-                          </div>
-                        </Label>
-                      </div>
-                      {paymentMethod === 'cod' && (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm text-blue-700">
-                              Please keep exact change ready for faster delivery
-                              {Number(settings.cod_charge) > 0 && (
-                                <span className="block mt-1 font-medium">
-                                  COD fee: {settings.currency_symbol}{Number(settings.cod_charge).toFixed(2)} will be added to your total
-                                </span>
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* COD Not Available Message */}
-                  {settings.cod_enabled && total > Number(settings.cod_threshold) && (
-                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-orange-600" />
-                        <span className="text-sm text-orange-700">
-                          Cash on Delivery not available for orders above {settings.currency_symbol}{Number(settings.cod_threshold).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </RadioGroup>
-
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={handlePrevStep} size="lg" className="px-8">
-                    Back to Address
-                  </Button>
-                  <Button
-                    onClick={handleNextStep}
-                    size="lg"
-                    className="px-8"
-                  >
-                    Review Order
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CheckoutPayment
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
+              settings={settings}
+              total={total}
+              onNext={handleNextStep}
+              onPrev={handlePrevStep}
+            />
           )}
 
           {/* Step 4: Order Summary */}
           {currentStep === 4 && (
-            <div className="space-y-6">
-              {/* Order Summary Header */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center text-green-600">
-                    <Shield className="h-5 w-5 mr-2" />
-                    Review Your Order
-                  </CardTitle>
-                </CardHeader>
-              </Card>
-
-              {/* Personal Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center text-lg">
-                    <User className="h-5 w-5 mr-2" />
-                    Contact Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-medium">{customerInfo.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium">{customerInfo.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Phone</p>
-                      <p className="font-medium">{customerInfo.phone}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Delivery Address */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center text-lg">
-                    <MapPin className="h-5 w-5 mr-2" />
-                    Delivery Address
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">
-                          {addressDetails.plotNumber}
-                          {addressDetails.buildingName && `, ${addressDetails.buildingName}`}
-                        </p>
-                        <p className="text-gray-600">
-                          {addressDetails.street}
-                          {addressDetails.landmark && `, Near ${addressDetails.landmark}`}
-                        </p>
-                        <p className="text-gray-600">
-                          Pincode: {addressDetails.pincode}
-                        </p>
-                        <div className="flex items-center mt-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {addressDetails.addressType === 'home' ? '🏠 Home' :
-                             addressDetails.addressType === 'work' ? '🏢 Work' :
-                             `📍 ${addressDetails.saveAs || 'Other'}`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
-                      <strong>Delivery Area:</strong> {addressDetails.city && addressDetails.state && addressDetails.pincode 
-                        ? `${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`
-                        : 'Address details will appear here'
-                      }
-                    </div>
-                    {estimatedDeliveryFee !== null && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="text-sm font-medium text-green-800">Delivery Information</p>
-                            <p className="text-xs text-green-700">Calculated using Delhivery API</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-green-800">
-                              {estimatedDeliveryFee === 0 ? 'FREE' : formatPrice(estimatedDeliveryFee)}
-                            </p>
-                            <p className="text-xs text-green-700">{estimatedDeliveryTime}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Order Items */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center text-lg">
-                    <Truck className="h-5 w-5 mr-2" />
-                    Order Items ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {cartItems.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg bg-gray-50">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                          <p className="text-sm text-gray-600">
-                            {item.weight} • Qty: {item.quantity}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg">{formatPrice(item.price * item.quantity)}</p>
-                          <p className="text-sm text-gray-500">
-                            {formatPrice(item.price)} each
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Payment Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center text-lg">
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    Payment Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50">
-                      <div className="flex items-center space-x-3">
-                        {paymentMethod === 'cod' ? (
-                          <>
-                            <div className="text-2xl">💵</div>
-                            <div>
-                              <p className="font-medium">Cash on Delivery</p>
-                              <p className="text-sm text-gray-600">Pay when your order is delivered</p>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="text-2xl">💳</div>
-                            <div>
-                              <p className="font-medium">Pay Online</p>
-                              <p className="text-sm text-gray-600">Secure payment via Razorpay</p>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-xl text-green-600">{formatPrice(total)}</p>
-                      </div>
-                    </div>
-
-                    {/* Bill Breakdown */}
-                    <div className="border rounded-lg p-4 space-y-3">
-                      <h4 className="font-medium text-gray-900">Bill Details</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Item Total</span>
-                          <span>{formatPrice(subtotal)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Delivery Fee</span>
-                          <span>
-                            {deliveryFee === 0 ? (
-                              <span className="text-green-600 font-medium">FREE</span>
-                            ) : (
-                              formatPrice(deliveryFee)
-                            )}
-                          </span>
-                        </div>
-                        {estimatedDeliveryTime && (
-                          <div className="flex justify-between text-sm text-gray-600">
-                            <span>Estimated Delivery Time</span>
-                            <span>{estimatedDeliveryTime}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between">
-                          <span>Taxes & Charges ({Number(settings.tax_rate || 0).toFixed(0)}%)</span>
-                          <span>{formatPrice(tax)}</span>
-                        </div>
-                        {paymentMethod === 'cod' && Number(settings.cod_charge) > 0 && (
-                          <div className="flex justify-between">
-                            <span>COD Fee</span>
-                            <span>{formatPrice(codFee)}</span>
-                          </div>
-                        )}
-                        {discount > 0 && (
-                          <div className="flex justify-between text-green-600">
-                            <span>Discount Applied</span>
-                            <span>-{formatPrice(discount)}</span>
-                          </div>
-                        )}
-                        <Separator />
-                        <div className="flex justify-between font-bold text-lg">
-                          <span>Total Amount</span>
-                          <span>{formatPrice(total)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Action Buttons */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex justify-between">
-                    <Button variant="outline" onClick={handlePrevStep} size="lg" className="px-8">
-                      Back to Payment
-                    </Button>
-                    <Button
-                      onClick={handlePlaceOrder}
-                      size="lg"
-                      className="px-8 bg-green-600 hover:bg-green-700"
-                      disabled={isProcessingPayment || !isMinOrderMet}
-                    >
-                      {isProcessingPayment ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>Processing...</span>
-                        </div>
-                      ) : !isMinOrderMet ? (
-                        <div className="flex items-center space-x-2">
-                          <span>Add {formatCurrency(minOrderShortfall, settings.currency_symbol)} More</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-2">
-                          <Shield className="h-4 w-4" />
-                          <span>{paymentMethod === 'cod' ? 'Place Order' : 'Pay Now'} {formatPrice(total)}</span>
-                        </div>
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <CheckoutSummary
+              customerInfo={customerInfo}
+              addressDetails={addressDetails}
+              paymentMethod={paymentMethod}
+              cartItems={cartItems}
+              subtotal={subtotal}
+              tax={tax}
+              deliveryFee={deliveryFee}
+              codFee={codFee}
+              discount={discount}
+              total={total}
+              settings={settings}
+              isMinOrderMet={isMinOrderMet}
+              minOrderShortfall={minOrderShortfall}
+              isProcessingPayment={isProcessingPayment}
+              estimatedDeliveryFee={estimatedDeliveryFee}
+              estimatedDeliveryTime={estimatedDeliveryTime}
+              couponCode={couponCode}
+              setCouponCode={setCouponCode}
+              appliedCoupon={appliedCoupon}
+              setAppliedCoupon={setAppliedCoupon}
+              availableCoupons={availableCoupons}
+              onPlaceOrder={handlePlaceOrder}
+              onPrev={handlePrevStep}
+              onApplyCoupon={applyCoupon}
+              onRemoveCoupon={removeCoupon}
+            />
           )}
         </div>
 

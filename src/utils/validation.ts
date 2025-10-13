@@ -1,5 +1,5 @@
 /**
- * Form validation utilities for BulkBox
+ * Form validation utilities for supersweets
  * Provides validation functions for checkout and other forms
  */
 

@@ -133,31 +133,31 @@ class DelhiveryService {
     try {
       console.log('Estimating Delhivery delivery pricing:', { pickupPincode, deliveryPincode, orderValue, weight });
 
-      // Normalize pincode format
-      const normalizedPickupPincode = pickupPincode.replace(/\D/g, '').slice(0, 6) || '110001';
-      const normalizedDeliveryPincode = deliveryPincode.replace(/\D/g, '').slice(0, 6) || '110001';
-
-      // Since CORS proxies block Authorization headers, we'll use the fallback calculation
-      // This is a simplified distance-based calculation when the API is not accessible
-      const distanceFactor = this.calculateDistanceFactor(normalizedPickupPincode, normalizedDeliveryPincode);
-      const shippingCharges = Math.max(50, Math.round(50 + (distanceFactor * 10) + (weight * 5)));
-      
-      return {
-        shipping_charges: shippingCharges,
-        cod_charges: orderValue > 1000 ? 0 : 30, // COD charges
-        estimated_delivery_time: '2-5 business days',
-        serviceability: true
-      };
+      // Due to CORS restrictions, we cannot make direct API calls to Delhivery from the browser
+      // Always use fallback calculation method
+      console.warn('Using fallback calculation due to CORS restrictions');
+      return this.getFallbackPricing(pickupPincode, deliveryPincode, orderValue, weight);
     } catch (error) {
       console.error('Delhivery pricing estimation error:', error);
-      // Return a default estimate if calculation fails
-      return {
-        shipping_charges: 75, // Default shipping charges
-        cod_charges: 30, // Default COD charges
-        estimated_delivery_time: '2-5 business days',
-        serviceability: true
-      };
+      // Fallback to standard delivery charge calculation
+      return this.getFallbackPricing(pickupPincode, deliveryPincode, orderValue, weight);
     }
+  }
+
+  // Fallback pricing calculation
+  private getFallbackPricing(pickupPincode: string, deliveryPincode: string, orderValue: number, weight: number): DelhiveryPricingResponse {
+    const distanceFactor = this.calculateDistanceFactor(
+      pickupPincode.replace(/\D/g, '').slice(0, 6) || '110001',
+      deliveryPincode.replace(/\D/g, '').slice(0, 6) || '110001'
+    );
+    const shippingCharges = Math.max(50, Math.round(50 + (distanceFactor * 10) + (weight * 5)));
+    
+    return {
+      shipping_charges: shippingCharges,
+      cod_charges: orderValue > 1000 ? 0 : 30, // COD charges
+      estimated_delivery_time: '2-5 business days',
+      serviceability: true
+    };
   }
 
   // Calculate a simple distance factor based on pincodes
@@ -217,40 +217,38 @@ class DelhiveryService {
     try {
       console.log('Creating Delhivery delivery order:', orderData);
 
-      // Since CORS proxies block Authorization headers, we'll use the fallback response
-      // Return mock response for development/testing
-      const mockResponse: DelhiveryOrderResponse = {
-        task_id: `DLV_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        status: 'created',
-        tracking_url: `https://www.delhivery.com/tracking/${Date.now()}`,
-        estimated_fare: Math.floor(Math.random() * 100) + 50,
-        estimated_delivery_time: '2-5 business days'
-      };
-      
-      console.log('Using mock Delhivery response:', mockResponse);
-      return mockResponse;
+      // Due to CORS restrictions, we cannot make direct API calls to Delhivery from the browser
+      // Always use mock response
+      console.warn('Using mock response due to CORS restrictions');
+      return this.getMockOrderResponse();
     } catch (error) {
       console.error('Delhivery API error:', error);
-      
       // Return mock response for development/testing
-      const mockResponse: DelhiveryOrderResponse = {
-        task_id: `DLV_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        status: 'created',
-        tracking_url: `https://www.delhivery.com/tracking/${Date.now()}`,
-        estimated_fare: Math.floor(Math.random() * 100) + 50,
-        estimated_delivery_time: '2-5 business days'
-      };
-      
-      console.log('Using mock Delhivery response:', mockResponse);
-      return mockResponse;
+      return this.getMockOrderResponse();
     }
+  }
+
+  // Get mock order response
+  private getMockOrderResponse(): DelhiveryOrderResponse {
+    const mockResponse: DelhiveryOrderResponse = {
+      task_id: `DLV_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      status: 'created',
+      tracking_url: `https://www.delhivery.com/tracking/${Date.now()}`,
+      estimated_fare: Math.floor(Math.random() * 100) + 50,
+      estimated_delivery_time: '2-5 business days'
+    };
+    
+    console.log('Using mock Delhivery response:', mockResponse);
+    return mockResponse;
   }
 
   // Get order status from Delhivery
   async getOrderStatus(taskId: string): Promise<{ status: string; location?: { lat: number; lng: number } }> {
     try {
-      // Since CORS proxies block Authorization headers, we'll use the fallback response
-      return { status: 'in_transit' };
+      // Due to CORS restrictions, we cannot make direct API calls to Delhivery from the browser
+      // Always use mock response
+      console.warn('Using mock response due to CORS restrictions');
+      return { status: 'unknown' };
     } catch (error) {
       console.error('Delhivery status check error:', error);
       return { status: 'unknown' };
@@ -260,8 +258,9 @@ class DelhiveryService {
   // Cancel Delhivery order
   async cancelOrder(taskId: string): Promise<boolean> {
     try {
-      // Since CORS proxies block Authorization headers, we'll use the fallback response
-      // For demo purposes, always return true
+      // Due to CORS restrictions, we cannot make direct API calls to Delhivery from the browser
+      // Always use mock response
+      console.warn('Using mock response due to CORS restrictions');
       return true;
     } catch (error) {
       console.error('Delhivery cancel order error:', error);
