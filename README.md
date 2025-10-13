@@ -29,18 +29,22 @@ The following settings can be configured:
 ### Delhivery API Integration
 The system integrates with Delhivery's delivery API to get real-time delivery pricing estimates. The integration includes:
 
-1. **Pricing Estimation**: Calculates delivery fees based on pincode distance
-2. **Order Creation**: Creates delivery orders in the Delhivery system
-3. **Order Tracking**: Retrieves order status and location information
-4. **Order Cancellation**: Cancels orders in the Delhivery system
+1. **Pricing Estimation**: Calculates delivery fees based on pincode distance using actual Delhivery API data
+2. **Serviceability Check**: Verifies if delivery is possible to the customer's area using real API responses
+3. **Order Creation**: Creates delivery orders in the Delhivery system
+4. **Order Tracking**: Retrieves order status and location information
+5. **Order Cancellation**: Cancels orders in the Delhivery system
 
 ### Delivery Fee Calculation
-The delivery fee is calculated using a simplified distance-based algorithm based on pincode:
-- Same pincode: Minimal charge
-- Same city: Moderate charge
-- Different cities: Higher charge
+The delivery fee is now calculated using the actual Delhivery API which provides accurate pricing based on:
+- Distance between pickup and delivery locations
+- Package weight
+- Delivery zone
+- Service type (surface/air)
+- Additional charges (fuel, peak, etc.)
 
-The current implementation uses a mock calculation for demonstration purposes. To enable real API calls, uncomment the actual API call sections in `src/utils/delhivery.ts`.
+### Serviceability Checking
+The system now checks serviceability in real-time using Delhivery's API responses rather than assumptions.
 
 ### Fallback Mechanism
 The system includes a built-in fallback mechanism that uses simplified distance calculations when the API is unavailable or during development.
@@ -49,9 +53,9 @@ The system includes a built-in fallback mechanism that uses simplified distance 
 
 1. Customer enters their delivery address during checkout
 2. System extracts pincode from the address
-3. Calculates distance-based delivery fee using pincode mapping
-4. Applies free delivery rules based on order value
-5. Displays calculated delivery fee to customer
+3. Makes real-time API call to Delhivery to calculate accurate delivery fee and check serviceability
+4. Displays calculated delivery fee and estimated delivery time to customer
+5. If delivery is not serviceable to the area, informs the customer accordingly
 
 ## Configuration
 
@@ -86,12 +90,14 @@ To use the Delhivery API integration, you need to obtain API credentials from De
 Create a `.env` file in the root of your project with your Delhivery API credentials:
 ```env
 # Delhivery API Configuration
-VITE_DELHIVERY_API_KEY=your_actual_delhivery_api_key_here
+VITE_DELHIVERY_API_KEY=your_actual_delivery_api_key_here
 VITE_DELHIVERY_BASE_URL=https://track.delhivery.com
 
 # For testing, you can use:
 # VITE_DELHIVERY_BASE_URL=https://staging-experience.delhivery.com
 ```
+
+**Important**: You also need to set the `DELHIVERY_API_KEY` environment variable in your Supabase project settings for the proxy function to work.
 
 ### Shop Pickup Location
 Configure your shop pickup location in `src/utils/delhivery.ts`:
@@ -118,13 +124,14 @@ Set delivery-related settings in the admin panel:
 - `src/pages/Checkout.tsx`: Main implementation of Delhivery API integration for delivery fee calculation
 - `src/utils/delhivery.ts`: Complete Delhivery service with all API methods (pricing, order creation, tracking, cancellation)
 - `src/hooks/useSettings.ts`: Settings management for delivery pricing rules
+- `supabase/functions/delhivery-proxy/index.ts`: Proxy function to handle Delhivery API calls and avoid CORS issues
 
 ## API Methods Implementation
 
 The Delhivery service in `src/utils/delhivery.ts` includes the following methods:
 
 ### 1. estimateDeliveryPricing()
-Calculates delivery fees based on pickup and delivery pincodes:
+Calculates delivery fees based on pickup and delivery pincodes using the actual Delhivery API:
 ```typescript
 async estimateDeliveryPricing(
   pickupPincode: string, 
@@ -183,18 +190,59 @@ To test the Delhivery integration:
    - Test with real addresses and pincodes
    - Verify pricing calculations and order creation
 
+### Testing the Supabase Function
+
+I've created several test files to help you verify your Supabase function is working correctly:
+
+1. **Browser-based Testing**:
+   - Open `test-delhivery-function.html` in your browser to test basic function calls
+   - Open `test-delhivery-integration.html` in your browser for comprehensive Delhivery API testing
+
+2. **Command-line Testing**:
+   - Run `node test-delhivery-function.js` to test the function from the command line
+
+3. **Manual Testing with curl**:
+   ```bash
+   curl -X POST https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_SUPABASE_ANON_KEY" \
+     -d '{
+       "method": "GET",
+       "path": "/api/kinko/v1/invoice/charges/.json?md=S&ss=RTO&d_pin=400001&o_pin=110001&cgm=1000"
+     }'
+   ```
+
+### Setting up Environment Variables
+
+1. **Frontend Environment Variables**:
+   - Create a `.env` file in your project root
+   - Add: `VITE_DELHIVERY_API_KEY=your_api_key_here`
+
+2. **Supabase Environment Variables**:
+   - Go to your Supabase project dashboard
+   - Navigate to Settings > Configuration > Environment Variables
+   - Add a new variable:
+     - Name: `DELHIVERY_API_KEY`
+     - Value: Your actual Delhivery API key
+   - Redeploy your functions after adding the variable
+
+3. **Supabase Anon Key**:
+   - You'll need your Supabase project's anon key for client-side requests
+   - Find it in your Supabase project dashboard under Project Settings > API
+
 ## Enabling Real API Calls
 
 ✅ **Real Delhivery API calls are now enabled!**
 
 The application is now configured to use the actual Delhivery API for:
 
-1. **Delivery Pricing Estimation** - Real-time calculation of shipping charges based on pincode distance
-2. **Order Creation** - Creating delivery orders in the Delhivery system
-3. **Order Tracking** - Retrieving real-time status updates for orders
-4. **Order Cancellation** - Canceling orders in the Delhivery system
+1. **Delivery Pricing Estimation** - Real-time calculation of shipping charges based on pincode distance using the `/api/kinko/v1/invoice/charges/.json` endpoint
+2. **Serviceability Checking** - Real-time verification if delivery is possible to customer's area
+3. **Order Creation** - Creating delivery orders in the Delhivery system
+4. **Order Tracking** - Retrieving real-time status updates for orders
+5. **Order Cancellation** - Canceling orders in the Delhivery system
 
-All API methods have been implemented with proper error handling and fallback mechanisms.
+All API methods have been implemented with proper error handling. **No fallback or mock data is used in normal operation** - all data is retrieved dynamically from the Delhivery API.
 
 ## Future Improvements
 
@@ -215,6 +263,8 @@ Common issues and solutions:
    - Verify your API key is correct and active
    - Check that you're using the correct base URL
    - Ensure your account has API access permissions
+   - Make sure the `DELHIVERY_API_KEY` is set in your Supabase project settings
+   - Ensure you're using the correct Authorization header format (`Token` for Delhivery API, `Bearer` for Supabase)
 
 2. **Serviceability Issues**:
    - Verify the delivery pincode is serviceable by Delhivery
@@ -227,6 +277,12 @@ Common issues and solutions:
 4. **Network Issues**:
    - Implement retry logic for transient network failures
    - Add timeout handling for slow API responses
+
+5. **401 Unauthorized Errors**:
+   - Ensure the `DELHIVERY_API_KEY` environment variable is correctly set in your Supabase project
+   - Verify your API key has the correct permissions
+   - Check that the Authorization header in client requests uses `Bearer` with your Supabase anon key
+   - Check that the Authorization header in the proxy function uses `Token` with your Delhivery API key
 
 ## Support
 
