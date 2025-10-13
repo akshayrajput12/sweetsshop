@@ -189,7 +189,7 @@ const Cart = () => {
                 <span>Delivery Fee</span>
                 <span>
                   {deliveryFee === 0 ? (
-                    <span className="text-green-600 font-medium">FREE</span>
+                    <span className="text-green-600 font-medium">Will be calculated</span>
                   ) : (
                     formatPrice(deliveryFee)
                   )}

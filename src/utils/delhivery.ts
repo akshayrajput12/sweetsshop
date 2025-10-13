@@ -122,39 +122,176 @@ class DelhiveryService {
   }
 
   // Estimate delivery pricing using Delhivery API
-  async estimateDeliveryPricing(pickupPincode: string, deliveryPincode: string, orderValue: number, weight: number = 1): Promise<DelhiveryPricingResponse> {
+  async estimateDeliveryPricing(
+    pickupPincode: string,
+    deliveryPincode: string,
+    orderValue: number,
+    weight: number = 1
+  ): Promise<DelhiveryPricingResponse> {
     try {
       console.log('Estimating Delhivery delivery pricing:', { pickupPincode, deliveryPincode, orderValue, weight });
 
-      // Use the Supabase proxy function to make the API call
       const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
-      
-      const requestBody = {
-        method: 'POST',
-        path: '/api/kinko/v1/invoice/charges/.json',
-        body: {
-          pickupPincode: pickupPincode,
-          deliveryPincode: deliveryPincode,
-          orderValue: orderValue,
-          weight: weight
-        }
-      };
-      
-      console.log('Sending request to Delhivery proxy:', proxyUrl, requestBody);
-      
-      const response = await fetch(proxyUrl, {
-        method: 'POST',
+
+      // Added mandatory `ss` and `md` fields to avoid 400 error
+      const queryParams = new URLSearchParams({
+        pickup_pincode: pickupPincode,
+        delivery_pincode: deliveryPincode,
+        weight: weight.toString(),
+        declared_value: orderValue.toString(),
+        cod: '0',
+        ss: 'Delivered',
+        md: 'S'  // S for surface delivery, E for express
+      });
+
+      const params = new URLSearchParams({
+        path: `/api/kinko/v1/invoice/charges/.json?${queryParams.toString()}`,
+        method: 'GET'
+      });
+
+      const fullUrl = `${proxyUrl}?${params.toString()}`;
+      console.log('Sending GET request to Delhivery proxy:', fullUrl);
+
+      const response = await fetch(fullUrl, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
-        },
-        body: JSON.stringify(requestBody)
+        }
       });
 
       console.log('Delhivery proxy response status:', response.status);
       console.log('Delhivery proxy response headers:', [...response.headers.entries()]);
 
-      // Check if the response is OK (status in the range 200-299)
+      const responseText = await response.text();
+      console.log('Delhivery proxy raw response text:', responseText);
+
+      if (!response.ok) {
+        console.error('Delhivery API error response:', responseText);
+        throw new Error(`Delhivery API error: ${response.status} - ${responseText}`);
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse Delhivery API response as JSON:', responseText);
+        throw new Error(`Invalid JSON response from Delhivery API: ${responseText}`);
+      }
+
+      console.log('Delhivery API parsed response data:', data);
+
+      // Handle different response formats
+      if (!data) {
+        console.warn('Delhivery API returned null or undefined data');
+        return {
+          shipping_charges: 0,
+          cod_charges: 0,
+          estimated_delivery_time: 'Service not available',
+          serviceability: false
+        };
+      }
+
+      // Check if response is an array or object
+      let chargeData;
+      if (Array.isArray(data) && data.length > 0) {
+        chargeData = data[0];
+      } else if (typeof data === 'object' && data !== null) {
+        // Some Delhivery API responses might be objects directly
+        chargeData = data;
+      } else {
+        console.warn('Delhivery API returned unexpected data format:', data);
+        return {
+          shipping_charges: 0,
+          cod_charges: 0,
+          estimated_delivery_time: 'Service not available',
+          serviceability: false
+        };
+      }
+
+      console.log('Delhivery charge data:', chargeData);
+
+      // Check for serviceability
+      const isServiceable = chargeData.serviceability === true || 
+                           (chargeData.total_amount > 0) || 
+                           (chargeData.shipping_charges > 0) ||
+                           chargeData.success === true;
+
+      console.log('Serviceability check:', { 
+        serviceability: chargeData.serviceability,
+        total_amount: chargeData.total_amount,
+        shipping_charges: chargeData.shipping_charges,
+        success: chargeData.success,
+        isServiceable 
+      });
+
+      // Extract shipping charges
+      const shippingCharges = chargeData.total_amount || 
+                             chargeData.shipping_charges || 
+                             chargeData.amount || 
+                             chargeData.charge || 
+                             0;
+
+      console.log('Extracted shipping charges:', shippingCharges);
+
+      return {
+        shipping_charges: shippingCharges,
+        cod_charges: orderValue > 1000 ? 0 : 30,
+        estimated_delivery_time: chargeData.estimated_delivery_time || 
+                                chargeData.delivery_time || 
+                                this.getDeliveryTimeEstimate(pickupPincode, deliveryPincode),
+        serviceability: isServiceable
+      };
+    } catch (error) {
+      console.error('Delhivery pricing estimation error:', error);
+      return {
+        shipping_charges: 0,
+        cod_charges: 0,
+        estimated_delivery_time: 'Service not available',
+        serviceability: false
+      };
+    }
+  }
+
+  private getDeliveryTimeEstimate(pickupPincode: string, deliveryPincode: string): string {
+    const cleanPickupPincode = pickupPincode.replace(/\D/g, '').slice(0, 6);
+    const cleanDeliveryPincode = deliveryPincode.replace(/\D/g, '').slice(0, 6);
+
+    if (cleanPickupPincode === cleanDeliveryPincode) return '1-2 business days';
+    if (cleanPickupPincode.substring(0, 3) === cleanDeliveryPincode.substring(0, 3)) return '2-3 business days';
+    return '3-5 business days';
+  }
+
+  // Create a delivery order with Delhivery
+  async createDeliveryOrder(orderData: DelhiveryCreateOrderRequest): Promise<DelhiveryOrderResponse> {
+    try {
+      console.log('Creating Delhivery delivery order:', orderData);
+
+      // Use the Supabase proxy function to make the API call with GET method
+      const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
+      
+      // Create query parameters for GET request
+      const params = new URLSearchParams({
+        path: '/api/cmu/create.json?format=json',
+        method: 'GET'
+      });
+      
+      params.append('body', JSON.stringify(orderData));
+      
+      const fullUrl = `${proxyUrl}?${params.toString()}`;
+      console.log('Sending GET request to Delhivery proxy:', fullUrl);
+      
+      const response = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+        }
+      });
+
+      console.log('Delhivery proxy response status:', response.status);
+      console.log('Delhivery proxy response headers:', [...response.headers.entries()]);
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Delhivery API error response:', errorText);
@@ -181,109 +318,15 @@ class DelhiveryService {
       // Check if this is a debug response (indicating the function is not properly deployed)
       if (data.message && data.message.includes("Delhivery proxy function is working")) {
         console.warn("Proxy function is returning debug response - may not be properly configured");
-        // Return default values in this case
+        // Return error response
         return {
-          shipping_charges: 0,
-          cod_charges: 0,
-          estimated_delivery_time: 'Service temporarily unavailable',
-          serviceability: false
+          task_id: '',
+          status: 'error',
+          tracking_url: '',
+          estimated_fare: 0,
+          estimated_delivery_time: 'Service unavailable'
         };
       }
-      
-      // Parse the response to extract pricing information
-      if (data && data.length > 0) {
-        const chargeData = data[0];
-        const shippingCharges = chargeData.total_amount || 0;
-        
-        // Check serviceability based on API response
-        const isServiceable = chargeData.total_amount > 0;
-        
-        return {
-          shipping_charges: shippingCharges,
-          cod_charges: orderValue > 1000 ? 0 : 30, // COD charges
-          estimated_delivery_time: this.getDeliveryTimeEstimate(pickupPincode, deliveryPincode),
-          serviceability: isServiceable
-        };
-      } else {
-        // If no data returned, service is not available
-        return {
-          shipping_charges: 0,
-          cod_charges: 0,
-          estimated_delivery_time: 'Service not available',
-          serviceability: false
-        };
-      }
-    } catch (error) {
-      console.error('Delhivery pricing estimation error:', error);
-      // If API call fails, service is not available
-      return {
-        shipping_charges: 0,
-        cod_charges: 0,
-        estimated_delivery_time: 'Service not available',
-        serviceability: false
-      };
-    }
-  }
-
-  // Get delivery time estimate based on pincode distance
-  private getDeliveryTimeEstimate(pickupPincode: string, deliveryPincode: string): string {
-    // Clean the pincodes
-    const cleanPickupPincode = pickupPincode.replace(/\D/g, '').slice(0, 6);
-    const cleanDeliveryPincode = deliveryPincode.replace(/\D/g, '').slice(0, 6);
-    
-    // If same pincode, fastest delivery
-    if (cleanPickupPincode === cleanDeliveryPincode) {
-      return '1-2 business days';
-    }
-    
-    // Check if both pincodes are in the same city/region
-    const pickupRegion = cleanPickupPincode.substring(0, 3);
-    const deliveryRegion = cleanDeliveryPincode.substring(0, 3);
-    
-    if (pickupRegion === deliveryRegion) {
-      return '2-3 business days';
-    }
-    
-    // Different regions/cities
-    return '3-5 business days';
-  }
-
-  // Create a delivery order with Delhivery
-  async createDeliveryOrder(orderData: DelhiveryCreateOrderRequest): Promise<DelhiveryOrderResponse> {
-    try {
-      console.log('Creating Delhivery delivery order:', orderData);
-
-      // Use the Supabase proxy function to make the API call
-      const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
-      
-      const requestBody = {
-        method: 'POST',
-        path: '/api/cmu/create.json?format=json',
-        body: orderData
-      };
-      
-      console.log('Sending request to Delhivery proxy:', proxyUrl, requestBody);
-      
-      const response = await fetch(proxyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
-        },
-        body: JSON.stringify(requestBody)
-      });
-
-      console.log('Delhivery proxy response status:', response.status);
-      console.log('Delhivery proxy response headers:', [...response.headers.entries()]);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Delhivery API error response:', errorText);
-        throw new Error(`Delhivery API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log('Delhivery API response data:', data);
       
       // Return the actual response from Delhivery
       return {
@@ -328,23 +371,24 @@ class DelhiveryService {
   // Get order status from Delhivery
   async getOrderStatus(taskId: string): Promise<{ status: string; location?: { lat: number; lng: number } }> {
     try {
-      // Use the Supabase proxy function to make the API call
+      // Use the Supabase proxy function to make the API call with GET method
       const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
       
-      const requestBody = {
+      // Create query parameters for GET request
+      const params = new URLSearchParams({
+        path: `/api/v1/packages/json/?waybill=${taskId}`,
+        method: 'GET'
+      });
+      
+      const fullUrl = `${proxyUrl}?${params.toString()}`;
+      console.log('Sending GET request to Delhivery proxy:', fullUrl);
+      
+      const response = await fetch(fullUrl, {
         method: 'GET',
-        path: `/api/v1/packages/json/?waybill=${taskId}`
-      };
-      
-      console.log('Sending request to Delhivery proxy:', proxyUrl, requestBody);
-      
-      const response = await fetch(proxyUrl, {
-        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
-        },
-        body: JSON.stringify(requestBody)
+        }
       });
 
       console.log('Delhivery proxy response status:', response.status);
@@ -353,11 +397,31 @@ class DelhiveryService {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Delhivery API error response:', errorText);
-        throw new Error(`Delhivery API error: ${response.status} - ${errorText}`);
+        
+        // Try to parse the error response
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.detail) {
+            throw new Error(`Delhivery API error: ${response.status} - ${errorData.detail}`);
+          } else if (errorData.message) {
+            throw new Error(`Delhivery API error: ${response.status} - ${errorData.message}`);
+          }
+        } catch (parseError) {
+          // If we can't parse the error, use the raw text
+          throw new Error(`Delhivery API error: ${response.status} - ${errorText}`);
+        }
+        
+        throw new Error(`Delhivery API error: ${response.status}`);
       }
 
       const data = await response.json();
       console.log('Delhivery API response data:', data);
+      
+      // Check if this is a debug response (indicating the function is not properly deployed)
+      if (data.message && data.message.includes("Delhivery proxy function is working")) {
+        console.warn("Proxy function is returning debug response - may not be properly configured");
+        return { status: 'error' };
+      }
       
       // Parse the response to extract status information
       if (data && data.length > 0) {
@@ -380,23 +444,24 @@ class DelhiveryService {
   // Cancel Delhivery order
   async cancelOrder(taskId: string): Promise<boolean> {
     try {
-      // Use the Supabase proxy function to make the API call
+      // Use the Supabase proxy function to make the API call with GET method
       const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
       
-      const requestBody = {
+      // Create query parameters for GET request
+      const params = new URLSearchParams({
+        path: `/api/p/edit?waybill=${taskId}&cancellation=true`,
+        method: 'GET'
+      });
+      
+      const fullUrl = `${proxyUrl}?${params.toString()}`;
+      console.log('Sending GET request to Delhivery proxy:', fullUrl);
+      
+      const response = await fetch(fullUrl, {
         method: 'GET',
-        path: `/api/p/edit?waybill=${taskId}&cancellation=true`
-      };
-      
-      console.log('Sending request to Delhivery proxy:', proxyUrl, requestBody);
-      
-      const response = await fetch(proxyUrl, {
-        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
-        },
-        body: JSON.stringify(requestBody)
+        }
       });
 
       console.log('Delhivery proxy response status:', response.status);
@@ -405,11 +470,31 @@ class DelhiveryService {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Delhivery API error response:', errorText);
-        throw new Error(`Delhivery API error: ${response.status} - ${errorText}`);
+        
+        // Try to parse the error response
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.detail) {
+            throw new Error(`Delhivery API error: ${response.status} - ${errorData.detail}`);
+          } else if (errorData.message) {
+            throw new Error(`Delhivery API error: ${response.status} - ${errorData.message}`);
+          }
+        } catch (parseError) {
+          // If we can't parse the error, use the raw text
+          throw new Error(`Delhivery API error: ${response.status} - ${errorText}`);
+        }
+        
+        throw new Error(`Delhivery API error: ${response.status}`);
       }
 
       const data = await response.json();
       console.log('Delhivery API response data:', data);
+      
+      // Check if this is a debug response (indicating the function is not properly deployed)
+      if (data.message && data.message.includes("Delhivery proxy function is working")) {
+        console.warn("Proxy function is returning debug response - may not be properly configured");
+        return false;
+      }
       
       // Check if cancellation was successful
       return data.success === true;
@@ -422,6 +507,22 @@ class DelhiveryService {
 }
 
 export const delhiveryService = new DelhiveryService();
+
+// Test function to verify Delhivery API is working
+export async function testDelhiveryAPI(): Promise<void> {
+  console.log('Testing Delhivery API connection...');
+  try {
+    const testResult = await delhiveryService.estimateDeliveryPricing(
+      '110001', // Pickup pincode (Delhi)
+      '400001', // Delivery pincode (Mumbai)
+      1000,     // Order value
+      1         // Weight in kg
+    );
+    console.log('Delhivery API test result:', testResult);
+  } catch (error) {
+    console.error('Delhivery API test failed:', error);
+  }
+}
 
 // Helper function to create Delhivery order from checkout data
 export function createDelhiveryOrderFromCheckout(

@@ -79,6 +79,26 @@ const CheckoutAddressDetails = ({
 }: CheckoutAddressDetailsProps) => {
   const [addressErrors, setAddressErrors] = useState<string[]>([]);
   
+  // Test Delhivery service on component mount
+  useEffect(() => {
+    const testDelhiveryService = async () => {
+      console.log('Testing Delhivery service availability...');
+      try {
+        // Simple test to see if the service is working
+        console.log('Delhivery service:', delhiveryService);
+        if (delhiveryService && typeof delhiveryService.estimateDeliveryPricing === 'function') {
+          console.log('Delhivery service is available and has estimateDeliveryPricing method');
+        } else {
+          console.error('Delhivery service is not properly initialized');
+        }
+      } catch (error) {
+        console.error('Error testing Delhivery service:', error);
+      }
+    };
+    
+    testDelhiveryService();
+  }, []);
+
   // Simple pincode to coordinates mapping for major cities in India
   const PINCODE_COORDINATES: Record<string, { lat: number; lng: number; city: string; state: string }> = {
     // Delhi NCR
@@ -156,11 +176,30 @@ const CheckoutAddressDetails = ({
   // Estimate delivery fee when address details change
   useEffect(() => {
     const estimateDeliveryFee = async () => {
+      console.log('Checking if we should estimate delivery fee:', { 
+        hasPincode: !!addressDetails.pincode, 
+        hasCity: !!addressDetails.city, 
+        hasState: !!addressDetails.state,
+        addressDetails 
+      });
+      
       // Only estimate if we have a pincode and city/state
       if (addressDetails.pincode && addressDetails.city && addressDetails.state) {
+        console.log('Starting delivery fee estimation for:', { 
+          pickupPincode: PICKUP_LOCATION.pincode || '110001',
+          deliveryPincode: addressDetails.pincode,
+          subtotal,
+          cartItemsCount: cartItems.length
+        });
+        
         try {
+          // Test if delhiveryService is available
+          console.log('Delhivery service object:', delhiveryService);
+          console.log('Delhivery service methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(delhiveryService)));
+          
           // Get customer coordinates from pincode
           const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
+          console.log('Customer coordinates:', customerCoords);
           
           // Calculate total weight of items in cart (considering quantity)
           let totalWeight = 0;
@@ -176,9 +215,18 @@ const CheckoutAddressDetails = ({
             }
           });
           
+          console.log('Calculated cart weight:', totalWeight);
+          
           // Display the actual weight to the user but use buffered weight for API calculations
           const displayWeight = Math.max(1, totalWeight); // Display actual weight with minimum 1kg
           const bufferedWeight = Math.max(1, totalWeight * 1.2); // Use 20% buffer for API calculations
+          
+          console.log('Calling delhiveryService.estimateDeliveryPricing with:', {
+            pickupPincode: PICKUP_LOCATION.pincode || '110001',
+            deliveryPincode: addressDetails.pincode,
+            orderValue: subtotal,
+            weight: bufferedWeight
+          });
           
           // Estimate delivery pricing using Delhivery API
           const estimate = await delhiveryService.estimateDeliveryPricing(
@@ -188,15 +236,23 @@ const CheckoutAddressDetails = ({
             bufferedWeight // weight in kg with 20% buffer for API
           );
           
+          console.log('Delhivery API estimate result:', estimate);
+          
           // Set estimated delivery time
           setEstimatedDeliveryTime(estimate.estimated_delivery_time);
           
           // Check if order qualifies for free delivery
           const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
           if (subtotal >= freeDeliveryThreshold && estimate.serviceability) {
+            console.log('Order qualifies for free delivery');
             setEstimatedDeliveryFee(0);
-          } else {
+          } else if (estimate.serviceability) {
+            console.log('Setting delivery fee to:', estimate.shipping_charges);
             setEstimatedDeliveryFee(estimate.shipping_charges);
+          } else {
+            console.log('Delivery not serviceable, setting fee to 0 and showing message');
+            setEstimatedDeliveryFee(0);
+            setEstimatedDeliveryTime('Delivery not available to this pincode');
           }
         } catch (error) {
           console.error('Error estimating delivery fee:', error);
@@ -210,13 +266,25 @@ const CheckoutAddressDetails = ({
           }
         }
       } else {
+        console.log('Not enough address information to estimate delivery fee');
         // Reset estimated delivery fee if we don't have complete address
         setEstimatedDeliveryFee(null);
       }
     };
     
-    estimateDeliveryFee();
-  }, [addressDetails, subtotal, settings, cartItems]);
+    console.log('Delivery fee estimation useEffect triggered');
+    console.log('Current address details:', addressDetails);
+    console.log('Cart items count:', cartItems.length);
+    console.log('Subtotal:', subtotal);
+    console.log('Settings:', settings);
+    
+    // Add a small delay to ensure all data is loaded
+    const timer = setTimeout(() => {
+      estimateDeliveryFee();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [addressDetails.pincode, addressDetails.city, addressDetails.state, subtotal, settings, cartItems]);
 
   const handleNext = () => {
     // Validate city, state, and pincode first
@@ -245,6 +313,29 @@ const CheckoutAddressDetails = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Test Button for Delhivery API - Remove in production */}
+        <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mb-4">
+          <button 
+            onClick={async () => {
+              console.log('Manual Delhivery API test triggered');
+              try {
+                const testResult = await delhiveryService.estimateDeliveryPricing(
+                  '110001', // Pickup pincode (Delhi)
+                  '400001', // Delivery pincode (Mumbai)
+                  1000,     // Order value
+                  1         // Weight in kg
+                );
+                console.log('Manual Delhivery API test result:', testResult);
+              } catch (error) {
+                console.error('Manual Delhivery API test failed:', error);
+              }
+            }}
+            className="text-sm bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+          >
+            Test Delhivery API
+          </button>
+        </div>
+        
         {/* Delivery Information */}
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
           <div className="flex items-start space-x-3">
@@ -372,13 +463,24 @@ const CheckoutAddressDetails = ({
               {estimatedDeliveryFee !== null && estimatedDeliveryTime && (
                 <div className="text-blue-700 text-sm mt-2">
                   <span className="font-medium">Estimated Delivery:</span> {estimatedDeliveryTime} 
-                  <span className="font-medium">({formatCurrency(estimatedDeliveryFee, settings.currency_symbol)})</span>
+                  {estimatedDeliveryFee > 0 && (
+                    <span className="font-medium"> ({formatCurrency(estimatedDeliveryFee, settings.currency_symbol)})</span>
+                  )}
+                  {estimatedDeliveryFee === 0 && !meetsThreshold(subtotal, settings.free_delivery_threshold) && (
+                    <span className="font-medium"> (FREE)</span>
+                  )}
                 </div>
               )}
               {estimatedDeliveryFee === null && addressDetails.pincode && (
                 <div className="text-blue-700 text-sm mt-2 flex items-center">
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
                   Calculating delivery charges...
+                </div>
+              )}
+              {/* Show message when delivery is not serviceable */}
+              {estimatedDeliveryFee === 0 && estimatedDeliveryTime && estimatedDeliveryTime.includes('not available') && (
+                <div className="text-orange-600 text-sm mt-2 flex items-center">
+                  <span className="font-medium">⚠️ Delivery not available to this pincode</span>
                 </div>
               )}
             </div>

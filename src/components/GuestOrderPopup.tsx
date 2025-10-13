@@ -364,7 +364,7 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
                   <span className="text-sm">Delivery Fee</span>
                   <span className="text-sm">
                     {orderData.deliveryFee === 0 ? (
-                      <span className="text-green-600 font-medium">FREE</span>
+                      <span className="text-green-600 font-medium">Will be calulated</span>
                     ) : (
                       `₹${orderData.deliveryFee.toLocaleString('en-IN')}`
                     )}

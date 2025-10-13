@@ -318,11 +318,30 @@ const Checkout = () => {
   // Estimate delivery fee when address details change
   useEffect(() => {
     const estimateDeliveryFee = async () => {
+      console.log('Main Checkout - Checking if we should estimate delivery fee:', { 
+        currentStep,
+        hasPincode: !!addressDetails.pincode, 
+        hasCity: !!addressDetails.city, 
+        hasState: !!addressDetails.state,
+        addressDetails 
+      });
+      
       // Only estimate if we have a pincode and city/state
       if (addressDetails.pincode && addressDetails.city && addressDetails.state) {
+        console.log('Main Checkout - Starting delivery fee estimation for:', { 
+          pickupPincode: PICKUP_LOCATION.pincode || '110001',
+          deliveryPincode: addressDetails.pincode,
+          subtotal,
+          cartItemsCount: cartItems.length
+        });
+        
         try {
+          // Test if delhiveryService is available
+          console.log('Main Checkout - Delhivery service object:', delhiveryService);
+          
           // Get customer coordinates from pincode
           const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
+          console.log('Main Checkout - Customer coordinates:', customerCoords);
           
           // Calculate total weight of items in cart (considering quantity)
           let totalWeight = 0;
@@ -338,9 +357,18 @@ const Checkout = () => {
             }
           });
           
+          console.log('Main Checkout - Calculated cart weight:', totalWeight);
+          
           // Display the actual weight to the user but use buffered weight for API calculations
           const displayWeight = Math.max(1, totalWeight); // Display actual weight with minimum 1kg
           const bufferedWeight = Math.max(1, totalWeight * 1.2); // Use 20% buffer for API calculations
+          
+          console.log('Main Checkout - Calling delhiveryService.estimateDeliveryPricing with:', {
+            pickupPincode: PICKUP_LOCATION.pincode || '110001',
+            deliveryPincode: addressDetails.pincode,
+            orderValue: subtotal,
+            weight: bufferedWeight
+          });
           
           // Estimate delivery pricing using Delhivery API
           const estimate = await delhiveryService.estimateDeliveryPricing(
@@ -350,18 +378,22 @@ const Checkout = () => {
             bufferedWeight // weight in kg with 20% buffer for API
           );
           
+          console.log('Main Checkout - Delhivery API estimate result:', estimate);
+          
           // Set estimated delivery time
           setEstimatedDeliveryTime(estimate.estimated_delivery_time);
           
           // Check if order qualifies for free delivery
           const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
           if (subtotal >= freeDeliveryThreshold && estimate.serviceability) {
+            console.log('Main Checkout - Order qualifies for free delivery');
             setEstimatedDeliveryFee(0);
           } else {
+            console.log('Main Checkout - Setting delivery fee to:', estimate.shipping_charges);
             setEstimatedDeliveryFee(estimate.shipping_charges);
           }
         } catch (error) {
-          console.error('Error estimating delivery fee:', error);
+          console.error('Main Checkout - Error estimating delivery fee:', error);
           // Fallback to standard delivery charge
           setEstimatedDeliveryTime('2-5 business days');
           const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
@@ -372,6 +404,7 @@ const Checkout = () => {
           }
         }
       } else {
+        console.log('Main Checkout - Not enough address information to estimate delivery fee');
         // Reset estimated delivery fee if we don't have complete address
         setEstimatedDeliveryFee(null);
       }
@@ -379,9 +412,20 @@ const Checkout = () => {
     
     // Only estimate if we're past the contact info step
     if (currentStep >= 2) {
-      estimateDeliveryFee();
+      console.log('Main Checkout - Delivery fee estimation useEffect triggered for step:', currentStep);
+      console.log('Main Checkout - Current address details:', addressDetails);
+      console.log('Main Checkout - Cart items count:', cartItems.length);
+      console.log('Main Checkout - Subtotal:', subtotal);
+      console.log('Main Checkout - Settings:', settings);
+      
+      // Add a small delay to ensure all data is loaded
+      const timer = setTimeout(() => {
+        estimateDeliveryFee();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
-  }, [addressDetails, currentStep, subtotal, settings, customerInfo]);
+  }, [addressDetails.pincode, addressDetails.city, addressDetails.state, currentStep, subtotal, settings, cartItems, customerInfo]);
 
   const applyCoupon = async () => {
     try {
