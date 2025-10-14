@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useRef } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   Dumbbell,
   Heart,
@@ -22,8 +22,10 @@ import {
   Candy
 } from "lucide-react"
 import { motion, useScroll, useTransform, useInView, useSpring } from "framer-motion"
+import about from '../../assets/Gifting.webp'
 
 export default function AboutUsSection() {
+  const navigate = useNavigate()
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLDivElement>(null)
   const statsRef = useRef<HTMLDivElement>(null)
@@ -118,10 +120,14 @@ export default function AboutUsSection() {
 
   const stats = [
     { icon: <Award />, value: 100, label: "Sweet Varieties", suffix: "+" },
-    { icon: <Users />, value: 50000, label: "Happy Customers", suffix: "+" },
-    { icon: <Calendar />, value: 20, label: "Years Experience", suffix: "+" },
-    { icon: <TrendingUp />, value: 99, label: "Quality Guarantee", suffix: "%" },
+    { icon: <Users />, value: 200000, label: "Happy Customers", suffix: "+" },
+    { icon: <Calendar />, value: 50, label: "Years Experience", suffix: "+" },
+    { icon: <TrendingUp />, value: 100, label: "Quality Guarantee", suffix: "%" },
   ]
+
+  const handleShopNow = () => {
+    navigate('/products')
+  }
 
   return (
     <section
@@ -227,7 +233,7 @@ export default function AboutUsSection() {
                 whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80"
+                  src={about}
                   alt="Premium Sweets"
                   className="w-full h-full object-cover"
                 />
@@ -241,6 +247,7 @@ export default function AboutUsSection() {
                     className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] text-white px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    onClick={handleShopNow}
                   >
                     Our Sweets <ArrowRight className="w-4 h-4" />
                   </motion.button>
@@ -354,6 +361,7 @@ export default function AboutUsSection() {
             className="bg-white text-destructive hover:bg-gray-100 px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={handleShopNow}
           >
             Shop Now <ArrowRight className="w-4 h-4" />
           </motion.button>

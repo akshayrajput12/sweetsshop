@@ -1,15 +1,15 @@
-// Delhivery API integration for delivery services
+/*
+  delhivery.service.ts
+  Clean, well-structured Delhivery API integration for frontend/backend usage.
+  - Uses a configurable proxy to call Delhivery endpoints (avoid exposing Delhivery token in frontend)
+  - Robust parsing, clear types, and helpful helper functions
+  - Exports a single instance `delhiveryService` and helper factory `createDelhiveryOrderFromCheckout`
+*/
 
-export interface DelhiveryPickupLocation {
-  lat: number;
-  lng: number;
-  address: string;
-  name: string;
-  phone: string;
-  pincode: string;
-}
-
-export interface DelhiveryDeliveryLocation {
+/* -----------------------------
+   Types & Interfaces
+   ----------------------------- */
+export interface DelhiveryPoint {
   lat: number;
   lng: number;
   address: string;
@@ -22,12 +22,12 @@ export interface DelhiveryOrderItem {
   name: string;
   quantity: number;
   price: number;
-  category: string;
+  category?: string;
 }
 
 export interface DelhiveryCreateOrderRequest {
-  pickup_details: DelhiveryPickupLocation;
-  drop_details: DelhiveryDeliveryLocation;
+  pickup_details: DelhiveryPoint;
+  drop_details: DelhiveryPoint;
   order_details: {
     order_id: string;
     order_value: number;
@@ -42,7 +42,7 @@ export interface DelhiveryCreateOrderRequest {
 
 export interface DelhiveryOrderResponse {
   task_id: string;
-  status: string;
+  status: 'created' | 'error' | 'unknown';
   tracking_url: string;
   estimated_fare: number;
   estimated_delivery_time: string;
@@ -55,133 +55,107 @@ export interface DelhiveryPricingResponse {
   serviceability: boolean;
 }
 
-// Fixed pickup location (your store/warehouse)
-export const PICKUP_LOCATION: DelhiveryPickupLocation = {
-  lat: 28.6139, // Update with your actual coordinates
-  lng: 77.2090, // Update with your actual coordinates
-  address: "SuperSweets Store, Connaught Place, New Delhi, Delhi 110001",
-  name: "SuperSweets Store",
-  phone: "+91-9876543210", // Update with your store phone
-  pincode: "201016" // Update with your actual store pincode
+/* -----------------------------
+   Configuration / Constants
+   ----------------------------- */
+const DEFAULT_PROXY_URL = (import.meta as any).env?.VITE_DELHIVERY_PROXY_URL ||
+  'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
+
+const DEFAULT_SUPABASE_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+
+// ✅ Updated pickup location to Super Sweets, Tohana, Haryana
+export const PICKUP_LOCATION: DelhiveryPoint = {
+  lat: 29.7030,
+  lng: 75.9032,
+  address: 'Super Sweets, Railway Station Rd, Ram Nagar, Tohana, Haryana 125120',
+  name: 'Super Sweets',
+  phone: '+91-9876543210',
+  pincode: '125120'
 };
 
-// Pincode to pincode mapping for major cities in India
+// Minimal pincode mapping (kept small here — extend as needed)
 const PINCODE_PINCODE_MAPPING: Record<string, string> = {
-  // Delhi NCR
   '110001': '110001',
-  '110002': '110001',
-  '110003': '110001',
-  '110021': '110021',
-  '110022': '110021',
-  
-  // Mumbai
-  '400001': '400001',
-  '400002': '400001',
-  '400003': '400001',
-  
-  // Bangalore
-  '560001': '560001',
-  '560002': '560001',
-  '560003': '560001',
-  
-  // Chennai
-  '600001': '600001',
-  '600002': '600001',
-  
-  // Kolkata
-  '700001': '700001',
-  '700002': '700001',
-  
-  // Hyderabad
-  '500001': '500001',
-  '500002': '500001',
-  
-  // Pune
-  '411001': '411001',
-  '411002': '411001',
-  
-  // Ahmedabad
-  '380001': '380001',
-  '380002': '380001',
-  
-  // Jaipur
-  '302001': '302001',
-  '302002': '302001',
-  
-  // Default fallback
-  'default': '110001'
+  '201016': '201016',
+  '226010': '226010',
+  '125120': '125120',
+  default: '110001'
 };
 
-class DelhiveryService {
-  private apiKey: string;
-  private baseUrl: string;
+/* -----------------------------
+   Utilities
+   ----------------------------- */
+function buildProxyUrl(proxyBase: string, path: string, method: 'GET' | 'POST' = 'GET'): string {
+  const params = new URLSearchParams({ path, method });
+  return `${proxyBase}?${params.toString()}`;
+}
 
-  constructor() {
-    this.apiKey = (import.meta as any).env?.VITE_DELHIVERY_API_KEY || '';
-    this.baseUrl = (import.meta as any).env?.VITE_DELHIVERY_BASE_URL || 'https://track.delhivery.com';
+function safeParseJson<T = any>(text: string): T | null {
+  try {
+    return JSON.parse(text) as T;
+  } catch (e) {
+    console.warn('JSON parse failed', e);
+    return null;
+  }
+}
+
+function normalizePincode(pin?: string): string {
+  if (!pin) return PINCODE_PINCODE_MAPPING.default;
+  const cleaned = pin.replace(/\D/g, '').slice(0, 6);
+  return PINCODE_PINCODE_MAPPING[cleaned] || PINCODE_PINCODE_MAPPING.default;
+}
+
+function getDeliveryTimeEstimate(pickupPincode: string, deliveryPincode: string): string {
+  const a = normalizePincode(pickupPincode);
+  const b = normalizePincode(deliveryPincode);
+  if (a === b) return '1-2 business days';
+  if (a.substring(0, 3) === b.substring(0, 3)) return '2-3 business days';
+  return '3-5 business days';
+}
+
+/* -----------------------------
+   DelhiveryService Class
+   ----------------------------- */
+class DelhiveryService {
+  private proxyUrl: string;
+  private supabaseKey: string;
+
+  constructor(proxyUrl = DEFAULT_PROXY_URL, supabaseKey = DEFAULT_SUPABASE_KEY) {
+    this.proxyUrl = proxyUrl;
+    this.supabaseKey = supabaseKey;
   }
 
-  // Estimate delivery pricing using Delhivery API
+  private async fetchProxy(fullUrl: string, init?: RequestInit) {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (this.supabaseKey) headers['Authorization'] = `Bearer ${this.supabaseKey}`;
+
+    const resp = await fetch(fullUrl, { ...(init || {}), headers });
+    const text = await resp.text();
+    if (!resp.ok) {
+      const parsed = safeParseJson<any>(text);
+      const message = parsed?.detail || parsed?.message || text;
+      throw new Error(`Delhivery proxy error: ${resp.status} - ${message}`);
+    }
+    return { status: resp.status, text };
+  }
+
   async estimateDeliveryPricing(
     pickupPincode: string,
     deliveryPincode: string,
     orderValue: number,
-    weight: number = 2.5 // Fixed weight of 2.5kg
+    weightKg = 2.5
   ): Promise<DelhiveryPricingResponse> {
     try {
-      console.log('Estimating Delhivery delivery pricing:', { pickupPincode, deliveryPincode, orderValue, weight });
+      const grams = Math.max(1, Math.round(weightKg * 1000)).toString();
+      const query = new URLSearchParams({ md: 'S', ss: 'RTO', d_pin: deliveryPincode, o_pin: pickupPincode, cgm: grams });
+      const path = `/api/kinko/v1/invoice/charges/.json?${query.toString()}`;
+      const url = buildProxyUrl(this.proxyUrl, path, 'GET');
 
-      const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
-
-      // Use the exact API parameters as specified
-      const queryParams = new URLSearchParams({
-        md: 'S',                    // S for surface delivery
-        ss: 'RTO',                  // Service type
-        d_pin: deliveryPincode,     // Delivery pincode
-        o_pin: pickupPincode,       // Origin pincode  
-        cgm: (weight * 1000).toString() // Weight in grams (2.5kg = 2500g)
-      });
-
-      const params = new URLSearchParams({
-        path: `/api/kinko/v1/invoice/charges/.json?${queryParams.toString()}`,
-        method: 'GET'
-      });
-
-      const fullUrl = `${proxyUrl}?${params.toString()}`;
-      console.log('Sending GET request to Delhivery proxy:', fullUrl);
-
-      const response = await fetch(fullUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
-        }
-      });
-
-      console.log('Delhivery proxy response status:', response.status);
-      console.log('Delhivery proxy response headers:', [...response.headers.entries()]);
-
-      const responseText = await response.text();
-      console.log('Delhivery proxy raw response text:', responseText);
-
-      if (!response.ok) {
-        console.error('Delhivery API error response:', responseText);
-        throw new Error(`Delhivery API error: ${response.status} - ${responseText}`);
-      }
-
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Failed to parse Delhivery API response as JSON:', responseText);
-        throw new Error(`Invalid JSON response from Delhivery API: ${responseText}`);
-      }
-
-      console.log('Delhivery API parsed response data:', data);
-
-      // Handle different response formats
-      if (!data) {
-        console.warn('Delhivery API returned null or undefined data');
+      const { text } = await this.fetchProxy(url);
+      const parsed = safeParseJson<any>(text);
+      if (!parsed) {
         return {
           shipping_charges: 0,
           cod_charges: 0,
@@ -190,58 +164,19 @@ class DelhiveryService {
         };
       }
 
-      // Check if response is an array or object
-      let chargeData;
-      if (Array.isArray(data) && data.length > 0) {
-        chargeData = data[0];
-      } else if (typeof data === 'object' && data !== null) {
-        // Some Delhivery API responses might be objects directly
-        chargeData = data;
-      } else {
-        console.warn('Delhivery API returned unexpected data format:', data);
-        return {
-          shipping_charges: 0,
-          cod_charges: 0,
-          estimated_delivery_time: 'Service not available',
-          serviceability: false
-        };
-      }
+      const chargeData = Array.isArray(parsed) && parsed.length ? parsed[0] : parsed;
 
-      console.log('Delhivery charge data:', chargeData);
-
-      // Check for serviceability
-      const isServiceable = chargeData.serviceability === true || 
-                           (chargeData.total_amount > 0) || 
-                           (chargeData.shipping_charges > 0) ||
-                           chargeData.success === true;
-
-      console.log('Serviceability check:', { 
-        serviceability: chargeData.serviceability,
-        total_amount: chargeData.total_amount,
-        shipping_charges: chargeData.shipping_charges,
-        success: chargeData.success,
-        isServiceable 
-      });
-
-      // Extract shipping charges
-      const shippingCharges = chargeData.total_amount || 
-                             chargeData.shipping_charges || 
-                             chargeData.amount || 
-                             chargeData.charge || 
-                             0;
-
-      console.log('Extracted shipping charges:', shippingCharges);
+      const shippingCharges = Number(chargeData?.total_amount ?? chargeData?.shipping_charges ?? chargeData?.amount ?? 0) || 0;
+      const isServiceable = Boolean(chargeData?.serviceability) || shippingCharges > 0 || Boolean(chargeData?.success);
 
       return {
         shipping_charges: shippingCharges,
         cod_charges: orderValue > 1000 ? 0 : 30,
-        estimated_delivery_time: chargeData.estimated_delivery_time || 
-                                chargeData.delivery_time || 
-                                this.getDeliveryTimeEstimate(pickupPincode, deliveryPincode),
+        estimated_delivery_time: chargeData?.estimated_delivery_time ?? chargeData?.delivery_time ?? getDeliveryTimeEstimate(pickupPincode, deliveryPincode),
         serviceability: isServiceable
       };
-    } catch (error) {
-      console.error('Delhivery pricing estimation error:', error);
+    } catch (err) {
+      console.error('estimateDeliveryPricing error:', err);
       return {
         shipping_charges: 0,
         cod_charges: 0,
@@ -251,72 +186,18 @@ class DelhiveryService {
     }
   }
 
-  private getDeliveryTimeEstimate(pickupPincode: string, deliveryPincode: string): string {
-    const cleanPickupPincode = pickupPincode.replace(/\D/g, '').slice(0, 6);
-    const cleanDeliveryPincode = deliveryPincode.replace(/\D/g, '').slice(0, 6);
-
-    if (cleanPickupPincode === cleanDeliveryPincode) return '1-2 business days';
-    if (cleanPickupPincode.substring(0, 3) === cleanDeliveryPincode.substring(0, 3)) return '2-3 business days';
-    return '3-5 business days';
-  }
-
-  // Create a delivery order with Delhivery
-  async createDeliveryOrder(orderData: DelhiveryCreateOrderRequest): Promise<DelhiveryOrderResponse> {
+  async createDeliveryOrder(order: DelhiveryCreateOrderRequest): Promise<DelhiveryOrderResponse> {
     try {
-      console.log('Creating Delhivery delivery order:', orderData);
+      const path = `/api/cmu/create.json?format=json`;
+      const params = new URLSearchParams({ path, method: 'GET' });
+      params.append('body', JSON.stringify(order));
+      const url = `${this.proxyUrl}?${params.toString()}`;
 
-      // Use the Supabase proxy function to make the API call with GET method
-      const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
-      
-      // Create query parameters for GET request
-      const params = new URLSearchParams({
-        path: '/api/cmu/create.json?format=json',
-        method: 'GET'
-      });
-      
-      params.append('body', JSON.stringify(orderData));
-      
-      const fullUrl = `${proxyUrl}?${params.toString()}`;
-      console.log('Sending GET request to Delhivery proxy:', fullUrl);
-      
-      const response = await fetch(fullUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
-        }
-      });
+      const { text } = await this.fetchProxy(url);
+      const parsed = safeParseJson<any>(text) || {};
 
-      console.log('Delhivery proxy response status:', response.status);
-      console.log('Delhivery proxy response headers:', [...response.headers.entries()]);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Delhivery API error response:', errorText);
-        
-        // Try to parse the error response
-        try {
-          const errorData = JSON.parse(errorText);
-          if (errorData.detail) {
-            throw new Error(`Delhivery API error: ${response.status} - ${errorData.detail}`);
-          } else if (errorData.message) {
-            throw new Error(`Delhivery API error: ${response.status} - ${errorData.message}`);
-          }
-        } catch (parseError) {
-          // If we can't parse the error, use the raw text
-          throw new Error(`Delhivery API error: ${response.status} - ${errorText}`);
-        }
-        
-        throw new Error(`Delhivery API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Delhivery API response data:', data);
-      
-      // Check if this is a debug response (indicating the function is not properly deployed)
-      if (data.message && data.message.includes("Delhivery proxy function is working")) {
-        console.warn("Proxy function is returning debug response - may not be properly configured");
-        // Return error response
+      if (parsed?.message && String(parsed.message).includes('Delhivery proxy function is working')) {
+        console.warn('Proxy debug response detected');
         return {
           task_id: '',
           status: 'error',
@@ -325,23 +206,20 @@ class DelhiveryService {
           estimated_delivery_time: 'Service unavailable'
         };
       }
-      
-      // Return the actual response from Delhivery
+
+      const pkg = parsed?.packages?.[0] ?? parsed;
+      const taskId = pkg?.refnum ?? pkg?.waybill ?? '';
+      const fare = Number(pkg?.total_amount ?? pkg?.total_charge ?? 0) || 0;
+
       return {
-        task_id: data.packages?.[0]?.refnum || '',
-        status: data.success ? 'created' : 'error',
-        tracking_url: data.packages?.[0]?.waybill
-          ? `https://www.delhivery.com/tracking/${data.packages[0].waybill}`
-          : `https://www.delhivery.com/`,
-        estimated_fare: data.packages?.[0]?.total_amount || 0,
-        estimated_delivery_time: this.getDeliveryTimeEstimate(
-          orderData.pickup_details.pincode, 
-          orderData.drop_details.pincode
-        )
+        task_id: String(taskId),
+        status: parsed?.success ? 'created' : 'unknown',
+        tracking_url: pkg?.waybill ? `https://www.delhivery.com/tracking/${pkg.waybill}` : 'https://www.delhivery.com/',
+        estimated_fare: fare,
+        estimated_delivery_time: getDeliveryTimeEstimate(order.pickup_details.pincode, order.drop_details.pincode)
       };
-    } catch (error) {
-      console.error('Delhivery API error:', error);
-      // Return error response when API calls fail
+    } catch (err) {
+      console.error('createDeliveryOrder error:', err);
       return {
         task_id: '',
         status: 'error',
@@ -352,153 +230,36 @@ class DelhiveryService {
     }
   }
 
-  // Get mock order response - only used when API calls fail
-  private getMockOrderResponse(): DelhiveryOrderResponse {
-    const mockResponse: DelhiveryOrderResponse = {
-      task_id: `DLV_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      status: 'error',
-      tracking_url: `https://www.delhivery.com/`,
-      estimated_fare: 0,
-      estimated_delivery_time: 'Service unavailable'
-    };
-    
-    console.log('Using mock Delhivery response due to API error:', mockResponse);
-    return mockResponse;
-  }
-
-  // Get order status from Delhivery
   async getOrderStatus(taskId: string): Promise<{ status: string; location?: { lat: number; lng: number } }> {
     try {
-      // Use the Supabase proxy function to make the API call with GET method
-      const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
-      
-      // Create query parameters for GET request
-      const params = new URLSearchParams({
-        path: `/api/v1/packages/json/?waybill=${taskId}`,
-        method: 'GET'
-      });
-      
-      const fullUrl = `${proxyUrl}?${params.toString()}`;
-      console.log('Sending GET request to Delhivery proxy:', fullUrl);
-      
-      const response = await fetch(fullUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
-        }
-      });
+      const path = `/api/v1/packages/json/?waybill=${encodeURIComponent(taskId)}`;
+      const url = buildProxyUrl(this.proxyUrl, path, 'GET');
+      const { text } = await this.fetchProxy(url);
+      const parsed = safeParseJson<any>(text);
+      if (!parsed) return { status: 'not_found' };
 
-      console.log('Delhivery proxy response status:', response.status);
-      console.log('Delhivery proxy response headers:', [...response.headers.entries()]);
+      if (parsed?.message && String(parsed.message).includes('Delhivery proxy function is working')) return { status: 'error' };
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Delhivery API error response:', errorText);
-        
-        // Try to parse the error response
-        try {
-          const errorData = JSON.parse(errorText);
-          if (errorData.detail) {
-            throw new Error(`Delhivery API error: ${response.status} - ${errorData.detail}`);
-          } else if (errorData.message) {
-            throw new Error(`Delhivery API error: ${response.status} - ${errorData.message}`);
-          }
-        } catch (parseError) {
-          // If we can't parse the error, use the raw text
-          throw new Error(`Delhivery API error: ${response.status} - ${errorText}`);
-        }
-        
-        throw new Error(`Delhivery API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Delhivery API response data:', data);
-      
-      // Check if this is a debug response (indicating the function is not properly deployed)
-      if (data.message && data.message.includes("Delhivery proxy function is working")) {
-        console.warn("Proxy function is returning debug response - may not be properly configured");
-        return { status: 'error' };
-      }
-      
-      // Parse the response to extract status information
-      if (data && data.length > 0) {
-        const packageData = data[0];
-        return {
-          status: packageData.status || 'unknown',
-          location: packageData.location
-            ? { lat: packageData.location.latitude, lng: packageData.location.longitude }
-            : undefined
-        };
-      } else {
-        return { status: 'not_found' };
-      }
-    } catch (error) {
-      console.error('Delhivery status check error:', error);
+      const first = Array.isArray(parsed) && parsed.length ? parsed[0] : parsed;
+      const status = first?.status ?? 'unknown';
+      const location = first?.location ? { lat: Number(first.location.latitude), lng: Number(first.location.longitude) } : undefined;
+      return { status, location };
+    } catch (err) {
+      console.error('getOrderStatus error:', err);
       return { status: 'error' };
     }
   }
 
-  // Cancel Delhivery order
   async cancelOrder(taskId: string): Promise<boolean> {
     try {
-      // Use the Supabase proxy function to make the API call with GET method
-      const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
-      
-      // Create query parameters for GET request
-      const params = new URLSearchParams({
-        path: `/api/p/edit?waybill=${taskId}&cancellation=true`,
-        method: 'GET'
-      });
-      
-      const fullUrl = `${proxyUrl}?${params.toString()}`;
-      console.log('Sending GET request to Delhivery proxy:', fullUrl);
-      
-      const response = await fetch(fullUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
-        }
-      });
-
-      console.log('Delhivery proxy response status:', response.status);
-      console.log('Delhivery proxy response headers:', [...response.headers.entries()]);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Delhivery API error response:', errorText);
-        
-        // Try to parse the error response
-        try {
-          const errorData = JSON.parse(errorText);
-          if (errorData.detail) {
-            throw new Error(`Delhivery API error: ${response.status} - ${errorData.detail}`);
-          } else if (errorData.message) {
-            throw new Error(`Delhivery API error: ${response.status} - ${errorData.message}`);
-          }
-        } catch (parseError) {
-          // If we can't parse the error, use the raw text
-          throw new Error(`Delhivery API error: ${response.status} - ${errorText}`);
-        }
-        
-        throw new Error(`Delhivery API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Delhivery API response data:', data);
-      
-      // Check if this is a debug response (indicating the function is not properly deployed)
-      if (data.message && data.message.includes("Delhivery proxy function is working")) {
-        console.warn("Proxy function is returning debug response - may not be properly configured");
-        return false;
-      }
-      
-      // Check if cancellation was successful
-      return data.success === true;
-    } catch (error) {
-      console.error('Delhivery cancel order error:', error);
-      // Return false when API calls fail
+      const path = `/api/p/edit?waybill=${encodeURIComponent(taskId)}&cancellation=true`;
+      const url = buildProxyUrl(this.proxyUrl, path, 'GET');
+      const { text } = await this.fetchProxy(url);
+      const parsed = safeParseJson<any>(text) || {};
+      if (parsed?.message && String(parsed.message).includes('Delhivery proxy function is working')) return false;
+      return Boolean(parsed?.success === true);
+    } catch (err) {
+      console.error('cancelOrder error:', err);
       return false;
     }
   }
@@ -506,94 +267,61 @@ class DelhiveryService {
 
 export const delhiveryService = new DelhiveryService();
 
-// Test function to verify Delhivery API is working
-export async function testDelhiveryAPI(): Promise<void> {
-  console.log('Testing Delhivery API connection...');
-  try {
-    const testResult = await delhiveryService.estimateDeliveryPricing(
-      '201016', // Pickup pincode (Admin address)
-      '226010', // Delivery pincode (User address)
-      1500,     // Order value (as per your curl example)
-      2.5       // Fixed weight in kg
-    );
-    console.log('Delhivery API test result:', testResult);
-  } catch (error) {
-    console.error('Delhivery API test failed:', error);
-  }
-}
-
-// Test function with your exact curl parameters
-export async function testDelhiveryWithExactParams(): Promise<void> {
-  console.log('Testing Delhivery API with exact curl parameters...');
-  try {
-    const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
-    
-    const queryParams = new URLSearchParams({
-      md: 'S',
-      ss: 'RTO', 
-      d_pin: '226010',
-      o_pin: '201016',
-      cgm: '2500' // 2.5kg in grams
-    });
-
-    const params = new URLSearchParams({
-      path: `/api/kinko/v1/invoice/charges/.json?${queryParams.toString()}`,
-      method: 'GET'
-    });
-
-    const fullUrl = `${proxyUrl}?${params.toString()}`;
-    console.log('Testing with URL:', fullUrl);
-
-    const response = await fetch(fullUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
-      }
-    });
-
-    const responseText = await response.text();
-    console.log('Test response status:', response.status);
-    console.log('Test response:', responseText);
-  } catch (error) {
-    console.error('Direct API test failed:', error);
-  }
-}
-
-// Helper function to create Delhivery order from checkout data
 export function createDelhiveryOrderFromCheckout(
   orderNumber: string,
-  customerInfo: any,
-  deliveryLocation: any,
-  addressDetails: any,
-  items: any[],
+  customerInfo: { name: string; phone: string },
+  deliveryLocation: { lat?: number; lng?: number; city?: string; state?: string },
+  addressDetails: { address: string; landmark?: string; pincode?: string; instructions?: string },
+  items: { name: string; quantity: number; price: number; category?: string }[],
   total: number,
   paymentMethod: string
 ): DelhiveryCreateOrderRequest {
+  const pincode = normalizePincode(addressDetails.pincode || deliveryLocation?.['pincode']);
+  const address = `${addressDetails.address}${addressDetails.landmark ? ', ' + addressDetails.landmark : ''}${deliveryLocation?.city ? ', ' + deliveryLocation.city : ''}${deliveryLocation?.state ? ', ' + deliveryLocation.state : ''}`;
+
   return {
     pickup_details: PICKUP_LOCATION,
     drop_details: {
-      lat: deliveryLocation.lat || 28.6139,
-      lng: deliveryLocation.lng || 77.2090,
-      address: `${addressDetails.address}, ${addressDetails.landmark ? addressDetails.landmark + ', ' : ''}${deliveryLocation.city}, ${deliveryLocation.state}`,
+      lat: deliveryLocation.lat ?? 28.6139,
+      lng: deliveryLocation.lng ?? 77.2090,
+      address,
       name: customerInfo.name,
       phone: customerInfo.phone,
-      pincode: addressDetails.pincode || '110001'
+      pincode
     },
     order_details: {
       order_id: orderNumber,
       order_value: total,
       payment_mode: paymentMethod === 'cod' ? 'COD' : 'PREPAID',
-      items: items.map(item => ({
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        category: item.category || 'Food'
-      })),
+      items: items.map(i => ({ name: i.name, quantity: i.quantity, price: i.price, category: i.category ?? 'General' })),
       customer_name: customerInfo.name,
       customer_phone: customerInfo.phone
     },
-    vehicle_type: 'bike', // Default to bike for food delivery
-    delivery_instructions: addressDetails.instructions || 'Handle with care - Fresh meat products'
+    vehicle_type: 'bike',
+    delivery_instructions: addressDetails.instructions ?? 'Handle with care'
   };
+}
+
+export async function testDelhiveryAPI(): Promise<void> {
+  console.log('Testing Delhivery API connection...');
+  try {
+    const r = await delhiveryService.estimateDeliveryPricing('125120', '226010', 1500, 2.5);
+    console.log('Test result:', r);
+  } catch (e) {
+    console.error('testDelhiveryAPI failed:', e);
+  }
+}
+
+export async function testDelhiveryWithExactParams(): Promise<void> {
+  console.log('Testing Delhivery exact curl params...');
+  try {
+    const query = new URLSearchParams({ md: 'S', ss: 'RTO', d_pin: '226010', o_pin: '125120', cgm: '2500' });
+    const path = `/api/kinko/v1/invoice/charges/.json?${query.toString()}`;
+    const url = buildProxyUrl(DEFAULT_PROXY_URL, path, 'GET');
+    const res = await fetch(url, { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${DEFAULT_SUPABASE_KEY}` } });
+    console.log('status', res.status);
+    console.log('text', await res.text());
+  } catch (e) {
+    console.error('testDelhiveryWithExactParams failed:', e);
+  }
 }

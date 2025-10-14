@@ -85,11 +85,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
         <motion.button
           onClick={handleAddToCart}
           disabled={isOutOfStock}
-          className="absolute bottom-3 right-3 bg-primary hover:bg-primary/90 text-white p-2 rounded-full shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 opacity-0 group-hover:opacity-100"
+          className="absolute bottom-3 right-3 bg-primary hover:bg-primary/90 text-white p-2 rounded-full shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           initial={{ y: 10 }}
-          animate={{ y: isHovered ? 0 : 10 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.3 }}
         >
           <Plus className="w-4 h-4" />

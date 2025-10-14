@@ -52,6 +52,7 @@ interface CheckoutSummaryProps {
   onPrev: () => void;
   onApplyCoupon: () => void;
   onRemoveCoupon: () => void;
+  isPincodeServiceable: boolean; // Add this prop
 }
 
 const CheckoutSummary = ({
@@ -79,7 +80,8 @@ const CheckoutSummary = ({
   onPlaceOrder,
   onPrev,
   onApplyCoupon,
-  onRemoveCoupon
+  onRemoveCoupon,
+  isPincodeServiceable // Add this prop
 }: CheckoutSummaryProps) => {
   return (
     <div className="space-y-6">
@@ -410,7 +412,7 @@ const CheckoutSummary = ({
               onClick={onPlaceOrder}
               size="lg"
               className="px-8 bg-green-600 hover:bg-green-700"
-              disabled={isProcessingPayment || !isMinOrderMet}
+              disabled={isProcessingPayment || !isMinOrderMet || !isPincodeServiceable}
             >
               {isProcessingPayment ? (
                 <div className="flex items-center space-x-2">
@@ -421,6 +423,10 @@ const CheckoutSummary = ({
                 <div className="flex items-center space-x-2">
                   <span>Add {formatCurrency(minOrderShortfall, settings.currency_symbol)} More</span>
                 </div>
+              ) : !isPincodeServiceable ? (
+                <div className="flex items-center space-x-2">
+                  <span>Delivery Not Available - Contact Owner</span>
+                </div>
               ) : (
                 <div className="flex items-center space-x-2">
                   <Shield className="h-4 w-4" />
@@ -429,6 +435,21 @@ const CheckoutSummary = ({
               )}
             </Button>
           </div>
+          
+          {/* Show message when delivery is not serviceable */}
+          {!isPincodeServiceable && (
+            <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg text-center">
+              <p className="text-orange-700">
+                ⚠️ Delivery is not available to pincode {addressDetails.pincode}. 
+                For placing order, please <button 
+                  onClick={() => window.location.href = '/contact'} 
+                  className="text-blue-600 hover:underline font-medium"
+                >
+                  contact the owner
+                </button>.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

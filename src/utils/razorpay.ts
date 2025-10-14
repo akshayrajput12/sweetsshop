@@ -188,7 +188,7 @@ export const initiateRazorpayPayment = async (
       key: razorpayKey,
       amount: order.amount,
       currency: order.currency,
-      name: import.meta.env.VITE_APP_NAME || 'Dare To Diet',
+      name: import.meta.env.VITE_APP_NAME || 'SuperSweets',
       description: `Bulk order for ${orderData.items.length} items - ${orderData.items.map(item => item.name).join(', ').substring(0, 100)}`,
       // Note: No order_id for direct payment integration
       image: '/logo.png', // Uses the logo from public directory

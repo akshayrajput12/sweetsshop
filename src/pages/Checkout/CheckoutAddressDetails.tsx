@@ -54,6 +54,8 @@ interface CheckoutAddressDetailsProps {
   estimatedDeliveryTime: string | null;
   setEstimatedDeliveryTime: (time: string | null) => void;
   cartItems: any[];
+  isPincodeServiceable: boolean;
+  setIsPincodeServiceable: (serviceable: boolean) => void;
 }
 
 const CheckoutAddressDetails = ({
@@ -75,7 +77,9 @@ const CheckoutAddressDetails = ({
   setEstimatedDeliveryFee,
   estimatedDeliveryTime,
   setEstimatedDeliveryTime,
-  cartItems
+  cartItems,
+  isPincodeServiceable,
+  setIsPincodeServiceable
 }: CheckoutAddressDetailsProps) => {
   const [addressErrors, setAddressErrors] = useState<string[]>([]);
   
@@ -238,6 +242,9 @@ const CheckoutAddressDetails = ({
           
           console.log('Delhivery API estimate result:', estimate);
           
+          // Set serviceability status
+          setIsPincodeServiceable(estimate.serviceability);
+          
           // Set estimated delivery time
           setEstimatedDeliveryTime(estimate.estimated_delivery_time);
           
@@ -256,6 +263,8 @@ const CheckoutAddressDetails = ({
           }
         } catch (error) {
           console.error('Error estimating delivery fee:', error);
+          // Mark as serviceable by default on error to avoid blocking checkout
+          setIsPincodeServiceable(true);
           // Fallback to standard delivery charge
           setEstimatedDeliveryTime('2-5 business days');
           const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
@@ -269,6 +278,8 @@ const CheckoutAddressDetails = ({
         console.log('Not enough address information to estimate delivery fee');
         // Reset estimated delivery fee if we don't have complete address
         setEstimatedDeliveryFee(null);
+        // Reset serviceability when pincode is not entered
+        setIsPincodeServiceable(true);
       }
     };
     
@@ -284,7 +295,7 @@ const CheckoutAddressDetails = ({
     }, 100);
     
     return () => clearTimeout(timer);
-  }, [addressDetails.pincode, addressDetails.city, addressDetails.state, subtotal, settings, cartItems]);
+  }, [addressDetails.pincode, addressDetails.city, addressDetails.state, subtotal, settings, cartItems, setIsPincodeServiceable]);
 
   const handleNext = () => {
     // Validate city, state, and pincode first
@@ -313,28 +324,6 @@ const CheckoutAddressDetails = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Test Button for Delhivery API - Remove in production */}
-        <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mb-4">
-          <button 
-            onClick={async () => {
-              console.log('Manual Delhivery API test triggered');
-              try {
-                const testResult = await delhiveryService.estimateDeliveryPricing(
-                  '110001', // Pickup pincode (Delhi)
-                  '400001', // Delivery pincode (Mumbai)
-                  1000,     // Order value
-                  1         // Weight in kg
-                );
-                console.log('Manual Delhivery API test result:', testResult);
-              } catch (error) {
-                console.error('Manual Delhivery API test failed:', error);
-              }
-            }}
-            className="text-sm bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-          >
-            Test Delhivery API
-          </button>
-        </div>
         
         {/* Delivery Information */}
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -483,6 +472,13 @@ const CheckoutAddressDetails = ({
                   <span className="font-medium">⚠️ Delivery not available to this pincode</span>
                 </div>
               )}
+              {/* Show serviceability status */}
+              {!isPincodeServiceable && addressDetails.pincode && (
+                <div className="text-orange-600 text-sm mt-2 flex items-center">
+                  <span className="font-medium">⚠️ Delivery not available to pincode {addressDetails.pincode}. For placing order, contact owner.</span>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
@@ -664,7 +660,8 @@ const CheckoutAddressDetails = ({
             disabled={
               useExistingAddress 
                 ? !selectedAddress || !addressDetails.city || !addressDetails.state || !addressDetails.pincode
-                : !addressDetails.plotNumber || !addressDetails.street || !addressDetails.city || !addressDetails.state || !addressDetails.pincode
+                : !addressDetails.plotNumber || !addressDetails.street || !addressDetails.city || !addressDetails.state || !addressDetails.pincode ||
+                  !isPincodeServiceable
             }
             size="lg"
             className="px-8"

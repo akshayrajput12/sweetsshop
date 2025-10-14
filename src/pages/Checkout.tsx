@@ -48,6 +48,7 @@ const Checkout = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [estimatedDeliveryFee, setEstimatedDeliveryFee] = useState<number | null>(null);
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<string | null>(null);
+  const [isPincodeServiceable, setIsPincodeServiceable] = useState(true); // Add this state
   
   // Form validation states
   const [contactErrors, setContactErrors] = useState<string[]>([]);
@@ -329,7 +330,7 @@ const Checkout = () => {
       // Only estimate if we have a pincode and city/state
       if (addressDetails.pincode && addressDetails.city && addressDetails.state) {
         console.log('Main Checkout - Starting delivery fee estimation for:', { 
-          pickupPincode: PICKUP_LOCATION.pincode || '110001',
+          pickupPincode: PICKUP_LOCATION.pincode || '201016',
           deliveryPincode: addressDetails.pincode,
           subtotal,
           cartItemsCount: cartItems.length
@@ -365,6 +366,9 @@ const Checkout = () => {
           
           console.log('Main Checkout - Delhivery API estimate result:', estimate);
           
+          // Set serviceability status
+          setIsPincodeServiceable(estimate.serviceability);
+          
           // Set estimated delivery time
           setEstimatedDeliveryTime(estimate.estimated_delivery_time);
           
@@ -373,12 +377,18 @@ const Checkout = () => {
           if (subtotal >= freeDeliveryThreshold && estimate.serviceability) {
             console.log('Main Checkout - Order qualifies for free delivery');
             setEstimatedDeliveryFee(0);
-          } else {
+          } else if (estimate.serviceability) {
             console.log('Main Checkout - Setting delivery fee to:', estimate.shipping_charges);
             setEstimatedDeliveryFee(estimate.shipping_charges);
+          } else {
+            console.log('Main Checkout - Delivery not serviceable, setting fee to 0 and showing message');
+            setEstimatedDeliveryFee(0);
+            setEstimatedDeliveryTime('Delivery not available to this pincode');
           }
         } catch (error) {
           console.error('Main Checkout - Error estimating delivery fee:', error);
+          // Mark as serviceable by default on error to avoid blocking checkout
+          setIsPincodeServiceable(true);
           // Fallback to standard delivery charge
           setEstimatedDeliveryTime('2-5 business days');
           const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
@@ -392,6 +402,8 @@ const Checkout = () => {
         console.log('Main Checkout - Not enough address information to estimate delivery fee');
         // Reset estimated delivery fee if we don't have complete address
         setEstimatedDeliveryFee(null);
+        // Reset serviceability when pincode is not entered
+        setIsPincodeServiceable(true);
       }
     };
     
@@ -410,7 +422,7 @@ const Checkout = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [addressDetails.pincode, addressDetails.city, addressDetails.state, currentStep, subtotal, settings, cartItems, customerInfo]);
+  }, [addressDetails.pincode, addressDetails.city, addressDetails.state, currentStep, subtotal, settings, cartItems, customerInfo, setIsPincodeServiceable]);
 
   const applyCoupon = async () => {
     try {
@@ -1071,6 +1083,8 @@ const Checkout = () => {
               estimatedDeliveryTime={estimatedDeliveryTime}
               setEstimatedDeliveryTime={setEstimatedDeliveryTime}
               cartItems={cartItems}
+              isPincodeServiceable={isPincodeServiceable}
+              setIsPincodeServiceable={setIsPincodeServiceable}
             />
           )}
 
@@ -1114,6 +1128,7 @@ const Checkout = () => {
               onPrev={handlePrevStep}
               onApplyCoupon={applyCoupon}
               onRemoveCoupon={removeCoupon}
+              isPincodeServiceable={isPincodeServiceable} // Pass serviceability to summary
             />
           )}
         </div>
