@@ -100,8 +100,19 @@ const CategoriesCarousel = () => {
   };
 
   return (
-    <section className="py-12 bg-[#b4c6b2]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-12 bg-[#b4c6b2] relative">
+      {/* SVG Wave at the start of the category section */}
+      <div className="absolute top-0 left-0 w-full overflow-hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto">
+          <path 
+            fill="admin-secondary" 
+            fillOpacity="0.6" 
+            d="M0,64L48,90.7C96,117,192,171,288,170.7C384,171,480,117,576,85.3C672,53,768,43,864,42.7C960,43,1056,53,1152,64C1248,75,1344,85,1392,90.7L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+          ></path>
+        </svg>
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
         {/* Section Header */}
         <motion.div 
           className="text-center mb-12"
