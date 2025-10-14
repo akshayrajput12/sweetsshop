@@ -343,39 +343,24 @@ const Checkout = () => {
           const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
           console.log('Main Checkout - Customer coordinates:', customerCoords);
           
-          // Calculate total weight of items in cart (considering quantity)
-          let totalWeight = 0;
-          cartItems.forEach(item => {
-            // Extract numeric weight from string (e.g., "500g" -> 0.5kg, "1kg" -> 1kg)
-            const weightMatch = item.weight.match(/(\d+(?:\.\d+)?)\s*(g|kg)/i);
-            if (weightMatch) {
-              const value = parseFloat(weightMatch[1]);
-              const unit = weightMatch[2].toLowerCase();
-              // Convert to kg and multiply by quantity
-              const weightInKg = unit === 'g' ? value / 1000 : value;
-              totalWeight += weightInKg * item.quantity;
-            }
-          });
+          // Use fixed weight of 2.5kg for all deliveries as per business requirement
+          const fixedWeight = 2.5; // Fixed 2.5kg package
           
-          console.log('Main Checkout - Calculated cart weight:', totalWeight);
-          
-          // Display the actual weight to the user but use buffered weight for API calculations
-          const displayWeight = Math.max(1, totalWeight); // Display actual weight with minimum 1kg
-          const bufferedWeight = Math.max(1, totalWeight * 1.2); // Use 20% buffer for API calculations
+          console.log('Main Checkout - Using fixed weight:', fixedWeight);
           
           console.log('Main Checkout - Calling delhiveryService.estimateDeliveryPricing with:', {
-            pickupPincode: PICKUP_LOCATION.pincode || '110001',
+            pickupPincode: PICKUP_LOCATION.pincode || '201016',
             deliveryPincode: addressDetails.pincode,
             orderValue: subtotal,
-            weight: bufferedWeight
+            weight: fixedWeight
           });
           
           // Estimate delivery pricing using Delhivery API
           const estimate = await delhiveryService.estimateDeliveryPricing(
-            PICKUP_LOCATION.pincode || '110001',
+            PICKUP_LOCATION.pincode || '201016',
             addressDetails.pincode,
             subtotal,
-            bufferedWeight // weight in kg with 20% buffer for API
+            fixedWeight // Fixed 2.5kg weight for all deliveries
           );
           
           console.log('Main Checkout - Delhivery API estimate result:', estimate);

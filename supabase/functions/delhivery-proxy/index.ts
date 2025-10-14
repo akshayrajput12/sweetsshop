@@ -69,11 +69,11 @@ serve(async (req) => {
       console.log("Processing Delhivery API request");
       
       // Try to get the API key from environment variables
-      // Supabase Edge Functions use direct environment variable access without VITE_ prefix
-      const apiKey = (Deno as any).env.get("DELHIVERY_API_KEY") || (Deno as any).env.get("VITE_DELHIVERY_API_KEY");
+      // Use the actual API key from your curl command
+      const apiKey = (globalThis as any).Deno?.env?.get("DELHIVERY_API_KEY") || "db825db6ab6c44b3e809520915801f5dbc205d92";
       if (!apiKey) {
         console.error("Delhivery API key not set in environment variables");
-        console.log("Available environment variables:", Object.keys((Deno as any).env.toObject()));
+        console.log("Available environment variables:", Object.keys((globalThis as any).Deno?.env?.toObject() || {}));
         return new Response(JSON.stringify({
           error: "Internal Server Error",
           message: "DELHIVERY_API_KEY not configured in Supabase environment variables",
@@ -161,7 +161,7 @@ serve(async (req) => {
         url: req.url,
         headers: [...req.headers.entries()],
         body: requestBody,
-        envVars: Object.keys((Deno as any).env.toObject()).filter(key => key.includes('DELHIVERY') || key.includes('VITE'))
+        envVars: Object.keys((globalThis as any).Deno?.env?.toObject() || {}).filter(key => key.includes('DELHIVERY') || key.includes('VITE'))
       }), {
         status: 200,
         headers: {

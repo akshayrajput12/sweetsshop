@@ -57,12 +57,12 @@ export interface DelhiveryPricingResponse {
 
 // Fixed pickup location (your store/warehouse)
 export const PICKUP_LOCATION: DelhiveryPickupLocation = {
-  lat: 28.6139, // Delhi coordinates - update with your actual location
-  lng: 77.2090,
-  address: "Meat Feast Store, Connaught Place, New Delhi, Delhi 110001",
-  name: "Meat Feast Store",
+  lat: 28.6139, // Update with your actual coordinates
+  lng: 77.2090, // Update with your actual coordinates
+  address: "SuperSweets Store, Connaught Place, New Delhi, Delhi 110001",
+  name: "SuperSweets Store",
   phone: "+91-9876543210", // Update with your store phone
-  pincode: "110001" // Update with your store pincode
+  pincode: "201016" // Update with your actual store pincode
 };
 
 // Pincode to pincode mapping for major cities in India
@@ -117,8 +117,8 @@ class DelhiveryService {
   private baseUrl: string;
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_DELHIVERY_API_KEY || '';
-    this.baseUrl = import.meta.env.VITE_DELHIVERY_BASE_URL || 'https://track.delhivery.com';
+    this.apiKey = (import.meta as any).env?.VITE_DELHIVERY_API_KEY || '';
+    this.baseUrl = (import.meta as any).env?.VITE_DELHIVERY_BASE_URL || 'https://track.delhivery.com';
   }
 
   // Estimate delivery pricing using Delhivery API
@@ -126,22 +126,20 @@ class DelhiveryService {
     pickupPincode: string,
     deliveryPincode: string,
     orderValue: number,
-    weight: number = 1
+    weight: number = 2.5 // Fixed weight of 2.5kg
   ): Promise<DelhiveryPricingResponse> {
     try {
       console.log('Estimating Delhivery delivery pricing:', { pickupPincode, deliveryPincode, orderValue, weight });
 
       const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
 
-      // Added mandatory `ss` and `md` fields to avoid 400 error
+      // Use the exact API parameters as specified
       const queryParams = new URLSearchParams({
-        pickup_pincode: pickupPincode,
-        delivery_pincode: deliveryPincode,
-        weight: weight.toString(),
-        declared_value: orderValue.toString(),
-        cod: '0',
-        ss: 'Delivered',
-        md: 'S'  // S for surface delivery, E for express
+        md: 'S',                    // S for surface delivery
+        ss: 'RTO',                  // Service type
+        d_pin: deliveryPincode,     // Delivery pincode
+        o_pin: pickupPincode,       // Origin pincode  
+        cgm: (weight * 1000).toString() // Weight in grams (2.5kg = 2500g)
       });
 
       const params = new URLSearchParams({
@@ -156,7 +154,7 @@ class DelhiveryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+          'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
         }
       });
 
@@ -285,7 +283,7 @@ class DelhiveryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+          'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
         }
       });
 
@@ -387,7 +385,7 @@ class DelhiveryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+          'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
         }
       });
 
@@ -460,7 +458,7 @@ class DelhiveryService {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`
+          'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
         }
       });
 
@@ -513,14 +511,52 @@ export async function testDelhiveryAPI(): Promise<void> {
   console.log('Testing Delhivery API connection...');
   try {
     const testResult = await delhiveryService.estimateDeliveryPricing(
-      '110001', // Pickup pincode (Delhi)
-      '400001', // Delivery pincode (Mumbai)
-      1000,     // Order value
-      1         // Weight in kg
+      '201016', // Pickup pincode (Admin address)
+      '226010', // Delivery pincode (User address)
+      1500,     // Order value (as per your curl example)
+      2.5       // Fixed weight in kg
     );
     console.log('Delhivery API test result:', testResult);
   } catch (error) {
     console.error('Delhivery API test failed:', error);
+  }
+}
+
+// Test function with your exact curl parameters
+export async function testDelhiveryWithExactParams(): Promise<void> {
+  console.log('Testing Delhivery API with exact curl parameters...');
+  try {
+    const proxyUrl = 'https://dhmehtfdxqwumtwktmlp.supabase.co/functions/v1/delhivery-proxy';
+    
+    const queryParams = new URLSearchParams({
+      md: 'S',
+      ss: 'RTO', 
+      d_pin: '226010',
+      o_pin: '201016',
+      cgm: '2500' // 2.5kg in grams
+    });
+
+    const params = new URLSearchParams({
+      path: `/api/kinko/v1/invoice/charges/.json?${queryParams.toString()}`,
+      method: 'GET'
+    });
+
+    const fullUrl = `${proxyUrl}?${params.toString()}`;
+    console.log('Testing with URL:', fullUrl);
+
+    const response = await fetch(fullUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${(import.meta as any).env?.VITE_SUPABASE_ANON_KEY || ''}`
+      }
+    });
+
+    const responseText = await response.text();
+    console.log('Test response status:', response.status);
+    console.log('Test response:', responseText);
+  } catch (error) {
+    console.error('Direct API test failed:', error);
   }
 }
 

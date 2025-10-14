@@ -28,6 +28,7 @@ export interface AppSettings {
   store_phone: string;
   store_email: string;
   store_address: string;
+  store_pincode: string;
   business_hours_start: string;
   business_hours_end: string;
 }
@@ -53,6 +54,7 @@ const defaultSettings: AppSettings = {
   store_phone: '',
   store_email: '',
   store_address: '',
+  store_pincode: '201016',
   business_hours_start: '09:00',
   business_hours_end: '20:00'
 };
