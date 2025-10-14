@@ -10,7 +10,7 @@ const CuratedGiftingHero = () => {
   const navigate = useNavigate();
   
   return (
-    <section className="relative min-h-screen overflow-hidden">
+    <section className="relative min-h-[60vh] md:min-h-[70vh] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -20,15 +20,15 @@ const CuratedGiftingHero = () => {
         />
       </div>
       
-      {/* Overlay to enhance text readability */}
-      <div className="absolute inset-0  z-10"></div>
+      {/* Overlay to enhance text readability - darker overlay */}
+      <div className="absolute inset-0 bg-black/50 z-10"></div>
 
       <div className="container mx-auto px-4 py-8 lg:py-12 h-full relative z-20">
-        <div className="flex flex-col lg:flex-row items-center justify-between min-h-[80vh] gap-8">
-          {/* Left Section - Hero Image */}
-          <div className="flex-1 w-full flex justify-center">
+        <div className="flex flex-col lg:flex-row items-center justify-between min-h-[50vh] md:min-h-[60vh] gap-6">
+          {/* Left Section - Hero Image - Hidden on mobile */}
+          <div className="hidden lg:flex flex-1 w-full justify-center">
             <motion.div 
-              className="relative w-full max-w-2xl h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl"
+              className="relative w-full max-w-lg h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-2xl"
               whileHover={{
                 scale: 1.03,
                 borderRadius: "50%",
@@ -45,7 +45,7 @@ const CuratedGiftingHero = () => {
           
           {/* Right Section - Text & CTA */}
           <div className="flex-1 w-full flex flex-col items-center lg:items-start text-center lg:text-left">
-            <div className="max-w-lg space-y-6">
+            <div className="max-w-lg space-y-4">
               <motion.div 
                 className="inline-block"
                 whileHover={{
@@ -59,7 +59,7 @@ const CuratedGiftingHero = () => {
               </motion.div>
               
               <motion.h1 
-                className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white"
+                className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white"
                 whileHover={{
                   scale: 1.02,
                   transition: { duration: 0.3 }
@@ -69,7 +69,7 @@ const CuratedGiftingHero = () => {
               </motion.h1>
               
               <motion.p 
-                className="text-lg md:text-xl text-gray-200 leading-relaxed"
+                className="text-base md:text-lg text-gray-200 leading-relaxed"
                 whileHover={{
                   scale: 1.01,
                   transition: { duration: 0.3 }
@@ -78,7 +78,7 @@ const CuratedGiftingHero = () => {
                 Exquisite handcrafted sweets and delicacies, thoughtfully arranged in elegant gift boxes for your most cherished moments.
               </motion.p>
               
-              <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="pt-4 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                 <motion.div
                   whileHover={{
                     scale: 1.05,
@@ -87,11 +87,11 @@ const CuratedGiftingHero = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button 
-                    size="lg" 
-                    className="gap-3 bg-white text-[#0a1a45] hover:bg-gray-100 font-semibold px-8 py-6 text-lg rounded-xl"
+                    size="default" 
+                    className="gap-2 bg-white text-[#0a1a45] hover:bg-gray-100 font-semibold px-6 py-4 text-base rounded-xl"
                     onClick={() => navigate('/contact')}
                   >
-                    Enquire Now <PhoneCall className="w-5 h-5" />
+                    Enquire Now <PhoneCall className="w-4 h-4" />
                   </Button>
                 </motion.div>
                 <motion.div
@@ -102,17 +102,17 @@ const CuratedGiftingHero = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button 
-                    size="lg" 
-                    className="gap-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold px-8 py-6 text-lg rounded-xl"
+                    size="default" 
+                    className="gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold px-6 py-4 text-base rounded-xl"
                     onClick={() => navigate('/products')}
                   >
-                    View Collection <ShoppingCart className="w-5 h-5" />
+                    View Collection <ShoppingCart className="w-4 h-4" />
                   </Button>
                 </motion.div>
               </div>
               
               <motion.div 
-                className="pt-6 text-gray-300 italic"
+                className="pt-4 text-gray-300 italic text-sm"
                 whileHover={{
                   scale: 1.02,
                   transition: { duration: 0.3 }
@@ -127,7 +127,7 @@ const CuratedGiftingHero = () => {
       
       {/* Decorative elements */}
       <motion.div 
-        className="absolute top-0 right-0 w-64 h-64 bg-amber-500 rounded-full mix-blend-soft-light filter blur-3xl opacity-20"
+        className="absolute top-0 right-0 w-48 h-48 bg-amber-500 rounded-full mix-blend-soft-light filter blur-3xl opacity-20"
         animate={{
           scale: [1, 1.1, 1],
           opacity: [0.2, 0.3, 0.2],
@@ -139,7 +139,7 @@ const CuratedGiftingHero = () => {
         }}
       />
       <motion.div 
-        className="absolute bottom-0 left-0 w-64 h-64 bg-rose-500 rounded-full mix-blend-soft-light filter blur-3xl opacity-20"
+        className="absolute bottom-0 left-0 w-48 h-48 bg-rose-500 rounded-full mix-blend-soft-light filter blur-3xl opacity-20"
         animate={{
           scale: [1, 1.15, 1],
           opacity: [0.2, 0.25, 0.2],

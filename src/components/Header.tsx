@@ -4,6 +4,7 @@ import { ShoppingCart, User, Menu, Search, LogOut, X, Home, Package, Info, Phone
 import logoImage from '../assets/logo.png';
 import { useStore } from '../store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSettings } from '@/hooks/useSettings';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -26,6 +27,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
     return null;
   }
 
+  const { settings } = useSettings();
   const { cartItems, toggleCart } = useStore();
   const { user, isAdmin, signOut, profile } = useAuth();
   const navigate = useNavigate();
@@ -55,18 +57,31 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
     >
+      {/* Marquee Text for Bulk Orders */}
+      {settings?.store_phone && (
+        <div className="bg-primary text-primary-foreground py-2 overflow-hidden">
+          <div className="animate-marquee whitespace-nowrap text-lg font-semibold">
+            <span className="mx-4">For Bulk Order Call - {settings.store_phone}</span>
+            <span className="mx-4">For Bulk Order Call - {settings.store_phone}</span>
+            <span className="mx-4">For Bulk Order Call - {settings.store_phone}</span>
+            <span className="mx-4">For Bulk Order Call - {settings.store_phone}</span>
+            <span className="mx-4">For Bulk Order Call - {settings.store_phone}</span>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
+        <div className="flex items-center justify-between h-24 md:h-32">
+          {/* Logo - Increased size */}
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <img 
               src={logoImage} 
               alt="SuperSweets Logo" 
-              className="w-8 h-8 object-contain"
+              className="w-20 h-20 md:w-24 md:h-24 object-contain"
             />
             <div className="hidden xs:block">
-              <span className="text-2xl font-bold text-primary">SuperSweets</span>
-              <div className="text-xs text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
+              <span className="text-3xl md:text-4xl font-bold text-primary">SuperSweets</span>
+              <div className="text-sm md:text-base text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
             </div>
           </Link>
 
@@ -74,40 +89,40 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
           <div className="hidden sm:flex flex-1 justify-center">
             {/* Desktop Navigation */}
             <nav className="flex items-center space-x-8">
-              <Link to="/" className="body-text hover:text-primary transition-colors">
+              <Link to="/" className="body-text text-lg hover:text-primary transition-colors">
                 Home
               </Link>
-              <Link to="/products" className="body-text hover:text-primary transition-colors">
+              <Link to="/products" className="body-text text-lg hover:text-primary transition-colors">
                 Sweets
               </Link>
-              <Link to="/about" className="body-text hover:text-primary transition-colors">
+              <Link to="/about" className="body-text text-lg hover:text-primary transition-colors">
                 About
               </Link>
-              <Link to="/contact" className="body-text hover:text-primary transition-colors">
+              <Link to="/contact" className="body-text text-lg hover:text-primary transition-colors">
                 Contact
               </Link>
             </nav>
           </div>
 
-          {/* Right Section */}
+          {/* Right Section - Adjusted for mobile */}
           <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             {/* Search */}
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
+              className="p-2 md:p-3 hover:bg-muted rounded-lg transition-colors"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-6 h-6 md:w-7 md:h-7" />
             </button>
 
             {/* Cart */}
             <button 
               onClick={toggleCart}
-              className="relative p-2 hover:bg-muted rounded-lg transition-colors"
+              className="relative p-2 md:p-3 hover:bg-muted rounded-lg transition-colors"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className="w-6 h-6 md:w-7 md:h-7" />
               {cartItemsCount > 0 && (
                 <motion.span 
-                  className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                  className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-6 h-6 flex items-center justify-center"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -120,13 +135,13 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             {/* User - Desktop */}
             {user ? (
               <DropdownMenu>
-                <DropdownMenuTrigger className="hidden md:flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors">
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                    <span className="text-primary-foreground text-sm font-medium">
+                <DropdownMenuTrigger className="hidden md:flex items-center space-x-2 p-2 md:p-3 hover:bg-muted rounded-lg transition-colors">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-primary-foreground text-base md:text-lg font-medium">
                       {user.email?.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="hidden lg:block body-text max-w-32 truncate">{user.email}</span>
+                  <span className="hidden lg:block body-text max-w-32 truncate text-lg">{user.email}</span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => navigate('/profile')}>
@@ -149,18 +164,18 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             ) : (
               <button 
                 onClick={() => navigate('/auth')}
-                className="hidden md:flex p-2 hover:bg-muted rounded-lg transition-colors"
+                className="hidden md:flex p-2 md:p-3 hover:bg-muted rounded-lg transition-colors"
               >
-                <User className="w-5 h-5" />
+                <User className="w-6 h-6 md:w-7 md:h-7" />
               </button>
             )}
 
             {/* Mobile Menu Button */}
             <button 
               onClick={toggleMobileMenu}
-              className="p-2 hover:bg-muted rounded-lg transition-colors md:hidden"
+              className="p-2 md:p-3 hover:bg-muted rounded-lg transition-colors md:hidden"
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? <X className="w-6 h-6 md:w-7 md:h-7" /> : <Menu className="w-6 h-6 md:w-7 md:h-7" />}
             </button>
           </div>
         </div>
@@ -180,25 +195,60 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               
               {/* Mobile Menu */}
               <motion.div
-                className="fixed top-16 left-0 right-0 bg-background border-b shadow-lg z-50 md:hidden"
+                className="fixed top-24 left-0 right-0 bg-background border-b shadow-lg z-50 md:hidden"
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -20, opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
                 <div className="container mx-auto px-4 py-4">
-                  {/* Search Button - Mobile */}
-                  <div className="mb-4">
-                    <button
-                      onClick={() => {
-                        setIsSearchOpen(true);
-                        closeMobileMenu();
-                      }}
-                      className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left"
+                  {/* Mobile Header with Logo and Icons - Reordered layout */}
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b">
+                    {/* Menu Button (Hamburger) */}
+                    <button 
+                      onClick={toggleMobileMenu}
+                      className="p-2 hover:bg-muted rounded-lg transition-colors"
                     >
-                      <Search className="w-5 h-5 text-primary" />
-                      <span className="font-medium">Search Sweets</span>
+                      <X className="w-6 h-6" />
                     </button>
+
+                    {/* Logo */}
+                    <Link to="/" className="flex items-center space-x-2 flex-shrink-0" onClick={closeMobileMenu}>
+                      <img 
+                        src={logoImage} 
+                        alt="SuperSweets Logo" 
+                        className="w-12 h-12 object-contain"
+                      />
+                      <div className="hidden xs:block">
+                        <span className="text-xl font-bold text-primary">SuperSweets</span>
+                      </div>
+                    </Link>
+
+                    <div className="flex items-center space-x-2">
+                      {/* Search */}
+                      <button 
+                        onClick={() => {
+                          setIsSearchOpen(true);
+                          closeMobileMenu();
+                        }}
+                        className="p-2 hover:bg-muted rounded-lg transition-colors"
+                      >
+                        <Search className="w-5 h-5" />
+                      </button>
+
+                      {/* Cart */}
+                      <button 
+                        onClick={toggleCart}
+                        className="relative p-2 hover:bg-muted rounded-lg transition-colors"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                        {cartItemsCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {cartItemsCount > 99 ? '99+' : cartItemsCount}
+                          </span>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Navigation Links */}

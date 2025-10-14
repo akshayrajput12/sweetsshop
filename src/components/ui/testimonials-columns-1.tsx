@@ -24,7 +24,8 @@ export const TestimonialsColumn = (props: {
       >
         {/* Create two sets of testimonials for infinite scrolling effect */}
         {[...new Array(2)].map((_, index) => (
-          <React.Fragment key={`testimonial-set-${index}`}>
+          // Using a div instead of React.Fragment to avoid prop warnings
+          <div key={`testimonial-set-${index}`}>
             {props.testimonials.map(({ id, text, image, name, role, company }, i) => {
               const key = `testimonial-${index}-${i}`;
               return (
@@ -55,7 +56,7 @@ export const TestimonialsColumn = (props: {
                 </div>
               );
             })}
-          </React.Fragment>
+          </div>
         ))}
       </motion.div>
     </div>

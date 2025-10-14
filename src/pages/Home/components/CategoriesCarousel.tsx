@@ -156,9 +156,9 @@ const CategoriesCarousel = () => {
           >
             {loading ? (
               Array.from({ length: 8 }).map((_, index) => (
-                <div key={index} className="flex-shrink-0 px-2 w-1/4 md:w-1/4">
+                <div key={index} className="flex-shrink-0 px-2 w-1/2 md:w-1/4">
                   <div className="animate-pulse flex flex-col items-center">
-                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[#a9c0b0] mb-4"></div>
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-xl bg-[#a9c0b0] mb-4"></div>
                     <div className="h-6 bg-[#a9c0b0] rounded w-3/4 mb-2"></div>
                     <div className="h-4 bg-[#a9c0b0] rounded w-1/2"></div>
                   </div>
@@ -177,7 +177,7 @@ const CategoriesCarousel = () => {
                       onClick={() => handleCategoryClick(category.name)}
                     >
                       <motion.div 
-                        className="w-24 h-24 md:w-32 md:h-32 rounded-xl bg-[#a9c0b0] mb-4 flex items-center justify-center overflow-hidden shadow-lg group-hover:rounded-full transition-all duration-300"
+                        className="w-32 h-32 md:w-40 md:h-40 rounded-xl bg-[#a9c0b0] mb-4 flex items-center justify-center overflow-hidden shadow-lg group-hover:rounded-full transition-all duration-300"
                         whileHover={{ scale: 0.9 }}
                       >
                         {category.image_url ? (
@@ -188,16 +188,17 @@ const CategoriesCarousel = () => {
                           />
                         ) : (
                           <div className="text-white">
-                            <IconComponent className="w-10 h-10 md:w-12 md:h-12 mx-auto" />
+                            <IconComponent className="w-12 h-12 md:w-16 md:h-16 mx-auto" />
                           </div>
                         )}
                       </motion.div>
-                      <h3 className="text-lg md:text-xl font-serif text-center text-[#7a2c1d] font-medium mb-1">
+                      <h3 className="text-xl md:text-2xl font-serif text-center text-[#7a2c1d] font-medium mb-1">
                         {category.name}
                       </h3>
-                      <p className="text-center text-gray-700 text-sm">
+                      <p className="text-center text-gray-700 text-base">
                         {category.productCount || 0} products
                       </p>
+
                     </button>
                   </div>
                 );
