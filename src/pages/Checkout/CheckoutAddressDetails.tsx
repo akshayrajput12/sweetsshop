@@ -209,7 +209,7 @@ const CheckoutAddressDetails = ({
           let totalWeight = 0;
           cartItems.forEach(item => {
             // Extract numeric weight from string (e.g., "500g" -> 0.5kg, "1kg" -> 1kg)
-            const weightMatch = item.weight.match(/(\d+(?:\.\d+)?)\s*(g|kg)/i);
+            const weightMatch = item.weight?.match(/(\d+(?:\.\d+)?)\s*(g|kg)/i);
             if (weightMatch) {
               const value = parseFloat(weightMatch[1]);
               const unit = weightMatch[2].toLowerCase();
@@ -221,9 +221,26 @@ const CheckoutAddressDetails = ({
           
           console.log('Calculated cart weight:', totalWeight);
           
-          // Display the actual weight to the user but use buffered weight for API calculations
-          const displayWeight = Math.max(1, totalWeight); // Display actual weight with minimum 1kg
-          const bufferedWeight = Math.max(1, totalWeight * 1.2); // Use 20% buffer for API calculations
+          // Use actual calculated weight with a reasonable minimum for very light items
+          // Instead of forcing 1kg minimum, use a more flexible approach:
+          // - For items under 0.5kg, use the actual weight (no artificial minimum)
+          // - For items between 0.5kg and 1kg, use actual weight
+          // - For items over 1kg, use actual weight with 20% buffer
+          let bufferedWeight;
+          console.log('Total weight condition check:', { totalWeight, condition1: totalWeight <= 0.5, condition2: totalWeight <= 1 });
+          if (totalWeight <= 0.5) {
+            // For very light items, use actual weight without artificial minimum
+            bufferedWeight = Math.max(0.1, totalWeight); // Minimum 100g to avoid issues
+            console.log('Using light item calculation:', { bufferedWeight, max: Math.max(0.1, totalWeight) });
+          } else if (totalWeight <= 1) {
+            // For moderately light items, use actual weight
+            bufferedWeight = totalWeight;
+            console.log('Using medium item calculation:', bufferedWeight);
+          } else {
+            // For heavier items, apply 20% buffer
+            bufferedWeight = totalWeight * 1.2;
+            console.log('Using heavy item calculation:', bufferedWeight);
+          }
           
           console.log('Calling delhiveryService.estimateDeliveryPricing with:', {
             pickupPincode: PICKUP_LOCATION.pincode || '110001',
@@ -436,219 +453,219 @@ const CheckoutAddressDetails = ({
                 </Button>
               </div>
             )}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <MapPin className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-blue-900 text-sm">
-                Delivery Address
-              </h4>
-              <p className="text-blue-700 text-sm mt-1">
-                {addressDetails.city && addressDetails.state && addressDetails.pincode 
-                  ? `${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`
-                  : 'Please fill in your city, state, and pincode above'
-                }
-              </p>
-              {estimatedDeliveryFee !== null && estimatedDeliveryTime && (
-                <div className="text-blue-700 text-sm mt-2">
-                  <span className="font-medium">Estimated Delivery:</span> {estimatedDeliveryTime} 
-                  {estimatedDeliveryFee > 0 && (
-                    <span className="font-medium"> ({formatCurrency(estimatedDeliveryFee, settings.currency_symbol)})</span>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <MapPin className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-900 text-sm">
+                    Delivery Address
+                  </h4>
+                  <p className="text-blue-700 text-sm mt-1">
+                    {addressDetails.city && addressDetails.state && addressDetails.pincode 
+                      ? `${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`
+                      : 'Please fill in your city, state, and pincode above'
+                    }
+                  </p>
+                  {estimatedDeliveryFee !== null && estimatedDeliveryTime && (
+                    <div className="text-blue-700 text-sm mt-2">
+                      <span className="font-medium">Estimated Delivery:</span> {estimatedDeliveryTime} 
+                      {estimatedDeliveryFee > 0 && (
+                        <span className="font-medium"> ({formatCurrency(estimatedDeliveryFee, settings.currency_symbol)})</span>
+                      )}
+                      {estimatedDeliveryFee === 0 && !meetsThreshold(subtotal, settings.free_delivery_threshold) && (
+                        <span className="font-medium"> (FREE)</span>
+                      )}
+                    </div>
                   )}
-                  {estimatedDeliveryFee === 0 && !meetsThreshold(subtotal, settings.free_delivery_threshold) && (
-                    <span className="font-medium"> (FREE)</span>
+                  {estimatedDeliveryFee === null && addressDetails.pincode && (
+                    <div className="text-blue-700 text-sm mt-2 flex items-center">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                      Calculating delivery charges...
+                    </div>
                   )}
-                </div>
-              )}
-              {estimatedDeliveryFee === null && addressDetails.pincode && (
-                <div className="text-blue-700 text-sm mt-2 flex items-center">
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
-                  Calculating delivery charges...
-                </div>
-              )}
-              {/* Show message when delivery is not serviceable */}
-              {estimatedDeliveryFee === 0 && estimatedDeliveryTime && estimatedDeliveryTime.includes('not available') && (
-                <div className="text-orange-600 text-sm mt-2 flex items-center">
-                  <span className="font-medium">⚠️ Delivery not available to this pincode</span>
-                </div>
-              )}
-              {/* Show serviceability status */}
-              {!isPincodeServiceable && addressDetails.pincode && (
-                <div className="text-orange-600 text-sm mt-2 flex items-center">
-                  <span className="font-medium">⚠️ Delivery not available to pincode {addressDetails.pincode}. For placing order, contact owner.</span>
-                </div>
-              )}
+                  {/* Show message when delivery is not serviceable */}
+                  {estimatedDeliveryFee === 0 && estimatedDeliveryTime && estimatedDeliveryTime.includes('not available') && (
+                    <div className="text-orange-600 text-sm mt-2 flex items-center">
+                      <span className="font-medium">⚠️ Delivery not available to this pincode</span>
+                    </div>
+                  )}
+                  {/* Show serviceability status */}
+                  {!isPincodeServiceable && addressDetails.pincode && (
+                    <div className="text-orange-600 text-sm mt-2 flex items-center">
+                      <span className="font-medium">⚠️ Delivery not available to pincode {addressDetails.pincode}. For placing order, contact owner.</span>
+                    </div>
+                  )}
 
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="plotNumber" className="text-sm font-medium">
-              Plot/House Number *
-            </Label>
-            <Input
-              id="plotNumber"
-              type="text"
-              placeholder="e.g., 123, A-45"
-              value={addressDetails.plotNumber}
-              onChange={(e) => setAddressDetails({...addressDetails, plotNumber: e.target.value})}
-              className="h-12"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="buildingName" className="text-sm font-medium">
-              Building/Society Name
-            </Label>
-            <Input
-              id="buildingName"
-              type="text"
-              placeholder="e.g., Green Valley Apartments"
-              value={addressDetails.buildingName}
-              onChange={(e) => setAddressDetails({...addressDetails, buildingName: e.target.value})}
-              className="h-12"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="street" className="text-sm font-medium">
-            Street/Area *
-          </Label>
-          <Input
-            id="street"
-            type="text"
-            placeholder="e.g., MG Road, Sector 15"
-            value={addressDetails.street}
-            onChange={(e) => setAddressDetails({...addressDetails, street: e.target.value})}
-            className="h-12"
-            required
-          />
-        </div>
-
-        {/* City, State, and Pincode */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="city" className="text-sm font-medium">
-              City *
-            </Label>
-            <Input
-              id="city"
-              type="text"
-              placeholder="Enter your city"
-              value={addressDetails.city}
-              onChange={(e) => setAddressDetails({...addressDetails, city: e.target.value})}
-              className="h-12"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="state" className="text-sm font-medium">
-              State *
-            </Label>
-            <Input
-              id="state"
-              type="text"
-              placeholder="Enter your state"
-              value={addressDetails.state}
-              onChange={(e) => setAddressDetails({...addressDetails, state: e.target.value})}
-              className="h-12"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="pincode" className="text-sm font-medium">
-              Pincode *
-            </Label>
-            <Input
-              id="pincode"
-              type="text"
-              placeholder="Enter 6-digit pincode"
-              value={addressDetails.pincode}
-              onChange={(e) => setAddressDetails({...addressDetails, pincode: e.target.value})}
-              className="h-12"
-              maxLength={6}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="landmark" className="text-sm font-medium">
-            Nearby Landmark
-          </Label>
-          <Input
-            id="landmark"
-            type="text"
-            placeholder="e.g., Near Metro Station"
-            value={addressDetails.landmark}
-            onChange={(e) => setAddressDetails({...addressDetails, landmark: e.target.value})}
-            className="h-12"
-          />
-        </div>
-
-        {/* Address saving options - only show for authenticated users */}
-        {currentUser && (
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Save this address as</Label>
-            <RadioGroup
-              value={addressDetails.addressType}
-              onValueChange={(value: 'home' | 'work' | 'other') =>
-                setAddressDetails({...addressDetails, addressType: value})
-              }
-              className="flex space-x-6"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="home" id="home" />
-                <Label htmlFor="home" className="cursor-pointer">🏠 Home</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="plotNumber" className="text-sm font-medium">
+                  Plot/House Number *
+                </Label>
+                <Input
+                  id="plotNumber"
+                  type="text"
+                  placeholder="e.g., 123, A-45"
+                  value={addressDetails.plotNumber}
+                  onChange={(e) => setAddressDetails({...addressDetails, plotNumber: e.target.value})}
+                  className="h-12"
+                  required
+                />
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="work" id="work" />
-                <Label htmlFor="work" className="cursor-pointer">🏢 Work</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="other" id="other" />
-                <Label htmlFor="other" className="cursor-pointer">📍 Other</Label>
-              </div>
-            </RadioGroup>
 
-            {addressDetails.addressType === 'other' && (
+              <div className="space-y-2">
+                <Label htmlFor="buildingName" className="text-sm font-medium">
+                  Building/Society Name
+                </Label>
+                <Input
+                  id="buildingName"
+                  type="text"
+                  placeholder="e.g., Green Valley Apartments"
+                  value={addressDetails.buildingName}
+                  onChange={(e) => setAddressDetails({...addressDetails, buildingName: e.target.value})}
+                  className="h-12"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="street" className="text-sm font-medium">
+                Street/Area *
+              </Label>
               <Input
-                placeholder="Enter custom name (e.g., Friend's Place)"
-                value={addressDetails.saveAs}
-                onChange={(e) => setAddressDetails({...addressDetails, saveAs: e.target.value})}
-                className="h-12 mt-2"
+                id="street"
+                type="text"
+                placeholder="e.g., MG Road, Sector 15"
+                value={addressDetails.street}
+                onChange={(e) => setAddressDetails({...addressDetails, street: e.target.value})}
+                className="h-12"
+                required
               />
-            )}
-          </div>
-        )}
+            </div>
 
-        {/* Save Address Option - only show for authenticated users */}
-        {currentUser && !useExistingAddress && (
-          <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <input
-              type="checkbox"
-              id="saveAddress"
-              checked={true}
-              readOnly
-              className="rounded"
-            />
-            <Label htmlFor="saveAddress" className="text-sm text-blue-800">
-              Save this address to your profile for future orders
-              {savedAddresses.length >= 3 && (
-                <span className="block text-xs text-orange-600 mt-1">
-                  ⚠️ You have reached the maximum limit of 3 saved addresses
-                </span>
-              )}
-            </Label>
-          </div>
-        )}
-        </>
+            {/* City, State, and Pincode */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city" className="text-sm font-medium">
+                  City *
+                </Label>
+                <Input
+                  id="city"
+                  type="text"
+                  placeholder="Enter your city"
+                  value={addressDetails.city}
+                  onChange={(e) => setAddressDetails({...addressDetails, city: e.target.value})}
+                  className="h-12"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="state" className="text-sm font-medium">
+                  State *
+                </Label>
+                <Input
+                  id="state"
+                  type="text"
+                  placeholder="Enter your state"
+                  value={addressDetails.state}
+                  onChange={(e) => setAddressDetails({...addressDetails, state: e.target.value})}
+                  className="h-12"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pincode" className="text-sm font-medium">
+                  Pincode *
+                </Label>
+                <Input
+                  id="pincode"
+                  type="text"
+                  placeholder="Enter 6-digit pincode"
+                  value={addressDetails.pincode}
+                  onChange={(e) => setAddressDetails({...addressDetails, pincode: e.target.value})}
+                  className="h-12"
+                  maxLength={6}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="landmark" className="text-sm font-medium">
+                Nearby Landmark
+              </Label>
+              <Input
+                id="landmark"
+                type="text"
+                placeholder="e.g., Near Metro Station"
+                value={addressDetails.landmark}
+                onChange={(e) => setAddressDetails({...addressDetails, landmark: e.target.value})}
+                className="h-12"
+              />
+            </div>
+
+            {/* Address saving options - only show for authenticated users */}
+            {currentUser && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Save this address as</Label>
+                <RadioGroup
+                  value={addressDetails.addressType}
+                  onValueChange={(value: 'home' | 'work' | 'other') =>
+                    setAddressDetails({...addressDetails, addressType: value})
+                  }
+                  className="flex space-x-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="home" id="home" />
+                    <Label htmlFor="home" className="cursor-pointer">🏠 Home</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="work" id="work" />
+                    <Label htmlFor="work" className="cursor-pointer">🏢 Work</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="other" id="other" />
+                    <Label htmlFor="other" className="cursor-pointer">📍 Other</Label>
+                  </div>
+                </RadioGroup>
+
+                {addressDetails.addressType === 'other' && (
+                  <Input
+                    placeholder="Enter custom name (e.g., Friend's Place)"
+                    value={addressDetails.saveAs}
+                    onChange={(e) => setAddressDetails({...addressDetails, saveAs: e.target.value})}
+                    className="h-12 mt-2"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Save Address Option - only show for authenticated users */}
+            {currentUser && !useExistingAddress && (
+              <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="saveAddress"
+                  checked={true}
+                  readOnly
+                  className="rounded"
+                />
+                <Label htmlFor="saveAddress" className="text-sm text-blue-800">
+                  Save this address to your profile for future orders
+                  {savedAddresses.length >= 3 && (
+                    <span className="block text-xs text-orange-600 mt-1">
+                      ⚠️ You have reached the maximum limit of 3 saved addresses
+                    </span>
+                  )}
+                </Label>
+              </div>
+            )}
+          </> // Close the fragment here
         )}
 
         <div className="flex justify-between pt-4">

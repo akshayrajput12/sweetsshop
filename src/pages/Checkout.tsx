@@ -344,16 +344,50 @@ const Checkout = () => {
           const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
           console.log('Main Checkout - Customer coordinates:', customerCoords);
           
-          // Use fixed weight of 2.5kg for all deliveries as per business requirement
-          const fixedWeight = 2.5; // Fixed 2.5kg package
+          // Calculate total weight of items in cart (considering quantity)
+          let totalWeight = 0;
+          cartItems.forEach(item => {
+            // Extract numeric weight from string (e.g., "500g" -> 0.5kg, "1kg" -> 1kg)
+            const weightMatch = item.weight?.match(/(\d+(?:\.\d+)?)\s*(g|kg)/i);
+            if (weightMatch) {
+              const value = parseFloat(weightMatch[1]);
+              const unit = weightMatch[2].toLowerCase();
+              // Convert to kg and multiply by quantity
+              const weightInKg = unit === 'g' ? value / 1000 : value;
+              totalWeight += weightInKg * item.quantity;
+            }
+          });
           
-          console.log('Main Checkout - Using fixed weight:', fixedWeight);
+          console.log('Main Checkout - Calculated cart weight:', totalWeight);
+          
+          // Use actual calculated weight with a reasonable minimum for very light items
+          // Instead of forcing 1kg minimum, use a more flexible approach:
+          // - For items under 0.5kg, use the actual weight (no artificial minimum)
+          // - For items between 0.5kg and 1kg, use actual weight
+          // - For items over 1kg, use actual weight with 20% buffer
+          let bufferedWeight;
+          console.log('Main Checkout - Total weight condition check:', { totalWeight, condition1: totalWeight <= 0.5, condition2: totalWeight <= 1 });
+          if (totalWeight <= 0.5) {
+            // For very light items, use actual weight without artificial minimum
+            bufferedWeight = Math.max(0.1, totalWeight); // Minimum 100g to avoid issues
+            console.log('Main Checkout - Using light item calculation:', { bufferedWeight, max: Math.max(0.1, totalWeight) });
+          } else if (totalWeight <= 1) {
+            // For moderately light items, use actual weight
+            bufferedWeight = totalWeight;
+            console.log('Main Checkout - Using medium item calculation:', bufferedWeight);
+          } else {
+            // For heavier items, apply 20% buffer
+            bufferedWeight = totalWeight * 1.2;
+            console.log('Main Checkout - Using heavy item calculation:', bufferedWeight);
+          }
+          
+          console.log('Main Checkout - Using buffered weight:', bufferedWeight);
           
           console.log('Main Checkout - Calling delhiveryService.estimateDeliveryPricing with:', {
             pickupPincode: PICKUP_LOCATION.pincode || '201016',
             deliveryPincode: addressDetails.pincode,
             orderValue: subtotal,
-            weight: fixedWeight
+            weight: bufferedWeight
           });
           
           // Estimate delivery pricing using Delhivery API
@@ -361,7 +395,7 @@ const Checkout = () => {
             PICKUP_LOCATION.pincode || '201016',
             addressDetails.pincode,
             subtotal,
-            fixedWeight // Fixed 2.5kg weight for all deliveries
+            bufferedWeight // Use calculated weight with buffer instead of fixed 2.5kg
           );
           
           console.log('Main Checkout - Delhivery API estimate result:', estimate);
