@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../../store/useStore';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,13 @@ const CategoriesCarousel = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  
+  // Touch/swipe support
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
 
   useEffect(() => {
     fetchCategories();
@@ -69,6 +76,85 @@ const CategoriesCarousel = () => {
   const prevSlide = () => {
     setCurrentIndex(prev => Math.max(prev - 1, 0));
   };
+
+  // Touch event handlers for swipe functionality
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsDragging(true);
+    setDragOffset(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const touchMove = e.targetTouches[0].clientX;
+    const diff = touchStart - touchMove;
+    setDragOffset(diff);
+    
+    // Prevent scrolling while swiping
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    
+    setIsDragging(false);
+    const diff = touchStart - touchEnd;
+    
+    // Swipe threshold - adjust as needed
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // Swipe left - go to next slide
+        nextSlide();
+      } else {
+        // Swipe right - go to previous slide
+        prevSlide();
+      }
+    }
+    
+    setDragOffset(0);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setTouchStart(e.clientX);
+    setIsDragging(true);
+    setDragOffset(0);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const diff = touchStart - e.clientX;
+    setDragOffset(diff);
+    
+    // Prevent text selection while dragging
+    e.preventDefault();
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    
+    setIsDragging(false);
+    const diff = touchStart - touchEnd;
+    
+    // Swipe threshold - adjust as needed
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        // Swipe left - go to next slide
+        nextSlide();
+      } else {
+        // Swipe right - go to previous slide
+        prevSlide();
+      }
+    }
+    
+    setDragOffset(0);
+  };
+
+  // Update touchEnd when dragOffset changes
+  useEffect(() => {
+    setTouchEnd(touchStart - dragOffset);
+  }, [dragOffset, touchStart]);
 
   // Map category names to icons
   const getCategoryIcon = (categoryName: string) => {
@@ -165,11 +251,22 @@ const CategoriesCarousel = () => {
         </div>
 
         {/* Carousel Container */}
-        <div className="overflow-hidden">
+        <div 
+          ref={carouselRef}
+          className="overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
           <motion.div 
             className="flex transition-transform duration-500 ease-in-out"
             style={{ 
-              transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
+              transform: `translateX(calc(-${currentIndex * (100 / itemsPerView)}% - ${dragOffset}px))`,
+              cursor: isDragging ? 'grabbing' : 'grab'
             }}
           >
             {loading ? (

@@ -154,10 +154,6 @@ const BestSellers = () => {
               Selling Sweets
             </span>
           </h2>
-          
-          <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-raleway">
-            Discover the sweets our customers love most! These top-rated treats offer unbeatable quality and amazing flavors.
-          </p>
         </div>
 
         {/* Enhanced Carousel Controls */}

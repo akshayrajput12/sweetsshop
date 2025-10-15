@@ -60,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
       {/* Marquee Text for Bulk Orders */}
       {settings?.store_phone && (
         <div className="bg-primary text-primary-foreground py-2 overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap text-lg font-semibold">
+          <div className="animate-marquee whitespace-nowrap text-lg font-semibold inline-block">
             <span className="mx-4">For Bulk Order Call - {settings.store_phone}</span>
             <span className="mx-4">For Bulk Order Call - {settings.store_phone}</span>
             <span className="mx-4">For Bulk Order Call - {settings.store_phone}</span>
@@ -193,15 +193,15 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                 onClick={closeMobileMenu}
               />
               
-              {/* Mobile Menu */}
+              {/* Mobile Menu - Sliding from bottom to top */}
               <motion.div
-                className="fixed top-24 left-0 right-0 bg-background border-b shadow-lg z-50 md:hidden"
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -20, opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-50 md:hidden"
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
               >
-                <div className="container mx-auto px-4 py-4">
+                <div className="container mx-auto px-4 py-4 max-h-[70vh] overflow-y-auto">
                   {/* Mobile Header with Logo and Icons - Reordered layout */}
                   <div className="flex items-center justify-between mb-4 pb-4 border-b">
                     {/* Menu Button (Hamburger) */}
@@ -253,42 +253,55 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
 
                   {/* Navigation Links */}
                   <nav className="space-y-2 mb-4">
-                    <button
+                    <motion.button
                       onClick={() => handleNavigation('/')}
                       className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left"
+                      whileHover={{ x: 5 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <Home className="w-5 h-5 text-primary" />
                       <span className="font-medium">Home</span>
-                    </button>
+                    </motion.button>
                     
-                    <button
+                    <motion.button
                       onClick={() => handleNavigation('/products')}
                       className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left"
+                      whileHover={{ x: 5 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <Package className="w-5 h-5 text-primary" />
                       <span className="font-medium">Sweets</span>
-                    </button>
+                    </motion.button>
                     
-                    <button
+                    <motion.button
                       onClick={() => handleNavigation('/about')}
                       className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left"
+                      whileHover={{ x: 5 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <Info className="w-5 h-5 text-primary" />
                       <span className="font-medium">About</span>
-                    </button>
+                    </motion.button>
                     
-                    <button
+                    <motion.button
                       onClick={() => handleNavigation('/contact')}
                       className="flex items-center space-x-3 w-full p-3 hover:bg-muted rounded-lg transition-colors text-left"
+                      whileHover={{ x: 5 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       <Phone className="w-5 h-5 text-primary" />
                       <span className="font-medium">Contact</span>
-                    </button>
+                    </motion.button>
                   </nav>
 
                   {/* User Section - Mobile */}
                   {user ? (
-                    <div className="border-t pt-4 space-y-2">
+                    <motion.div 
+                      className="border-t pt-4 space-y-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
                       <div className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
                         <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                           <span className="text-primary-foreground font-medium">
@@ -326,9 +339,14 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                         <LogOut className="w-5 h-5" />
                         <span className="font-medium">Sign Out</span>
                       </button>
-                    </div>
+                    </motion.div>
                   ) : (
-                    <div className="border-t pt-4">
+                    <motion.div 
+                      className="border-t pt-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
                       <button
                         onClick={() => handleNavigation('/auth')}
                         className="flex items-center justify-center space-x-2 w-full p-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
@@ -336,7 +354,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                         <User className="w-5 h-5" />
                         <span className="font-medium">Sign In / Register</span>
                       </button>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
               </motion.div>
