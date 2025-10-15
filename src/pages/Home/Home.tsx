@@ -9,6 +9,8 @@ import Testimonials from '@/components/ui/testimonials';
 import PromotionalBanner from './components/PromotionalBanner';
 import MithaiSpecials from './components/MithaiSpecials';
 import FestivalSpecials from './components/FestivalSpecials';
+import BrandStory from './components/BrandStory';
+import VideoTestimonial from './components/VideoTestimonial';
 
 const Home = () => {
   return (
@@ -22,8 +24,10 @@ const Home = () => {
     <MithaiSpecials />       {/* showcase our delicious mithai collection */}
     <FestivalSpecials />     {/* showcase our festive special collection */}
     <SpecialOffers />        {/* sweet deals and discounts */}
+    <VideoTestimonial />     {/* customer video testimonial */}
     <Testimonials />         {/* build trust with customer reviews */}
     <InstagramCarousel />    {/* showcase our sweet lifestyle */}
+    <BrandStory />           {/* our brand story and journey */}
   </div>
 </main>
 
