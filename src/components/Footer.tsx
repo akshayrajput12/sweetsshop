@@ -3,6 +3,7 @@ import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'luci
 import logoImage from '../assets/logo.png';
 import { useSettings } from '@/hooks/useSettings';
 import QRCodeComponent from './QRCode';
+import { MarqueeAnimation } from '@/components/ui/marquee-effect';
 
 interface FooterProps {
   isAdminRoute?: boolean;
@@ -147,9 +148,16 @@ const Footer: React.FC<FooterProps> = ({ isAdminRoute = false }) => {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <MarqueeAnimation 
+            direction="left" 
+            baseVelocity={-2}
+            className="text-gray-300 py-2 text-sm hover:text-secondary transition-colors"
+          >
+            Sweetness delivered to your doorstep • Premium quality ingredients • Freshly made daily • Fast and reliable delivery
+          </MarqueeAnimation>
+          <div className="flex flex-col md:flex-row justify-between items-center mt-4">
             <p className="text-gray-300 text-sm">
-              © 2024 {contactInfo.storeName}. All rights reserved.
+              © 2025 {contactInfo.storeName}. All rights reserved.
             </p>
             <div className="flex flex-wrap gap-6 mt-4 md:mt-0 items-center">
               <Link to="/about" className="text-gray-300 hover:text-primary text-sm transition-colors">
