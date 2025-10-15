@@ -17,7 +17,7 @@ const PromotionalBanner = () => {
       <img 
         src={heroImage} 
         alt="Sweet Deals Banner"
-        className="w-full h-full object-cover absolute inset-0 z-0"
+        className="w-full h-full object-cover"
       />
     </motion.div>
   );

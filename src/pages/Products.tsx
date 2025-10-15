@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Grid, List, Search, Cookie, X } from 'lucide-react';
+import { Filter, Grid, List, Search, Cookie, X, Candy } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import ProductCard from '../components/ProductCard';
 import ProductFiltersComponent, { ProductFilters } from '../components/ProductFilters';
 import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { scrollToTopInstant } from '@/utils/scrollToTop';
 import { Button } from '@/components/ui/button';
@@ -38,9 +38,16 @@ const Products = () => {
   const lastProductRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     scrollToTopInstant();
+    // Check if category is passed in URL query params
+    const queryParams = new URLSearchParams(location.search);
+    const categoryParam = queryParams.get('category');
+    if (categoryParam && categories.includes(categoryParam)) {
+      setSelectedCategory(categoryParam);
+    }
     fetchProducts();
     fetchCategories();
   }, []);
@@ -269,6 +276,14 @@ const Products = () => {
     if (node) observer.current.observe(node);
   }, [loading, isLoadingMore, hasMore, loadMore]);
 
+  // Special category icons
+  const getCategoryIcon = (category: string) => {
+    if (category === 'Mithai') {
+      return <Candy className="w-4 h-4" />;
+    }
+    return <Cookie className="w-4 h-4" />;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[hsl(25_95%_90%)] via-white to-[hsl(25_95%_90%)] relative">
       
@@ -337,12 +352,13 @@ const Products = () => {
                     <button
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-sm ${
+                      className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 shadow-sm flex items-center gap-2 ${
                         selectedCategory === category
                           ? 'bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] text-white shadow-lg transform scale-105'
                           : 'bg-white text-gray-700 hover:bg-primary/5 hover:text-destructive border border-gray-200 hover:border-primary/20'
                       }`}
                     >
+                      {getCategoryIcon(category)}
                       {category}
                     </button>
                   ))}

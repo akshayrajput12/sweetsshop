@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useStore } from '../../../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Grid3X3, ChevronLeft, ChevronRight, Candy, Heart, Zap, Apple, Package, Shirt, Sparkles } from 'lucide-react';
+import { Grid3X3, ChevronLeft, ChevronRight, Candy, Heart, Zap, Apple, Package, Shirt, Sparkles, Star, Gift } from 'lucide-react';
 
 const CategoriesCarousel = () => {
   const { setSelectedCategory } = useStore();
@@ -42,7 +42,10 @@ const CategoriesCarousel = () => {
         })
       );
 
-      setCategories(categoriesWithCounts);
+      // Sort categories by product count (descending)
+      const sortedCategories = categoriesWithCounts.sort((a, b) => b.productCount - a.productCount);
+      
+      setCategories(sortedCategories);
     } catch (error) {
       console.error('Error fetching categories:', error);
     } finally {
@@ -75,7 +78,8 @@ const CategoriesCarousel = () => {
     if (lowerName.includes('fusion') || lowerName.includes('modern')) return Zap;
     if (lowerName.includes('dry fruits') || lowerName.includes('nuts')) return Apple;
     if (lowerName.includes('gift') || lowerName.includes('box')) return Package;
-    if (lowerName.includes('seasonal') || lowerName.includes('special')) return Sparkles;
+    if (lowerName.includes('seasonal') || lowerName.includes('special') || lowerName.includes('festival')) return Gift;
+    if (lowerName.includes('mithai')) return Star;
     return Candy; // Default icon
   };
 
@@ -100,19 +104,8 @@ const CategoriesCarousel = () => {
   };
 
   return (
-    <section className="py-12 bg-[#b4c6b2] relative">
-      {/* SVG Wave at the start of the category section */}
-      <div className="absolute top-0 left-0 w-full overflow-hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto">
-          <path 
-            fill="admin-secondary" 
-            fillOpacity="0.6" 
-            d="M0,64L48,90.7C96,117,192,171,288,170.7C384,171,480,117,576,85.3C672,53,768,43,864,42.7C960,43,1056,53,1152,64C1248,75,1344,85,1392,90.7L1440,96L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
-          ></path>
-        </svg>
-      </div>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16">
+    <section className="py-16 bg-white relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <motion.div 
           className="text-center mb-12"
@@ -121,36 +114,50 @@ const CategoriesCarousel = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="flex items-center justify-center gap-4">
-            <div className="text-2xl">🌸</div>
-            <h2 className="text-3xl md:text-4xl font-serif italic font-bold text-[#7a2c1d]">
-              Flavours for <em>Every</em> Moment
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <Sparkles className="text-yellow-500 w-8 h-8 animate-bounce" />
+            <h2 className="text-4xl md:text-5xl font-serif italic font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Sweet Categories
             </h2>
-            <div className="text-2xl">🌸</div>
+            <Sparkles className="text-yellow-500 w-8 h-8 animate-bounce" />
           </div>
         </motion.div>
 
         {/* Carousel Controls */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <button
             onClick={prevSlide}
             disabled={currentIndex === 0}
-            className={`p-3 rounded-full transition-colors ${
+            className={`p-4 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg ${
               currentIndex === 0
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-[#7a2c1d] hover:bg-[#a9c0b0]'
+                ? 'text-gray-400 cursor-not-allowed bg-gray-200'
+                : 'text-white bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600'
             }`}
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           
+          <div className="flex space-x-2">
+            {Array.from({ length: Math.ceil(categories.length / itemsPerView) }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentIndex(index * itemsPerView)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  Math.floor(currentIndex / itemsPerView) === index
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 w-8'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
+          
           <button
             onClick={nextSlide}
             disabled={currentIndex >= maxIndex}
-            className={`p-3 rounded-full transition-colors ${
+            className={`p-4 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg ${
               currentIndex >= maxIndex
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-[#7a2c1d] hover:bg-[#a9c0b0]'
+                ? 'text-gray-400 cursor-not-allowed bg-gray-200'
+                : 'text-white bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600'
             }`}
           >
             <ChevronRight className="w-6 h-6" />
@@ -160,7 +167,7 @@ const CategoriesCarousel = () => {
         {/* Carousel Container */}
         <div className="overflow-hidden">
           <motion.div 
-            className="flex transition-transform duration-300 ease-in-out"
+            className="flex transition-transform duration-500 ease-in-out"
             style={{ 
               transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
             }}
@@ -169,9 +176,9 @@ const CategoriesCarousel = () => {
               Array.from({ length: 8 }).map((_, index) => (
                 <div key={index} className="flex-shrink-0 px-2 w-1/2 md:w-1/4">
                   <div className="animate-pulse flex flex-col items-center">
-                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-xl bg-[#a9c0b0] mb-4"></div>
-                    <div className="h-6 bg-[#a9c0b0] rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-[#a9c0b0] rounded w-1/2"></div>
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl bg-gradient-to-br from-pink-200 to-purple-200 mb-4 shadow-xl"></div>
+                    <div className="h-6 bg-gradient-to-r from-pink-200 to-purple-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gradient-to-r from-pink-100 to-purple-100 rounded w-1/2"></div>
                   </div>
                 </div>
               ))
@@ -181,35 +188,40 @@ const CategoriesCarousel = () => {
                 return (
                   <div
                     key={category.id}
-                    className="flex-shrink-0 px-2 w-1/2 md:w-1/4"
+                    className="flex-shrink-0 px-3 w-1/2 md:w-1/4"
                   >
                     <button
                       className="w-full focus:outline-none flex flex-col items-center group"
                       onClick={() => handleCategoryClick(category.name)}
                     >
                       <motion.div 
-                        className="w-32 h-32 md:w-40 md:h-40 rounded-xl bg-[#a9c0b0] mb-4 flex items-center justify-center overflow-hidden shadow-lg group-hover:rounded-full transition-all duration-300"
-                        whileHover={{ scale: 0.9 }}
+                        className="w-36 h-36 md:w-44 md:h-44 rounded-3xl bg-gradient-to-br from-pink-200 via-purple-200 to-indigo-200 mb-6 flex items-center justify-center overflow-hidden shadow-2xl border-4 border-white transform transition-all duration-300 hover:scale-105 hover:rotate-3"
+                        whileHover={{ scale: 1.05, rotate: 5 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         {category.image_url ? (
                           <img 
                             src={category.image_url} 
                             alt={category.name}
-                            className="w-full h-full object-cover group-hover:rounded-full transition-all duration-300"
+                            className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
                           />
                         ) : (
-                          <div className="text-white">
-                            <IconComponent className="w-12 h-12 md:w-16 md:h-16 mx-auto" />
+                          <div className="text-white bg-gradient-to-br from-pink-500 to-purple-500 w-full h-full flex items-center justify-center">
+                            <IconComponent className="w-16 h-16 md:w-20 md:h-20 mx-auto" />
                           </div>
                         )}
+                        <div className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 rounded-full w-10 h-10 flex items-center justify-center font-bold shadow-lg">
+                          !
+                        </div>
                       </motion.div>
-                      <h3 className="text-xl md:text-2xl font-serif text-center text-[#7a2c1d] font-medium mb-1">
+                      <h3 className="text-2xl md:text-3xl font-serif text-center text-gray-800 font-bold mb-2 group-hover:text-purple-600 transition-colors duration-300">
                         {category.name}
                       </h3>
-                      <p className="text-center text-gray-700 text-base">
-                        {category.productCount || 0} products
-                      </p>
-
+                      <div className="bg-white px-4 py-1 rounded-full shadow-md">
+                        <p className="text-center text-gray-700 text-lg font-medium">
+                          {category.productCount || 0} items
+                        </p>
+                      </div>
                     </button>
                   </div>
                 );
