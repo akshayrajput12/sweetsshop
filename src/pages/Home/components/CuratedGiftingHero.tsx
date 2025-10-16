@@ -1,20 +1,111 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { MoveRight, PhoneCall, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import BgImage from '@/assets/hero.webp';
+import hero1 from '@/assets/hero1.png';
+import hero2 from '@/assets/hero 2.webp';
+import hero3 from '@/assets/hero 3.webp';
+import hero4 from '@/assets/hero 4.webp';
+import hero5 from '@/assets/hero5.webp';
 import { motion } from 'framer-motion';
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselPrevious, 
+  CarouselNext 
+} from '@/components/ui/carousel';
+
+// Define the slider content data
+const sliderData = [
+  {
+    id: 1,
+    title: "Premium Handcrafted Sweets",
+    subtitle: "Curated Gifting by SuperSweets",
+    description: "Exquisite handcrafted sweets and delicacies, thoughtfully arranged in elegant gift boxes for your most cherished moments.",
+    ctaText: "View Collection",
+    image: hero1
+  },
+  {
+    id: 2,
+    title: "Traditional Mithai Collection",
+    subtitle: "Authentic Flavors Since 1999",
+    description: "Experience the rich heritage of Indian sweets with our authentic mithai collection, prepared using time-honored recipes.",
+    ctaText: "Explore Mithai",
+    image: hero2
+  },
+  {
+    id: 3,
+    title: "Festival Special Offers",
+    subtitle: "Celebrate with Sweets",
+    description: "Make your festivals memorable with our specially curated festive collections and exclusive offers.",
+    ctaText: "Shop Festive",
+    image: hero3
+  },
+  {
+    id: 4,
+    title: "Custom Gift Boxes",
+    subtitle: "Personalized Sweetness",
+    description: "Create your own unique gift box with your favorite sweets, perfect for any special occasion.",
+    ctaText: "Create Box",
+    image: hero4
+  },
+  {
+    id: 5,
+    title: "Bulk Ordering Available",
+    subtitle: "Perfect for Events",
+    description: "Planning a wedding, corporate event, or celebration? We offer bulk ordering with special discounts.",
+    ctaText: "Order Bulk",
+    image: hero5
+  }
+];
 
 const CuratedGiftingHero = () => {
   const navigate = useNavigate();
-  
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % sliderData.length);
+    }, 5000); // Change slide every 5 seconds
+    
+    return () => clearInterval(interval);
+  }, [isAutoPlaying]);
+
+  // Handle manual slide change
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    setIsAutoPlaying(false); // Pause autoplay on manual interaction
+    setTimeout(() => setIsAutoPlaying(true), 10000); // Resume autoplay after 10 seconds
+  };
+
+  // Handle next slide
+  const nextSlide = () => {
+    setCurrentSlide(prev => (prev + 1) % sliderData.length);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  // Handle previous slide
+  const prevSlide = () => {
+    setCurrentSlide(prev => (prev - 1 + sliderData.length) % sliderData.length);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  const currentSlideData = sliderData[currentSlide];
+
   return (
-    <section className="relative min-h-[50vh] md:min-h-[60vh] overflow-hidden">
+    <section className="relative min-h-[70vh] md:min-h-[80vh] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <motion.img 
-          src={BgImage} 
-          alt="Curated Gifting by Anand" 
+          src={currentSlideData.image} 
+          alt={currentSlideData.title} 
           className="w-full h-full object-cover"
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
@@ -22,11 +113,11 @@ const CuratedGiftingHero = () => {
         />
       </div>
       
-      {/* Overlay to enhance text readability - darker overlay */}
+      {/* Overlay to enhance text readability */}
       <div className="absolute inset-0 bg-black/50 z-10"></div>
 
-      <div className="container mx-auto px-4 py-8 lg:py-12 h-full relative z-20 flex flex-col items-center justify-center min-h-[50vh] md:min-h-[60vh]">
-        <div className="max-w-2xl text-center space-y-6">
+      <div className="container mx-auto px-4 py-8 lg:py-12 h-full relative z-20 flex flex-col items-center justify-center min-h-[70vh] md:min-h-[80vh]">
+        <div className="max-w-3xl text-center space-y-6">
           <motion.div 
             className="inline-block"
             whileHover={{
@@ -42,31 +133,43 @@ const CuratedGiftingHero = () => {
             </Button>
           </motion.div>
           
-          <motion.h1 
-            className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white"
-            whileHover={{
-              scale: 1.02,
-              transition: { duration: 0.3 }
-            }}
+          <motion.div
+            key={currentSlideData.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
           >
-            Curated <span className="text-amber-400">Gifting</span> by SuperSweets
-          </motion.h1>
-          
-          <motion.p 
-            className="text-base md:text-lg text-gray-200 leading-relaxed"
-            whileHover={{
-              scale: 1.01,
-              transition: { duration: 0.3 }
-            }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            Exquisite handcrafted sweets and delicacies, thoughtfully arranged in elegant gift boxes for your most cherished moments.
-          </motion.p>
+            <motion.h2 
+              className="text-2xl md:text-3xl text-amber-400 font-semibold mb-2"
+              whileHover={{
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
+            >
+              {currentSlideData.subtitle}
+            </motion.h2>
+            
+            <motion.h1 
+              className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4"
+              whileHover={{
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
+            >
+              {currentSlideData.title}
+            </motion.h1>
+            
+            <motion.p 
+              className="text-base md:text-lg text-gray-200 leading-relaxed mb-6"
+              whileHover={{
+                scale: 1.01,
+                transition: { duration: 0.3 }
+              }}
+            >
+              {currentSlideData.description}
+            </motion.p>
+          </motion.div>
           
           <motion.div 
             className="pt-4 flex flex-col sm:flex-row gap-3 justify-center"
@@ -107,7 +210,7 @@ const CuratedGiftingHero = () => {
                 className="gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold px-6 py-4 text-base rounded-xl"
                 onClick={() => navigate('/products')}
               >
-                View Collection <ShoppingCart className="w-4 h-4" />
+                {currentSlideData.ctaText} <ShoppingCart className="w-4 h-4" />
               </Button>
             </motion.div>
           </motion.div>
@@ -125,6 +228,39 @@ const CuratedGiftingHero = () => {
             "Crafted with tradition, presented with elegance"
           </motion.div>
         </div>
+        
+        {/* Slide Indicators */}
+        <div className="absolute bottom-24 left-0 right-0 flex justify-center z-30">
+          <div className="flex space-x-2">
+            {sliderData.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === currentSlide ? 'bg-amber-400 w-6' : 'bg-white/50'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+        
+        {/* Navigation Arrows */}
+        <button 
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300"
+          aria-label="Previous slide"
+        >
+          <MoveRight className="w-5 h-5 rotate-180" />
+        </button>
+        
+        <button 
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all duration-300"
+          aria-label="Next slide"
+        >
+          <MoveRight className="w-5 h-5" />
+        </button>
       </div>
       
       {/* Decorative elements */}

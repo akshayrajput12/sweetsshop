@@ -11,6 +11,7 @@ import MithaiSpecials from './components/MithaiSpecials';
 import FestivalSpecials from './components/FestivalSpecials';
 import BrandStory from './components/BrandStory';
 import VideoTestimonial from './components/VideoTestimonial';
+import GujarPakShowcase from './components/GujarPakShowcase';
 
 const Home = () => {
   return (
@@ -21,6 +22,7 @@ const Home = () => {
     <BestSellers />          {/* showcase our most popular sweets */}
     <PromotionalBanner />    {/* promotional banner with special offers */}
     <NewArrivals />          {/* highlight fresh and exciting treats */}
+    <GujarPakShowcase />     {/* showcase our signature sweet - Gujar Pak */}
     <MithaiSpecials />       {/* showcase our delicious mithai collection */}
     <FestivalSpecials />     {/* showcase our festive special collection */}
     <SpecialOffers />        {/* sweet deals and discounts */}
