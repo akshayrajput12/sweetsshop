@@ -197,6 +197,7 @@ export type Database = {
           delivery_location: Json
           discount: number
           estimated_delivery: string | null
+          estimated_delivery_time: string | null
           id: string
           items: Json
           order_number: string
@@ -228,6 +229,7 @@ export type Database = {
           delivery_location: Json
           discount?: number
           estimated_delivery?: string | null
+          estimated_delivery_time?: string | null
           id?: string
           items: Json
           order_number: string
@@ -259,6 +261,7 @@ export type Database = {
           delivery_location?: Json
           discount?: number
           estimated_delivery?: string | null
+          estimated_delivery_time?: string | null
           id?: string
           items?: Json
           order_number?: string

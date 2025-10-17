@@ -675,7 +675,7 @@ const Checkout = () => {
 
     try {
       // Generate unique order number
-      const orderNumber = `BUK${Date.now()}${Math.floor(Math.random() * 1000)}`;
+      const orderNumber = `SS${Date.now()}${Math.floor(Math.random() * 1000)}`;
       
       const completeAddress = `${addressDetails.plotNumber}, ${addressDetails.buildingName ? addressDetails.buildingName + ', ' : ''}${addressDetails.street}, ${addressDetails.landmark ? 'Near ' + addressDetails.landmark + ', ' : ''}${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`;
       

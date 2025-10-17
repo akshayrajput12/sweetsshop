@@ -82,8 +82,12 @@ export function generateInvoiceHTML(data: InvoiceData): string {
             box-sizing: border-box;
         }
         
+        @page {
+            margin: 0.3cm;
+        }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             line-height: 1.6;
             color: #333;
             background: #f8f9fa;
@@ -91,116 +95,136 @@ export function generateInvoiceHTML(data: InvoiceData): string {
         
         .invoice-container {
             max-width: 800px;
-            margin: 20px auto;
+            margin: 0 auto;
             background: white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            border-radius: 8px;
+            box-shadow: none;
+            border-radius: 0;
             overflow: hidden;
         }
         
         .invoice-header {
-            background: linear-gradient(135deg, hsl(8, 94%, 47%) 0%, hsl(8, 94%, 42%) 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            background: #ffffff;
+            color: #333;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
         }
         
-        .invoice-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            opacity: 0.3;
-        }
-        
-        .invoice-header h1 {
-            font-size: 2.5rem;
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
-            font-weight: 700;
         }
         
-        .invoice-header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .company-logo {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .company-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d2d2d;
+            margin: 0;
+        }
+        
+        .invoice-badge {
+            background: #ff6b35;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
         
         .invoice-body {
-            padding: 30px;
+            padding: 15px 20px;
         }
         
         .invoice-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            gap: 15px;
+            margin-bottom: 15px;
+            page-break-inside: avoid;
         }
         
         .info-section h3 {
-            color: hsl(8, 94%, 47%);
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            border-bottom: 2px solid hsl(8, 94%, 47%);
-            padding-bottom: 5px;
+            color: #2d2d2d;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 600;
             position: relative;
+            padding-bottom: 5px;
         }
         
         .info-section h3::after {
             content: '';
             position: absolute;
-            bottom: -2px;
+            bottom: 0;
             left: 0;
             width: 30px;
             height: 2px;
-            background: hsl(48, 96%, 58%);
+            background: #ff6b35;
+            border-radius: 1px;
         }
         
         .info-section p {
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             color: #555;
+            font-size: 0.9rem;
         }
         
         .info-section strong {
-            color: #333;
+            color: #2d2d2d;
+            font-weight: 500;
         }
         
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 30px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
+            margin: 15px 0;
+            font-size: 0.8rem;
+            page-break-inside: avoid;
         }
         
         .items-table th {
-            background: linear-gradient(135deg, hsl(8, 94%, 47%) 0%, hsl(8, 94%, 42%) 100%);
-            color: white;
-            padding: 15px;
+            background: #f8f9fa;
+            color: #2d2d2d;
+            padding: 8px 6px;
             text-align: left;
             font-weight: 600;
+            font-size: 0.8rem;
             text-transform: uppercase;
-            font-size: 0.9rem;
             letter-spacing: 0.5px;
+            border-bottom: 2px solid #eee;
         }
         
         .items-table td {
-            padding: 15px;
+            padding: 6px 6px;
             border-bottom: 1px solid #eee;
         }
         
-        .items-table tr:nth-child(even) {
-            background: #f8f9fa;
+        .items-table tr:last-child td {
+            border-bottom: none;
         }
         
         .items-table tr:hover {
-            background: hsl(8, 94%, 97%);
-            transform: translateY(-1px);
-            transition: all 0.2s ease;
+            background: #fdf6f3;
         }
         
         .text-right {
@@ -213,134 +237,166 @@ export function generateInvoiceHTML(data: InvoiceData): string {
         
         .pricing-summary {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            page-break-inside: avoid;
         }
         
         .pricing-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 5px 0;
+            margin-bottom: 6px;
+            padding: 2px 0;
         }
         
         .pricing-row.total {
-            border-top: 3px solid hsl(8, 94%, 47%);
-            padding-top: 15px;
-            margin-top: 15px;
-            font-weight: bold;
-            font-size: 1.3rem;
-            color: hsl(8, 94%, 47%);
-            background: linear-gradient(90deg, hsl(8, 94%, 97%) 0%, transparent 100%);
-            padding: 15px;
-            border-radius: 8px;
+            border-top: 2px solid #eee;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2d2d2d;
         }
         
         .status-badge {
             display: inline-block;
-            padding: 5px 15px;
+            padding: 3px 10px;
             border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 500;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .status-paid {
-            background: #d4edda;
-            color: #155724;
+            background: #e8f5e9;
+            color: #2e7d32;
         }
         
         .status-pending {
-            background: #fff3cd;
-            color: #856404;
+            background: #fff8e1;
+            color: #f57f17;
         }
         
         .status-delivered {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .status-cancelled {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .status-placed {
+            background: #e1f5fe;
+            color: #0288d1;
+        }
+        
+        .status-confirmed {
+            background: #e8f5e8;
+            color: #388e3c;
         }
         
         .invoice-footer {
             background: #f8f9fa;
-            padding: 20px 30px;
+            padding: 10px 20px;
             text-align: center;
             color: #666;
             border-top: 1px solid #eee;
+            font-size: 0.8rem;
         }
         
         .invoice-footer p {
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
         }
         
         .company-details {
-            font-size: 0.9rem;
+            font-size: 0.7rem;
             color: #888;
-            margin-top: 15px;
-        }
-        
-        .company-logo {
-            width: 60px;
-            height: 60px;
-            background: white;
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: hsl(8, 94%, 47%);
-            margin-bottom: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .invoice-badge {
-            display: inline-block;
-            background: hsl(48, 96%, 58%);
-            color: hsl(0, 0%, 20%);
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 10px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
         }
         
         @media print {
             body {
                 background: white;
+                margin: 0;
+                padding: 0;
+                font-size: 11px;
             }
             
             .invoice-container {
                 box-shadow: none;
                 margin: 0;
+                border-radius: 0;
+                max-width: 100%;
             }
             
-            .invoice-header {
-                background: hsl(8, 94%, 47%) !important;
-                -webkit-print-color-adjust: exact;
+            .items-table {
+                font-size: 0.7rem;
             }
             
-            .items-table th {
-                background: hsl(8, 94%, 47%) !important;
-                -webkit-print-color-adjust: exact;
+            .items-table th,
+            .items-table td {
+                padding: 3px 4px;
+            }
+            
+            .pricing-row {
+                margin-bottom: 5px;
+            }
+            
+            .info-section p {
+                margin-bottom: 2px;
+            }
+            
+            .company-name {
+                font-size: 1.2rem;
+            }
+            
+            h3 {
+                font-size: 0.85rem;
+            }
+            
+            .invoice-footer {
+                padding: 8px 15px;
+                font-size: 0.75rem;
+            }
+            
+            .company-details {
+                font-size: 0.65rem;
+                margin-top: 5px;
+                padding-top: 5px;
             }
         }
         
         @media (max-width: 600px) {
             .invoice-info {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 15px;
             }
             
             .items-table {
-                font-size: 0.9rem;
+                font-size: 0.8rem;
             }
             
             .items-table th,
             .items-table td {
-                padding: 10px 8px;
+                padding: 6px 5px;
+            }
+            
+            .header-top {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .invoice-details {
+                grid-template-columns: 1fr;
+                gap: 10px;
             }
         }
     </style>
@@ -349,34 +405,30 @@ export function generateInvoiceHTML(data: InvoiceData): string {
     <div class="invoice-container">
         <!-- Header -->
         <div class="invoice-header">
-            <div class="company-logo">B</div>
-            <h1 style="position: relative; z-index: 1; margin: 0; font-size: 2.5rem; font-weight: 700;">${store_info.store_name}</h1>
-            <div class="invoice-badge">Tax Invoice</div>
+            <div class="header-top">
+                <div class="logo-container">
+                    <img src="/logo.png" alt="${store_info.store_name} Logo" class="company-logo">
+                    <h1 class="company-name">${store_info.store_name}</h1>
+                </div>
+                <div class="invoice-badge">Tax Invoice</div>
+            </div>
+            
+            <div class="invoice-details">
+                <div>
+                    <p><strong>Invoice Number:</strong> ${invoice_number}</p>
+                    <p><strong>Order Number:</strong> ${order_number}</p>
+                    <p><strong>Invoice Date:</strong> ${invoice_date}</p>
+                </div>
+                <div>
+                    <p><strong>Due Date:</strong> ${due_date}</p>
+                    <p><strong>Order Date:</strong> ${order_date}</p>
+                </div>
+            </div>
         </div>
         
         <!-- Body -->
         <div class="invoice-body">
-            <!-- Invoice Info -->
-            <div class="invoice-info">
-                <div class="info-section">
-                    <h3>Invoice Details</h3>
-                    <p><strong>Invoice Number:</strong> ${invoice_number}</p>
-                    <p><strong>Order Number:</strong> ${order_number}</p>
-                    <p><strong>Invoice Date:</strong> ${invoice_date}</p>
-                    <p><strong>Due Date:</strong> ${due_date}</p>
-                    <p><strong>Order Date:</strong> ${order_date}</p>
-                </div>
-                
-                <div class="info-section">
-                    <h3>Company Details</h3>
-                    <p><strong>${store_info.store_name}</strong></p>
-                    <p>${store_info.store_address}</p>
-                    <p><strong>Phone:</strong> ${store_info.store_phone}</p>
-                    <p><strong>Email:</strong> ${store_info.store_email}</p>
-                    <p><strong>GST:</strong> 27ABCDE1234F1Z5</p>
-                </div>
-            </div>
-            
+            <!-- Customer & Company Info -->
             <div class="invoice-info">
                 <div class="info-section">
                     <h3>Bill To</h3>
@@ -386,21 +438,24 @@ export function generateInvoiceHTML(data: InvoiceData): string {
                 </div>
                 
                 <div class="info-section">
-                    <h3>Delivery Address</h3>
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid hsl(8, 94%, 47%);">
-                        <p><strong>Address:</strong></p>
-                        <p style="margin-left: 10px;">${delivery_address.plotNumber || ''} ${delivery_address.buildingName || ''}</p>
-                        <p style="margin-left: 10px;">${delivery_address.street || ''}</p>
-                        ${delivery_address.landmark ? `<p style="margin-left: 10px;"><em>Near ${delivery_address.landmark}</em></p>` : ''}
-                        <p style="margin-left: 10px;"><strong>Pincode:</strong> ${delivery_address.pincode || ''}</p>
-                        
-                        ${delivery_address.complete_address ? `
-                        <p style="margin-top: 10px;"><strong>Full Address:</strong></p>
-                        <p style="margin-left: 10px; font-style: italic;">${delivery_address.complete_address}</p>
-                        ` : ''}
-                        
-                        <!-- Location features removed - manual address entry only -->
-                    </div>
+                    <h3>Company Details</h3>
+                    <p><strong>${store_info.store_name}</strong></p>
+                    <p>${store_info.store_address}</p>
+                    <p><strong>Phone:</strong> ${store_info.store_phone}</p>
+                    <p><strong>Email:</strong> ${store_info.store_email}</p>
+                </div>
+            </div>
+            
+            <!-- Delivery Address -->
+            <div class="info-section">
+                <h3>Delivery Address</h3>
+                <div style="background: #f8f9fa; padding: 12px; border-radius: 4px; margin-top: 8px; font-size: 0.85rem;">
+                    <p style="margin: 0 0 5px 0;"><strong>Address:</strong> ${delivery_address.plotNumber || ''} ${delivery_address.buildingName || ''}, ${delivery_address.street || ''}</p>
+                    ${delivery_address.landmark ? `<p style="margin: 0 0 5px 0;"><strong>Near:</strong> ${delivery_address.landmark}</p>` : ''}
+                    <p style="margin: 0;"><strong>Pincode:</strong> ${delivery_address.pincode || ''}</p>
+                    ${delivery_address.complete_address ? `
+                    <p style="margin: 5px 0 0 0; font-style: italic;">${delivery_address.complete_address}</p>
+                    ` : ''}
                 </div>
             </div>
             
@@ -416,7 +471,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
                     </tr>
                 </thead>
                 <tbody>
-                    ${items.map(item => `
+                    ${items.slice(0, 10).map(item => `
                         <tr>
                             <td>
                                 <strong>${item.name}</strong>
@@ -428,6 +483,13 @@ export function generateInvoiceHTML(data: InvoiceData): string {
                             <td class="text-right"><strong>${store_info.currency_symbol}${(item.price * item.quantity).toFixed(2)}</strong></td>
                         </tr>
                     `).join('')}
+                    ${items.length > 10 ? `
+                        <tr>
+                            <td colspan="5" style="text-align: center; font-style: italic; padding: 10px;">
+                                Showing 10 of ${items.length} items - See website for complete order details
+                            </td>
+                        </tr>
+                    ` : ''}
                 </tbody>
             </table>
             
@@ -456,7 +518,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
                 ` : ''}
                 
                 ${pricing.discount > 0 ? `
-                <div class="pricing-row" style="color: #28a745;">
+                <div class="pricing-row" style="color: #2e7d32;">
                     <span>Discount ${coupon_code ? `(${coupon_code})` : ''}:</span>
                     <span>-${store_info.currency_symbol}${pricing.discount.toFixed(2)}</span>
                 </div>
