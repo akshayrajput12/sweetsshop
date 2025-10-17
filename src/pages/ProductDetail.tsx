@@ -29,6 +29,7 @@ const ProductDetail = () => {
     specifications: false,
     details: false
   });
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const { addToCart } = useStore();
 
@@ -220,7 +221,7 @@ const ProductDetail = () => {
         <div className="bg-white rounded-3xl shadow-xl border border-orange-100 overflow-hidden mb-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Product Images */}
-            <div className="space-y-4">
+            <div className="space-y-4 -mt-4">
               <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 to-red-50 shadow-lg">
                 <img
                   src={product.images?.[currentImageIndex] || '/placeholder.svg'}
@@ -228,10 +229,12 @@ const ProductDetail = () => {
                   className="w-full h-full object-cover"
                 />
 
-                <div className="absolute top-4 left-4 bg-white rounded-2xl p-3 shadow-lg border border-orange-100">
-                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">B</span>
-                  </div>
+                <div className="absolute top-2 left-4 bg-white rounded-2xl p-3 shadow-lg border border-orange-100">
+                  <img 
+                    src="/logo.png" 
+                    alt="Brand Logo" 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
 
                 {product.images && product.images.length > 1 && (
@@ -280,9 +283,19 @@ const ProductDetail = () => {
                 </div>
 
                 {product.description && (
-                  <p className="text-muted-foreground mb-4 leading-relaxed">
-                    {product.description}
-                  </p>
+                  <div className="mb-4">
+                    <p className={`text-muted-foreground leading-relaxed ${isDescriptionExpanded ? '' : 'line-clamp-3'}`}>
+                      {product.description}
+                    </p>
+                    {product.description.length > 150 && (
+                      <button 
+                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                        className="mt-2 text-orange-600 hover:text-orange-700 font-medium text-sm"
+                      >
+                        {isDescriptionExpanded ? 'Show Less' : 'Read More'}
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 <div className="flex items-center space-x-3 mb-4">
