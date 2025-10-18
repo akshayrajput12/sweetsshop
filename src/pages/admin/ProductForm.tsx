@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -254,6 +254,26 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
     }
 
     setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Add this new function to move images up in the array
+  const moveImageUp = (index: number) => {
+    if (index <= 0) return;
+    setImages(prev => {
+      const newImages = [...prev];
+      [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
+      return newImages;
+    });
+  };
+
+  // Add this new function to move images down in the array
+  const moveImageDown = (index: number) => {
+    if (index >= images.length - 1) return;
+    setImages(prev => {
+      const newImages = [...prev];
+      [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
+      return newImages;
+    });
   };
 
   const addNewFeature = async () => {
@@ -712,25 +732,50 @@ const ProductForm = ({ product: propProduct, isEdit = false }: ProductFormProps)
               
               <div className="grid grid-cols-2 gap-2">
                 {images.map((image, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="relative group">
                     <img
                       src={image}
                       alt={`Product ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg"
+                      className="w-full h-24 object-cover rounded-lg border-2 border-transparent hover:border-primary transition-colors"
                     />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-1 right-1 h-6 w-6 p-0"
-                      onClick={() => removeImage(index)}
-                      disabled={uploadingImage}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => moveImageUp(index)}
+                        disabled={index === 0}
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => moveImageDown(index)}
+                        disabled={index === images.length - 1}
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => removeImage(index)}
+                        disabled={uploadingImage}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                     {index === 0 && (
-                      <Badge className="absolute bottom-1 left-1 text-xs">Primary</Badge>
+                      <Badge className="absolute bottom-1 left-1 text-xs bg-primary">Primary</Badge>
                     )}
+                    <Badge className="absolute top-1 left-1 text-xs bg-black/70 text-white">
+                      {index + 1}
+                    </Badge>
                   </div>
                 ))}
               </div>

@@ -26,7 +26,10 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, isOpen, onClos
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
-      addToCart(product);
+      addToCart({
+        ...product,
+        image: product.images?.[0] || product.image || '/placeholder.svg'
+      });
     }
     onClose();
   };

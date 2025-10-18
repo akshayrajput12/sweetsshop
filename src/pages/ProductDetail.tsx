@@ -195,6 +195,11 @@ const ProductDetail = () => {
     }
   };
 
+  // Add thumbnail navigation function
+  const goToImage = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
   const getFeatureIcon = (feature: string) => {
     const lowerFeature = feature.toLowerCase();
     if (lowerFeature.includes('bulk') || lowerFeature.includes('wholesale')) return Package;
@@ -248,7 +253,27 @@ const ProductDetail = () => {
                   </>
                 )}
               </div>
-            </div>
+
+              {/* Image Thumbnails */}
+              {product.images && product.images.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {product.images.map((image: string, index: number) => (
+                    <button
+                      key={index}
+                      onClick={() => goToImage(index)}
+                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
+                        currentImageIndex === index ? 'border-primary' : 'border-transparent'
+                      }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
 
             {/* Product Info */}
             <div className="space-y-6">

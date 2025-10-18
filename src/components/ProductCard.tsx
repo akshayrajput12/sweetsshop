@@ -1,9 +1,24 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Star, Eye, Heart, ShoppingCart } from 'lucide-react';
-import { Product } from '../store/useStore';
 import { useStore } from '../store/useStore';
 import { formatPrice } from '../utils/currency';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image?: string;
+  images?: string[];
+  weight?: string;
+  pieces?: string;
+  rating?: number;
+  stock_quantity?: number;
+  isBestSeller?: boolean;
+  features?: string[];
+  [key: string]: any;
+}
 
 interface ProductCardProps {
   product: Product;
@@ -13,16 +28,18 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuickView }) => {
   const addToCart = useStore((state) => state.addToCart);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
-  const images = product.images || [product.image];
-  const hasMultipleImages = images.length > 1;
+  // Always use the first image as the primary image
+  const primaryImage = product.images?.[0] || product.image || '/placeholder.svg';
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart(product);
+    addToCart({
+      ...product,
+      image: primaryImage
+    });
   };
 
   const handleQuickView = (e: React.MouseEvent) => {
@@ -37,14 +54,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
   const handleMouseEnter = () => {
     setIsHovered(true);
-    if (hasMultipleImages) {
-      setCurrentImageIndex(1);
-    }
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    setCurrentImageIndex(0);
   };
 
   const discount = product.originalPrice 
@@ -72,7 +85,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
       {/* Image Container */}
       <div className="relative overflow-hidden bg-gray-50">
         <motion.img
-          src={images[currentImageIndex] || product.image}
+          src={primaryImage}
           alt={product.name}
           className="w-full h-64 object-cover transition-all duration-700"
           animate={{ scale: isHovered ? 1.05 : 1 }}
