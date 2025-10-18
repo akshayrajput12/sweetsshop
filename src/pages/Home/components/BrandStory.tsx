@@ -13,51 +13,51 @@ import { Card, CardContent } from '@/components/ui/card';
 // Timeline data with images
 const timelineData = [
   {
-    year: "1999",
-    title: "The Beginning",
-    description: "Our journey started in a small kitchen with a passion for traditional sweets and authentic flavors.",
+    year: "1975",
+    title: "A Sweet Dream",
+    description: "The idea of creating authentic, traditional sweets was born in the heart of our founder, envisioning a legacy of taste and tradition.",
     image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&h=400&fit=crop"
   },
   {
-    year: "2003",
-    title: "First Launch",
-    description: "We opened our first retail outlet, bringing our homemade delicacies to the local community.",
+    year: "1977",
+    title: "First Sweet Shop",
+    description: "With passion and dedication, we opened our first retail outlet, bringing homemade delicacies to the local community.",
     image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400&h=400&fit=crop"
   },
   {
-    year: "2007",
-    title: "Expansion",
-    description: "With growing popularity, we expanded to multiple locations across the city.",
+    year: "1985",
+    title: "Growing Popularity",
+    description: "Our commitment to quality and authentic flavors gained recognition, leading to expansion across the region.",
     image: "https://images.unsplash.com/photo-1551783743-65384d0a48da?w=400&h=400&fit=crop"
   },
   {
-    year: "2012",
-    title: "Recognition",
-    description: "Awarded 'Best Sweet Shop' by the regional food council for our exceptional quality.",
-    image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400&h=400&fit=crop"
+    year: "1995",
+    title: "Regional Recognition",
+    description: "Awarded 'Best Sweet Shop' by the regional food council for our exceptional quality and traditional recipes.",
+    image: "https://images.unsplash.com/photo-1565911220-e15b29be8c8f?w=400&h=400&fit=crop"
   },
   {
-    year: "2016",
-    title: "Global Reach",
-    description: "Our products began reaching international markets, spreading the taste of tradition worldwide.",
+    year: "2005",
+    title: "Citywide Presence",
+    description: "With growing popularity, we expanded to multiple locations across the city, serving more sweet lovers.",
     image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=400&fit=crop"
   },
   {
-    year: "2019",
-    title: "Rebranding",
-    description: "We refreshed our brand identity to reflect our modern approach while honoring our heritage.",
+    year: "2015",
+    title: "Modern Brand Identity",
+    description: "We refreshed our brand identity to reflect our modern approach while honoring our rich heritage.",
     image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&h=400&fit=crop"
   },
   {
-    year: "2022",
-    title: "Innovation",
-    description: "Launched our online store and introduced new fusion recipes to delight younger generations.",
+    year: "2020",
+    title: "Digital Transformation",
+    description: "Launched our online store and introduced new fusion recipes to delight younger generations while preserving tradition.",
     image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400&h=400&fit=crop"
   },
   {
     year: "2025",
-    title: "Future Vision",
-    description: "Committed to sustainable practices and expanding our reach to more communities globally.",
+    title: "48+ Years of Excellence",
+    description: "With over four decades of experience, we continue our commitment to quality, tradition, and innovation in every sweet.",
     image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=400&h=400&fit=crop"
   }
 ];
@@ -97,7 +97,7 @@ const BrandStory = () => {
           </h2>
           
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            From a small kitchen to a beloved brand, our journey has been as sweet as our creations
+            From a dream in 1975 to a legacy of over 48 years, our journey has been as sweet as our creations
           </p>
         </div>
       </div>

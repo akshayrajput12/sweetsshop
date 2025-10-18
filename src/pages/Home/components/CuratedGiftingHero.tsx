@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { MoveRight, PhoneCall, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import hero1 from '@/assets/banner.webp';
+import hero1 from '@/assets/banner.png';
 import hero2 from '@/assets/hero 2.webp';
 import hero3 from '@/assets/hero 3.webp';
 import hero4 from '@/assets/hero 4.webp';
-import hero5 from '@/assets/hero5.webp';
+import hero5 from '@/assets/hero5.png';
 import { motion } from 'framer-motion';
 import { 
   Carousel, 

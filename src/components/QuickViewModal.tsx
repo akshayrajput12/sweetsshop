@@ -1,10 +1,25 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Minus, Star, ShoppingCart } from 'lucide-react';
-import { Product } from '../store/useStore';
 import { useStore } from '../store/useStore';
 import { formatPrice } from '../utils/currency';
 import { Button } from '@/components/ui/button';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image?: string;
+  images?: string[];
+  weight?: string;
+  pieces?: string;
+  rating?: number;
+  stock_quantity?: number;
+  isBestSeller?: boolean;
+  features?: string[];
+  [key: string]: any;
+}
 
 interface QuickViewModalProps {
   product: Product | null;

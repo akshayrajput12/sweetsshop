@@ -274,41 +274,45 @@ const ProductDetail = () => {
                   ))}
                 </div>
               )}
+            </div>
 
-            {/* Product Info */}
+            {/* Product Info - Second Column */}
             <div className="space-y-6">
               <div>
-                <div className="flex items-center justify-between mb-2">
+                {/* Product Title and Favorite Button */}
+                <div className="flex items-start justify-between mb-3">
                   <h1 className="text-3xl font-bold">{product.name}</h1>
                   <Button variant="ghost" size="sm" onClick={() => setIsFavorite(!isFavorite)}>
                     <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
                   </Button>
                 </div>
 
-                <div className="flex items-center flex-wrap gap-3 mb-6">
-                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-xl font-semibold">
-                    {product.categories?.name || 'General'}
+                {/* Product Badges - Category, Bestseller, Stock Status */}
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 px-3 py-1.5 rounded-xl font-semibold text-sm">
+                    {product.categories?.name || 'Mithai'}
                   </Badge>
                   {product.is_bestseller && (
-                    <Badge variant="default" className="bg-gradient-to-r from-yellow-500 to-orange-500 px-3 py-1.5 rounded-xl">
+                    <Badge variant="default" className="bg-gradient-to-r from-yellow-500 to-orange-500 px-3 py-1.5 rounded-xl text-sm">
                       <Star className="w-3 h-3 mr-1" />
                       Bestseller
                     </Badge>
                   )}
                   {product.stock_quantity > 0 ? (
-                    <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1.5 rounded-xl">
+                    <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1.5 rounded-xl text-sm">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       In Stock
                     </Badge>
                   ) : (
-                    <Badge variant="destructive" className="px-3 py-1.5 rounded-xl">
+                    <Badge variant="destructive" className="px-3 py-1.5 rounded-xl text-sm">
                       Out of Stock
                     </Badge>
                   )}
                 </div>
 
+                {/* Product Description */}
                 {product.description && (
-                  <div className="mb-4">
+                  <div className="mb-6">
                     <p className={`text-muted-foreground leading-relaxed ${isDescriptionExpanded ? '' : 'line-clamp-3'}`}>
                       {product.description}
                     </p>
@@ -323,8 +327,9 @@ const ProductDetail = () => {
                   </div>
                 )}
 
-                <div className="flex items-center space-x-3 mb-4">
-                  <span className="text-4xl font-bold text-foreground">
+                {/* Pricing Information */}
+                <div className="flex flex-wrap items-baseline gap-3 mb-6">
+                  <span className="text-3xl font-bold text-foreground">
                     {formatPrice(product.price)}
                   </span>
                   {product.original_price && product.original_price > product.price && (
@@ -332,21 +337,22 @@ const ProductDetail = () => {
                       <span className="text-lg text-muted-foreground line-through">
                         MRP {formatPrice(product.original_price)}
                       </span>
-                      <Badge variant="destructive">
+                      <Badge variant="destructive" className="text-sm">
                         {discountPercentage}% OFF
                       </Badge>
                     </>
                   )}
                 </div>
-              </div>  
-            {/* Quantity and Add to Cart */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4">
+              </div>
+
+              {/* Quantity Selector and Add to Cart Button */}
+              <div className="space-y-4 p-4 bg-orange-50 rounded-xl">
+                <div className="flex items-center justify-between">
                   <span className="font-medium">Quantity:</span>
                   <div className="flex items-center border border-orange-200 rounded-xl overflow-hidden">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="p-2 hover:bg-orange-50 transition-colors"
+                      className="p-2 hover:bg-orange-100 transition-colors"
                       disabled={quantity <= 1}
                     >
                       <Minus className="w-4 h-4" />
@@ -354,7 +360,7 @@ const ProductDetail = () => {
                     <span className="px-4 py-2 font-medium min-w-[3rem] text-center">{quantity}</span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="p-2 hover:bg-orange-50 transition-colors"
+                      className="p-2 hover:bg-orange-100 transition-colors"
                       disabled={product.stock_quantity <= quantity}
                     >
                       <Plus className="w-4 h-4" />
@@ -362,43 +368,34 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                <div className="flex space-x-3">
-                  <Button
-                    onClick={handleAddToCart}
-                    disabled={product.stock_quantity === 0}
-                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl py-3 font-semibold"
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    Add to Cart
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="px-6 border-orange-200 hover:bg-orange-50 rounded-xl"
-                    onClick={() => navigate('/products')}
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </Button>
-                </div>
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={product.stock_quantity === 0}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl py-3 font-semibold"
+                >
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Add to Cart
+                </Button>
               </div>
 
-              {/* Trust Indicators */}
-              <div className="grid grid-cols-2 gap-4 pt-6 border-t border-orange-100">
-                <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-xl">
-                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                    <Truck className="w-5 h-5 text-white" />
+              {/* Trust Indicators - Fast Delivery and Quality Assured */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-3 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Truck className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Fast Delivery</p>
-                    <p className="text-xs text-muted-foreground">Same day delivery</p>
+                    <p className="font-semibold">Fast Delivery</p>
+                    <p className="text-sm text-muted-foreground">Same day delivery</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-xl">
-                  <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-white" />
+                <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-xl border border-green-100">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Quality Assured</p>
-                    <p className="text-xs text-muted-foreground">Premium products</p>
+                    <p className="font-semibold">Quality Assured</p>
+                    <p className="text-sm text-muted-foreground">Premium products</p>
                   </div>
                 </div>
               </div>

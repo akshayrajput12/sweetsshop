@@ -22,7 +22,7 @@ const GujarPakShowcase = () => {
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white transform rotate-3 hover:rotate-0 transition-transform duration-700">
                 <img 
                   src={gujarpak} 
-                  alt="Gujar Pak - Our Signature Sweet" 
+                  alt="gajar Pak - Our Signature Sweet" 
                   className="w-full h-96 md:h-[500px] object-cover"
                 />
               </div>
@@ -55,7 +55,7 @@ const GujarPakShowcase = () => {
               
               {/* Title */}
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 font-serif mb-4">
-                Gujar <span className="text-amber-600">Pak</span>
+                gajar <span className="text-amber-600">Pak</span>
               </h2>
               
               {/* Rating */}
@@ -68,7 +68,7 @@ const GujarPakShowcase = () => {
               
               {/* Description */}
               <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-                Experience the rich heritage of Gujarat with our signature sweet, Gujar Pak. 
+                Experience the rich heritage of gajarat with our signature sweet, Gajar Pak. 
                 Made with the finest ingredients and traditional recipes passed down through generations, 
                 this delectable treat offers an exquisite blend of flavors that will transport you 
                 straight to the heart of Gujarat. Each bite is a celebration of authentic craftsmanship 

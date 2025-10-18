@@ -33,6 +33,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
 
   // Always use the first image as the primary image
   const primaryImage = product.images?.[0] || product.image || '/placeholder.svg';
+  
+  // Get the second image for hover effect, or fallback to the first
+  const hoverImage = product.images && product.images.length > 1 
+    ? product.images[1] 
+    : primaryImage;
+  
+  // Determine which image to show based on hover state
+  const displayImage = isHovered ? hoverImage : primaryImage;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -85,7 +93,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetail, onQuic
       {/* Image Container */}
       <div className="relative overflow-hidden bg-gray-50">
         <motion.img
-          src={primaryImage}
+          src={displayImage}
           alt={product.name}
           className="w-full h-64 object-cover transition-all duration-700"
           animate={{ scale: isHovered ? 1.05 : 1 }}
