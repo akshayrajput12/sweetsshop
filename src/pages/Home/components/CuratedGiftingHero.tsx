@@ -29,7 +29,7 @@ const sliderData = [
   {
     id: 2,
     title: "Traditional Mithai Collection",
-    subtitle: "Authentic Flavors Since 1997",
+    subtitle: "Authentic Flavors Since 1977",
     description: "Experience the rich heritage of Indian sweets with our authentic mithai collection, prepared using time-honored recipes.",
     ctaText: "Explore Mithai",
     image: hero2
