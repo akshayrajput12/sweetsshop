@@ -140,6 +140,7 @@ const CuratedGiftingHero = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
+            {/* Updated to show SuperSweets name on mobile instead of logo */}
             <motion.h2 
               className="text-2xl md:text-3xl text-amber-400 font-semibold mb-2"
               whileHover={{

@@ -212,15 +212,24 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                       <X className="w-6 h-6" />
                     </button>
 
-                    {/* Logo */}
+                    {/* Logo - Updated to show logo instead of text on mobile menu header */}
                     <Link to="/" className="flex items-center space-x-2 flex-shrink-0" onClick={closeMobileMenu}>
-                      <img 
-                        src={logoImage} 
-                        alt="SuperSweets Logo" 
-                        className="w-12 h-12 object-contain"
-                      />
-                      <div className="hidden xs:block">
-                        <span className="text-xl font-bold text-primary">SuperSweets</span>
+                      <div className="md:hidden">
+                        <img 
+                          src={logoImage} 
+                          alt="SuperSweets Logo" 
+                          className="w-12 h-12 object-contain"
+                        />
+                      </div>
+                      <div className="hidden md:flex items-center space-x-2">
+                        <img 
+                          src={logoImage} 
+                          alt="SuperSweets Logo" 
+                          className="w-12 h-12 object-contain"
+                        />
+                        <div className="hidden xs:block">
+                          <span className="text-xl font-bold text-primary">SuperSweets</span>
+                        </div>
                       </div>
                     </Link>
 

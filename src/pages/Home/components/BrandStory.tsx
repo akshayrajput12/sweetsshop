@@ -63,16 +63,16 @@ const timelineData = [
 ];
 
 const BrandStory = () => {
-  // Crazy shapes for cards
+  // Updated modern shapes for cards with smoother edges
   const cardShapes = [
-    "polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%)", // Parallelogram
-    "polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%)", // Reversed parallelogram
-    "polygon(0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%, 100% 15%, 100% 85%, 85% 85%, 85% 100%, 15% 100%, 15% 85%, 0% 85%)", // Frame
-    "polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%)", // Octagon
-    "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)", // Pentagon
-    "polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%)", // Trapezoid
-    "polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)", // House shape
-    "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)", // Octagonal
+    "polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px)", // Rounded rectangle
+    "polygon(20px 0, calc(100% - 20px) 0, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0 calc(100% - 20px), 0 20px)", // More rounded rectangle
+    "polygon(0 0, 100% 0, 100% 70%, 70% 70%, 70% 100%, 0 100%)", // Modern L-shape
+    "polygon(0 0, 100% 0, 100% 100%, 30% 100%, 30% 70%, 0 70%)", // Reversed L-shape
+    "polygon(15px 0, calc(100% - 15px) 0, 100% 15px, 100% calc(100% - 15px), calc(100% - 15px) 100%, 15px 100%, 0 calc(100% - 15px), 0 15px)", // Soft rectangle
+    "polygon(0 0, 100% 0, 100% 100%, 25% 100%, 25% 75%, 0 75%)", // Step shape
+    "polygon(0 0, 100% 0, 100% 75%, 80% 75%, 80% 100%, 0 100%)", // Reversed step
+    "polygon(25px 0, calc(100% - 25px) 0, 100% 25px, 100% calc(100% - 25px), calc(100% - 25px) 100%, 25px 100%, 0 calc(100% - 25px), 0 25px)", // Very rounded rectangle
   ];
 
   return (
@@ -123,7 +123,7 @@ const BrandStory = () => {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
                     <Card 
-                      className="relative h-[450px] overflow-hidden border-0 shadow-2xl"
+                      className="relative h-auto min-h-[450px] overflow-hidden border-0 shadow-2xl flex flex-col"
                       style={{ 
                         clipPath: cardShapes[index % cardShapes.length],
                       }}
@@ -135,17 +135,21 @@ const BrandStory = () => {
                       <div className="absolute -top-8 -right-8 w-32 h-32 bg-amber-200 rounded-full mix-blend-soft-light filter blur-2xl opacity-30"></div>
                       <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-rose-200 rounded-full mix-blend-soft-light filter blur-2xl opacity-30"></div>
                       
-                      {/* Image with enhanced styling */}
-                      <div className="relative h-2/5 w-full overflow-hidden">
+                      {/* Image with enhanced styling - Modified to show image in shape */}
+                      <div className="relative h-2/5 w-full flex items-center justify-center p-4">
                         <div 
-                          className="absolute inset-0 bg-cover bg-center"
-                          style={{ backgroundImage: `url(${item.image})` }}
-                        ></div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-amber-900/20 to-transparent"></div>
+                          className="w-full h-full bg-cover bg-center rounded-2xl"
+                          style={{ 
+                            backgroundImage: `url(${item.image})`,
+                            clipPath: cardShapes[index % cardShapes.length],
+                          }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-t from-amber-900/20 to-transparent rounded-2xl"></div>
+                        </div>
                       </div>
                       
-                      {/* Content */}
-                      <CardContent className="relative p-6 h-3/5 flex flex-col justify-between">
+                      {/* Content - Adjusted to prevent text cropping */}
+                      <CardContent className="relative p-6 flex flex-col flex-grow">
                         {/* Year badge with enhanced styling */}
                         <div className="flex justify-center -mt-8 z-10">
                           <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold text-lg shadow-lg transform rotate-3 border-4 border-white">
@@ -153,7 +157,7 @@ const BrandStory = () => {
                           </div>
                         </div>
                         
-                        <div className="text-center mt-2">
+                        <div className="text-center mt-2 flex-grow flex flex-col justify-center">
                           <h3 className="text-2xl font-bold mb-3 text-gray-800 drop-shadow-sm">
                             {item.title}
                           </h3>
