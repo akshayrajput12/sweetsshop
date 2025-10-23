@@ -77,11 +77,14 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             <img 
               src={logoImage} 
               alt="SuperSweets Logo" 
-              className="w-20 h-20 md:w-24 md:h-24 object-contain"
+              className="w-16 h-16 md:w-20 md:h-20 object-contain hidden xs:block"
             />
+            <div className="xs:hidden flex items-center">
+              <span className="text-2xl font-bold text-primary">SuperSweets</span>
+            </div>
             <div className="hidden xs:block">
-              <span className="text-3xl md:text-4xl font-bold text-primary">SuperSweets</span>
-              <div className="text-sm md:text-base text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
+              <span className="text-2xl md:text-3xl font-bold text-primary">SuperSweets</span>
+              <div className="text-xs md:text-sm text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
             </div>
           </Link>
 
@@ -212,24 +215,15 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                       <X className="w-6 h-6" />
                     </button>
 
-                    {/* Logo - Updated to show logo instead of text on mobile menu header */}
+                    {/* Logo - Updated to show logo on mobile menu header */}
                     <Link to="/" className="flex items-center space-x-2 flex-shrink-0" onClick={closeMobileMenu}>
-                      <div className="md:hidden">
-                        <img 
-                          src={logoImage} 
-                          alt="SuperSweets Logo" 
-                          className="w-12 h-12 object-contain"
-                        />
-                      </div>
-                      <div className="hidden md:flex items-center space-x-2">
-                        <img 
-                          src={logoImage} 
-                          alt="SuperSweets Logo" 
-                          className="w-12 h-12 object-contain"
-                        />
-                        <div className="hidden xs:block">
-                          <span className="text-xl font-bold text-primary">SuperSweets</span>
-                        </div>
+                      <img 
+                        src={logoImage} 
+                        alt="SuperSweets Logo" 
+                        className="w-12 h-12 object-contain"
+                      />
+                      <div className="hidden xs:block">
+                        <span className="text-xl font-bold text-primary">SuperSweets</span>
                       </div>
                     </Link>
 
