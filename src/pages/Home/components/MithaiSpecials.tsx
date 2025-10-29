@@ -221,13 +221,13 @@ const MithaiSpecials = () => {
   }
 
   return (
-    <section className="py-12 bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 relative overflow-hidden">
+    <section className="py-12 bg-[hsl(0_0%_95%)] relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-orange-200 to-red-200 rounded-full blur-3xl opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-amber-200 to-orange-200 rounded-full blur-3xl opacity-30 transform -translate-x-1/2 translate-y-1/2"></div>
-        <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-yellow-300 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-red-300 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[hsl(0_0%_90%)] rounded-full blur-3xl opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[hsl(0_0%_90%)] rounded-full blur-3xl opacity-30 transform -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-[hsl(0_0%_85%)] rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-[hsl(0_0%_85%)] rounded-full blur-3xl opacity-20 animate-pulse"></div>
       </div>
 
       {/* Added max-width container with proper padding and margins */}
@@ -236,22 +236,22 @@ const MithaiSpecials = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
             
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 bg-clip-text text-transparent font-serif">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary font-serif">
               Mithai Madness
             </h2>
             
           </div>
           
-          <div className="w-32 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 mx-auto rounded-full mb-6"></div>
+          <div className="w-32 h-1 bg-secondary mx-auto rounded-full mb-6"></div>
         </div>
 
         {/* Enhanced Carousel Controls */}
         {!loading && mithaiProducts.length > itemsPerView && (
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border-2 border-amber-200 font-bold">
-                <Candy className="w-5 h-5 text-amber-600 fill-current animate-bounce" />
-                <span className="text-sm sm:text-base font-bold text-amber-800">
+              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border-2 border-[hsl(0_0%_88%)] font-bold">
+                <Candy className="w-5 h-5 text-secondary fill-current animate-bounce" />
+                <span className="text-sm sm:text-base font-bold text-primary">
                   {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, mithaiProducts.length)} of {mithaiProducts.length} sweet treats
                 </span>
               </div>
@@ -263,7 +263,7 @@ const MithaiSpecials = () => {
                 disabled={!canGoPrev}
                 className={`p-3 rounded-full border-3 transition-all duration-300 transform hover:scale-110 ${
                   canGoPrev 
-                    ? 'border-amber-500 text-amber-600 bg-white hover:bg-amber-500 hover:text-white shadow-xl' 
+                    ? 'border-secondary text-secondary bg-white hover:bg-secondary hover:text-white shadow-xl' 
                     : 'border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100'
                 }`}
               >
@@ -274,7 +274,7 @@ const MithaiSpecials = () => {
                 disabled={!canGoNext}
                 className={`p-3 rounded-full border-3 transition-all duration-300 transform hover:scale-110 ${
                   canGoNext 
-                    ? 'border-amber-500 text-amber-600 bg-white hover:bg-amber-500 hover:text-white shadow-xl' 
+                    ? 'border-secondary text-secondary bg-white hover:bg-secondary hover:text-white shadow-xl' 
                     : 'border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100'
                 }`}
               >
@@ -296,8 +296,8 @@ const MithaiSpecials = () => {
                 }}
                 className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full transition-all duration-500 transform hover:scale-125 ${
                   Math.floor(currentIndex / itemsPerView) === index
-                    ? 'bg-gradient-to-r from-amber-500 to-red-500 w-8 sm:w-10 shadow-lg'
-                    : 'bg-white border-2 border-amber-300 hover:bg-amber-100'
+                    ? 'bg-primary w-8 sm:w-10 shadow-lg'
+                    : 'bg-white border-2 border-[hsl(0_0%_80%)] hover:bg-[hsl(0_0%_85%)]'
                 }`}
               />
             ))}
@@ -315,12 +315,12 @@ const MithaiSpecials = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="animate-pulse">
-                  <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-100 transform rotate-3">
-                    <div className="h-64 bg-gradient-to-br from-amber-200 to-orange-200 rounded-t-3xl"></div>
+                  <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-[hsl(0_0%_90%)] transform rotate-3">
+                    <div className="h-64 bg-[hsl(0_0%_90%)] rounded-t-3xl"></div>
                     <div className="p-6">
-                      <div className="h-6 bg-gradient-to-r from-amber-200 to-orange-200 rounded w-3/4 mb-4"></div>
-                      <div className="h-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded w-1/2 mb-4"></div>
-                      <div className="h-10 bg-gradient-to-r from-amber-300 to-orange-300 rounded-lg"></div>
+                      <div className="h-6 bg-[hsl(0_0%_90%)] rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-[hsl(0_0%_95%)] rounded w-1/2 mb-4"></div>
+                      <div className="h-10 bg-[hsl(0_0%_85%)] rounded-lg"></div>
                     </div>
                   </div>
                 </div>
@@ -341,7 +341,7 @@ const MithaiSpecials = () => {
                   >
                     {/* Enhanced Product Card with Mithai styling */}
                     <div 
-                      className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-100 transform transition-all duration-300 hover:scale-105 hover:rotate-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
+                      className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-[hsl(0_0%_90%)] transform transition-all duration-300 hover:scale-105 hover:rotate-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
                       onClick={() => handleViewDetail(product)}
                     >
                       <div className="relative">
@@ -355,12 +355,12 @@ const MithaiSpecials = () => {
                           />
                         </div>
                         {product.isBestSeller && (
-                          <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                          <div className="absolute top-4 left-4 bg-secondary text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                             BEST SELLER
                           </div>
                         )}
                         <div className="absolute bottom-4 right-4 bg-white rounded-full p-2 shadow-lg">
-                          <Candy className="w-6 h-6 text-amber-600" />
+                          <Candy className="w-6 h-6 text-secondary" />
                         </div>
                       </div>
                       
@@ -368,27 +368,27 @@ const MithaiSpecials = () => {
                         <h3 className="text-xl font-bold text-gray-800 mb-2 font-serif line-clamp-2">{product.name}</h3>
                         
                         <div className="flex items-center mb-3">
-                          <span className="text-2xl font-bold text-amber-700">₹{product.price}</span>
+                          <span className="text-2xl font-bold text-primary">₹{product.price}</span>
                           {product.originalPrice && product.originalPrice > product.price && (
                             <span className="text-lg text-gray-500 line-through ml-2">₹{product.originalPrice}</span>
                           )}
                         </div>
                         
                         {product.weight && (
-                          <p className="text-amber-700 font-medium mb-4">{product.weight}</p>
+                          <p className="text-secondary font-medium mb-4">{product.weight}</p>
                         )}
                         
                         <div className="mt-auto">
                           <div className="flex space-x-2">
                             <button 
                               onClick={(e) => handleQuickView(e, product)}
-                              className="flex-1 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
+                              className="flex-1 bg-secondary hover:bg-[hsl(46_85%_45%)] text-white py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
                             >
                               <span>Quick View</span>
                             </button>
                             <button 
                               onClick={(e) => handleAddToCart(e, product)}
-                              className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white p-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
+                              className="bg-secondary hover:bg-[hsl(46_85%_45%)] text-white p-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
                             >
                               <Plus className="w-5 h-5" />
                             </button>
@@ -402,12 +402,12 @@ const MithaiSpecials = () => {
             </div>
           ) : (
             <div className="text-center py-16 bg-white/50 rounded-3xl backdrop-blur-sm">
-              <Candy className="w-20 h-20 text-amber-400 mx-auto mb-6 animate-bounce" />
-              <h3 className="text-2xl font-bold text-amber-800 mb-3">No mithai products available</h3>
-              <p className="text-amber-600 mb-6">Check back later for delicious sweet treats</p>
+              <Candy className="w-20 h-20 text-secondary mx-auto mb-6 animate-bounce" />
+              <h3 className="text-2xl font-bold text-primary mb-3">No mithai products available</h3>
+              <p className="text-[hsl(218_28%_30%)] mb-6">Check back later for delicious sweet treats</p>
               <button
                 onClick={() => navigate('/products?category=Mithai')}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="bg-secondary hover:bg-[hsl(46_85%_45%)] text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
               >
                 Explore All Sweets
               </button>
@@ -418,7 +418,7 @@ const MithaiSpecials = () => {
         <div className="text-center mt-12">
           <button
             onClick={() => navigate('/products?category=Mithai')}
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
+            className="bg-secondary hover:bg-[hsl(46_85%_45%)] text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
           >
             <div className="flex items-center justify-center">
               View All Mithai Products

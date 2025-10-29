@@ -150,7 +150,7 @@ const BestSellers = () => {
         <div className="text-center mb-10">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-4 font-raleway">
             Top{' '}
-            <span className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] bg-clip-text text-transparent">
+            <span className="text-primary">
               Selling Sweets
             </span>
           </h2>
@@ -162,7 +162,6 @@ const BestSellers = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100 font-raleway">
                 <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                {/* Improved responsive font sizing */}
                 <span className="text-xs sm:text-sm font-medium text-gray-700 font-raleway">
                   {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, bestSellers.length)} of {bestSellers.length} products
                 </span>
@@ -179,7 +178,6 @@ const BestSellers = () => {
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                {/* Improved responsive icon sizing */}
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
@@ -191,7 +189,6 @@ const BestSellers = () => {
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                {/* Improved responsive icon sizing */}
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
@@ -278,7 +275,7 @@ const BestSellers = () => {
         <div className="text-center mt-12">
           <button
             onClick={() => navigate('/products')}
-            className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] hover:from-[hsl(25_95%_48%)] hover:to-[hsl(0_80%_55%)] text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
+            className="bg-primary hover:bg-[hsl(218_28%_20%)] text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
           >
             View All Sweets
           </button>

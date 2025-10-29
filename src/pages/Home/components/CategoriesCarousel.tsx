@@ -202,7 +202,7 @@ const CategoriesCarousel = () => {
         >
           <div className="flex items-center justify-center gap-4 mb-4">
             <Sparkles className="text-yellow-500 w-8 h-8 animate-bounce" />
-            <h2 className="text-4xl md:text-5xl font-serif italic font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl md:text-5xl font-serif italic font-bold text-primary">
               Sweet Categories
             </h2>
             <Sparkles className="text-yellow-500 w-8 h-8 animate-bounce" />
@@ -217,7 +217,7 @@ const CategoriesCarousel = () => {
             className={`p-4 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg ${
               currentIndex === 0
                 ? 'text-gray-400 cursor-not-allowed bg-gray-200'
-                : 'text-white bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600'
+                : 'text-white bg-primary hover:bg-[hsl(218_28%_20%)]'
             }`}
           >
             <ChevronLeft className="w-6 h-6" />
@@ -230,7 +230,7 @@ const CategoriesCarousel = () => {
                 onClick={() => setCurrentIndex(index * itemsPerView)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   Math.floor(currentIndex / itemsPerView) === index
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 w-8'
+                    ? 'bg-primary w-8'
                     : 'bg-gray-300 hover:bg-gray-400'
                 }`}
               />
@@ -243,7 +243,7 @@ const CategoriesCarousel = () => {
             className={`p-4 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg ${
               currentIndex >= maxIndex
                 ? 'text-gray-400 cursor-not-allowed bg-gray-200'
-                : 'text-white bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600'
+                : 'text-white bg-primary hover:bg-[hsl(218_28%_20%)]'
             }`}
           >
             <ChevronRight className="w-6 h-6" />
@@ -292,7 +292,7 @@ const CategoriesCarousel = () => {
                       onClick={() => handleCategoryClick(category.name)}
                     >
                       <motion.div 
-                        className="w-36 h-36 md:w-44 md:h-44 rounded-3xl bg-gradient-to-br from-pink-200 via-purple-200 to-indigo-200 mb-6 flex items-center justify-center overflow-hidden shadow-2xl border-4 border-white transform transition-all duration-300 hover:scale-105 hover:rotate-3"
+                        className="w-36 h-36 md:w-44 md:h-44 rounded-3xl bg-[hsl(0_0%_90%)] mb-6 flex items-center justify-center overflow-hidden shadow-2xl border-4 border-white transform transition-all duration-300 hover:scale-105 hover:rotate-3"
                         whileHover={{ scale: 1.05, rotate: 5 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -303,8 +303,8 @@ const CategoriesCarousel = () => {
                             className="w-full h-full object-cover transition-all duration-300 group-hover:scale-110"
                           />
                         ) : (
-                          <div className="text-white bg-gradient-to-br from-pink-500 to-purple-500 w-full h-full flex items-center justify-center">
-                            <IconComponent className="w-16 h-16 md:w-20 md:h-20 mx-auto" />
+                          <div className="text-primary bg-[hsl(0_0%_90%)] w-full h-full flex items-center justify-center">
+                            <IconComponent className="w-16 h-16 md:w-20 md:h-20 mx-auto text-primary" />
                           </div>
                         )}
                         <div className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 rounded-full w-10 h-10 flex items-center justify-center font-bold shadow-lg">

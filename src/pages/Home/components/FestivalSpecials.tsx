@@ -231,39 +231,37 @@ const FestivalSpecials = () => {
   }
 
   return (
-    <section className="py-16 bg-gradient-to-r from-red-50 via-yellow-50 to-orange-50 relative overflow-hidden">
+    <section className="py-16 bg-[hsl(0_0%_95%)] relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-red-200 to-orange-200 rounded-full blur-3xl opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-yellow-200 to-red-200 rounded-full blur-3xl opacity-30 transform -translate-x-1/2 translate-y-1/2"></div>
-        <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-pink-300 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-orange-300 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[hsl(0_0%_90%)] rounded-full blur-3xl opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[hsl(0_0%_90%)] rounded-full blur-3xl opacity-30 transform -translate-x-1/2 translate-y-1/2"></div>
+        <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-[hsl(0_0%_85%)] rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-[hsl(0_0%_85%)] rounded-full blur-3xl opacity-20 animate-pulse"></div>
       </div>
 
       {/* Decorative borders */}
-      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-400 via-yellow-400 to-orange-400"></div>
+      <div className="absolute top-0 left-0 w-full h-2 bg-secondary"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Enhanced Section Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-red-600 via-yellow-600 to-orange-600 bg-clip-text text-transparent font-serif">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-primary font-serif">
               Festival Specials
             </h2>
-
           </div>
           
-          <div className="w-48 h-1.5 bg-gradient-to-r from-red-400 via-yellow-400 to-orange-400 mx-auto rounded-full mb-6"></div>
-          
+          <div className="w-48 h-1.5 bg-secondary mx-auto rounded-full mb-6"></div>
         </div>
 
         {/* Enhanced Carousel Controls */}
         {!loading && festivalProducts.length > itemsPerView && (
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-5 py-3 rounded-full shadow-lg border-2 border-red-200 font-bold">
-                <Gift className="w-6 h-6 text-red-600 fill-current animate-bounce" />
-                <span className="text-base font-bold text-red-800">
+              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-5 py-3 rounded-full shadow-lg border-2 border-[hsl(0_0%_88%)] font-bold">
+                <Gift className="w-6 h-6 text-secondary fill-current animate-bounce" />
+                <span className="text-base font-bold text-primary">
                   {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, festivalProducts.length)} of {festivalProducts.length} festive delights
                 </span>
               </div>
@@ -275,7 +273,7 @@ const FestivalSpecials = () => {
                 disabled={!canGoPrev}
                 className={`p-4 rounded-full border-4 transition-all duration-300 transform hover:scale-110 ${
                   canGoPrev 
-                    ? 'border-red-500 text-red-600 bg-white hover:bg-red-500 hover:text-white shadow-xl' 
+                    ? 'border-secondary text-secondary bg-white hover:bg-secondary hover:text-white shadow-xl' 
                     : 'border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100'
                 }`}
               >
@@ -286,7 +284,7 @@ const FestivalSpecials = () => {
                 disabled={!canGoNext}
                 className={`p-4 rounded-full border-4 transition-all duration-300 transform hover:scale-110 ${
                   canGoNext 
-                    ? 'border-red-500 text-red-600 bg-white hover:bg-red-500 hover:text-white shadow-xl' 
+                    ? 'border-secondary text-secondary bg-white hover:bg-secondary hover:text-white shadow-xl' 
                     : 'border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100'
                 }`}
               >
@@ -308,8 +306,8 @@ const FestivalSpecials = () => {
                 }}
                 className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full transition-all duration-500 transform hover:scale-125 ${
                   Math.floor(currentIndex / itemsPerView) === index
-                    ? 'bg-gradient-to-r from-red-500 to-orange-500 w-10 sm:w-12 shadow-lg'
-                    : 'bg-white border-3 border-red-300 hover:bg-red-100'
+                    ? 'bg-primary w-10 sm:w-12 shadow-lg'
+                    : 'bg-white border-3 border-[hsl(0_0%_80%)] hover:bg-[hsl(0_0%_85%)]'
                 }`}
               />
             ))}
@@ -327,12 +325,12 @@ const FestivalSpecials = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="animate-pulse">
-                  <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-red-100 transform rotate-3">
-                    <div className="h-64 bg-gradient-to-br from-red-200 to-orange-200 rounded-t-3xl"></div>
+                  <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-[hsl(0_0%_90%)] transform rotate-3">
+                    <div className="h-64 bg-[hsl(0_0%_90%)] rounded-t-3xl"></div>
                     <div className="p-6">
-                      <div className="h-6 bg-gradient-to-r from-red-200 to-orange-200 rounded w-3/4 mb-4"></div>
-                      <div className="h-4 bg-gradient-to-r from-red-100 to-orange-100 rounded w-1/2 mb-4"></div>
-                      <div className="h-10 bg-gradient-to-r from-red-300 to-orange-300 rounded-lg"></div>
+                      <div className="h-6 bg-[hsl(0_0%_90%)] rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-[hsl(0_0%_95%)] rounded w-1/2 mb-4"></div>
+                      <div className="h-10 bg-[hsl(0_0%_85%)] rounded-lg"></div>
                     </div>
                   </div>
                 </div>
@@ -353,7 +351,7 @@ const FestivalSpecials = () => {
                   >
                     {/* Enhanced Product Card with Festival styling */}
                     <div 
-                      className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-red-100 transform transition-all duration-300 hover:scale-105 hover:rotate-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
+                      className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-[hsl(0_0%_90%)] transform transition-all duration-300 hover:scale-105 hover:rotate-2 hover:shadow-2xl cursor-pointer flex flex-col h-full"
                       onClick={() => handleViewDetail(product)}
                     >
                       <div className="relative">
@@ -367,11 +365,11 @@ const FestivalSpecials = () => {
                           />
                         </div>
                         {product.isBestSeller && (
-                          <div className="absolute top-4 left-4 bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                          <div className="absolute top-4 left-4 bg-secondary text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                             BEST SELLER
                           </div>
                         )}
-                        <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold shadow-lg transform rotate-12">
+                        <div className="absolute -top-3 -right-3 bg-secondary text-white rounded-full w-12 h-12 flex items-center justify-center font-bold shadow-lg transform rotate-12">
                           <Star className="w-6 h-6 fill-current" />
                         </div>
                       </div>
@@ -380,27 +378,27 @@ const FestivalSpecials = () => {
                         <h3 className="text-xl font-bold text-gray-800 mb-2 font-serif line-clamp-2">{product.name}</h3>
                         
                         <div className="flex items-center mb-3">
-                          <span className="text-2xl font-bold text-red-700">₹{product.price}</span>
+                          <span className="text-2xl font-bold text-primary">₹{product.price}</span>
                           {product.originalPrice && product.originalPrice > product.price && (
                             <span className="text-lg text-gray-500 line-through ml-2">₹{product.originalPrice}</span>
                           )}
                         </div>
                         
                         {product.weight && (
-                          <p className="text-red-700 font-medium mb-4">{product.weight}</p>
+                          <p className="text-secondary font-medium mb-4">{product.weight}</p>
                         )}
                         
                         <div className="mt-auto">
                           <div className="flex space-x-2">
                             <button 
                               onClick={(e) => handleQuickView(e, product)}
-                              className="flex-1 bg-gradient-to-r from-red-400 to-orange-400 hover:from-red-500 hover:to-orange-500 text-white py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
+                              className="flex-1 bg-secondary hover:bg-[hsl(46_85%_45%)] text-white py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
                             >
                               <span>Quick View</span>
                             </button>
                             <button 
                               onClick={(e) => handleAddToCart(e, product)}
-                              className="bg-gradient-to-r from-yellow-500 to-red-500 hover:from-yellow-600 hover:to-red-600 text-white p-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
+                              className="bg-secondary hover:bg-[hsl(46_85%_45%)] text-white p-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-md flex items-center justify-center"
                             >
                               <Star className="w-5 h-5" />
                             </button>
@@ -414,12 +412,12 @@ const FestivalSpecials = () => {
             </div>
           ) : (
             <div className="text-center py-16 bg-white/50 rounded-3xl backdrop-blur-sm">
-              <Gift className="w-24 h-24 text-red-400 mx-auto mb-6 animate-bounce" />
-              <h3 className="text-3xl font-bold text-red-800 mb-3">No festival products available</h3>
-              <p className="text-red-600 mb-6 text-xl">Check back later for festive sweet treats</p>
+              <Gift className="w-24 h-24 text-secondary mx-auto mb-6 animate-bounce" />
+              <h3 className="text-3xl font-bold text-primary mb-3">No festival products available</h3>
+              <p className="text-[hsl(218_28%_30%)] mb-6 text-xl">Check back later for festive sweet treats</p>
               <button
                 onClick={() => navigate('/products')}
-                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="bg-secondary hover:bg-[hsl(46_85%_45%)] text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
               >
                 Explore All Sweets
               </button>
@@ -430,12 +428,10 @@ const FestivalSpecials = () => {
         <div className="text-center mt-12">
           <button
             onClick={() => navigate('/products?category=Festival')}
-            className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
+            className="bg-secondary hover:bg-[hsl(46_85%_45%)] text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
           >
             <div className="flex items-center justify-center">
-    
               View All Festival Specials
-        
             </div>
           </button>
         </div>

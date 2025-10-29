@@ -4,7 +4,24 @@ import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, Candy } from 'lucide-r
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
-import { Product } from '@/store/useStore';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image?: string;
+  images?: string[];
+  category: string;
+  weight?: string;
+  pieces?: string;
+  description?: string;
+  stock_quantity?: number;
+  slug: string;
+  inStock: boolean;
+  isBestSeller: boolean;
+  [key: string]: any;
+}
 
 const NewArrivals = () => {
   const navigate = useNavigate();
@@ -179,11 +196,11 @@ const NewArrivals = () => {
         <div className="text-center mb-10">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-4 font-raleway">
             New{' '}
-            <span className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] bg-clip-text text-transparent">
+            <span className="text-primary">
               Sweet Arrivals
             </span>
           </h2>
-          
+        
           <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-raleway">
             Discover the latest additions to our sweet collection! Fresh treats, new flavors, and exciting sweets that have just arrived.
           </p>
@@ -212,7 +229,6 @@ const NewArrivals = () => {
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                {/* Improved responsive icon sizing */}
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
@@ -224,7 +240,6 @@ const NewArrivals = () => {
                     : 'border-gray-200 text-gray-300 cursor-not-allowed'
                 }`}
               >
-                {/* Improved responsive icon sizing */}
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
@@ -311,7 +326,7 @@ const NewArrivals = () => {
         <div className="text-center mt-12">
           <button
             onClick={() => navigate('/products')}
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
+            className="bg-primary hover:bg-[hsl(218_28%_20%)] text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
           >
             View All New Products
           </button>

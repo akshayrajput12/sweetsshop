@@ -76,11 +76,11 @@ const BrandStory = () => {
   ];
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-amber-50 to-rose-50">
+    <section className="relative h-screen w-full overflow-hidden bg-[hsl(0_0%_95%)]">
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-200 rounded-full mix-blend-soft-light filter blur-3xl opacity-20"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-rose-200 rounded-full mix-blend-soft-light filter blur-3xl opacity-20"></div>
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[hsl(0_0%_90%)] rounded-full mix-blend-soft-light filter blur-3xl opacity-20"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[hsl(0_0%_90%)] rounded-full mix-blend-soft-light filter blur-3xl opacity-20"></div>
       </div>
       
       {/* Section header */}
@@ -128,12 +128,12 @@ const BrandStory = () => {
                         clipPath: cardShapes[index % cardShapes.length],
                       }}
                     >
-                      {/* Enhanced gradient background */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-amber-50/70 to-rose-50/70"></div>
+                      {/* Enhanced background */}
+                      <div className="absolute inset-0 bg-[hsl(0_0%_100%)]/90"></div>
                       
                       {/* Decorative elements */}
-                      <div className="absolute -top-8 -right-8 w-32 h-32 bg-amber-200 rounded-full mix-blend-soft-light filter blur-2xl opacity-30"></div>
-                      <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-rose-200 rounded-full mix-blend-soft-light filter blur-2xl opacity-30"></div>
+                      <div className="absolute -top-8 -right-8 w-32 h-32 bg-[hsl(0_0%_90%)] rounded-full mix-blend-soft-light filter blur-2xl opacity-30"></div>
+                      <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-[hsl(0_0%_90%)] rounded-full mix-blend-soft-light filter blur-2xl opacity-30"></div>
                       
                       {/* Image with enhanced styling - Modified to show image in shape */}
                       <div className="relative h-2/5 w-full flex items-center justify-center p-4">
@@ -144,7 +144,7 @@ const BrandStory = () => {
                             clipPath: cardShapes[index % cardShapes.length],
                           }}
                         >
-                          <div className="absolute inset-0 bg-gradient-to-t from-amber-900/20 to-transparent rounded-2xl"></div>
+                          <div className="absolute inset-0 bg-[hsl(218_28%_15%)]/20 rounded-2xl"></div>
                         </div>
                       </div>
                       
@@ -152,7 +152,7 @@ const BrandStory = () => {
                       <CardContent className="relative p-6 flex flex-col flex-grow">
                         {/* Year badge with enhanced styling */}
                         <div className="flex justify-center -mt-8 z-10">
-                          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold text-lg shadow-lg transform rotate-3 border-4 border-white">
+                          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-secondary text-white font-bold text-lg shadow-lg transform rotate-3 border-4 border-white">
                             {item.year}
                           </div>
                         </div>
@@ -168,7 +168,7 @@ const BrandStory = () => {
                         
                         {/* Decorative bottom element */}
                         <div className="flex justify-center pt-4">
-                          <div className="w-16 h-1 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full"></div>
+                          <div className="w-16 h-1 bg-secondary rounded-full"></div>
                         </div>
                       </CardContent>
                     </Card>
@@ -177,8 +177,8 @@ const BrandStory = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden sm:flex -left-12 bg-white/80 hover:bg-white border-amber-200" />
-          <CarouselNext className="hidden sm:flex -right-12 bg-white/80 hover:bg-white border-amber-200" />
+          <CarouselPrevious className="hidden sm:flex -left-12 bg-white/80 hover:bg-white border-[hsl(0_0%_88%)]" />
+          <CarouselNext className="hidden sm:flex -right-12 bg-white/80 hover:bg-white border-[hsl(0_0%_88%)]" />
         </Carousel>
         
         {/* Progress indicator for mobile */}

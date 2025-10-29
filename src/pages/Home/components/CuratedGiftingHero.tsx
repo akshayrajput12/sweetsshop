@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { MoveRight, PhoneCall, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import hero1 from '@/assets/banner.png';
+import hero5 from '@/assets/banner.png';
 import hero2 from '@/assets/hero 2.png';
 import hero3 from '@/assets/hero 3.png';
 import hero4 from '@/assets/hero 4.webp';
-import hero5 from '@/assets/hero5.png';
+import hero1 from '@/assets/hero5.png';
 import { motion } from 'framer-motion';
 import { 
   Carousel, 
@@ -208,7 +208,7 @@ const CuratedGiftingHero = () => {
             >
               <Button 
                 size="default" 
-                className="gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold px-6 py-4 text-base rounded-xl"
+                className="gap-2 bg-secondary hover:bg-[hsl(46_85%_45%)] text-white font-semibold px-6 py-4 text-base rounded-xl"
                 onClick={() => navigate('/products')}
               >
                 {currentSlideData.ctaText} <ShoppingCart className="w-4 h-4" />
@@ -295,17 +295,10 @@ const CuratedGiftingHero = () => {
       <div className="absolute bottom-0 left-0 w-full overflow-hidden">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 160" className="w-full h-auto">
           <path 
-            fill="url(#waveGradient)" 
+            fill="#fbbf24" 
             fillOpacity="1" 
             d="M0,0L48,48C96,96,192,192,288,197.3C384,203,480,117,576,85.3C672,53,768,75,864,112C960,149,1056,203,1152,197.3C1248,192,1344,128,1392,96L1440,64L1440,160L1392,160C1344,160,1248,160,1152,160C1056,160,960,160,864,160C768,160,672,160,576,160C480,160,384,160,288,160C192,160,96,160,48,160L0,160Z"
           ></path>
-          <defs>
-            <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#f87171" /> {/* red-400 */}
-              <stop offset="50%" stopColor="#fbbf24" /> {/* yellow-400 */}
-              <stop offset="100%" stopColor="#f97316" /> {/* orange-400 */}
-            </linearGradient>
-          </defs>
         </svg>
       </div>
     </section>
