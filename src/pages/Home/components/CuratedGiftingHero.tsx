@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { MoveRight, PhoneCall, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import hero5 from '@/assets/banner.png';
-import hero2 from '@/assets/hero 2.png';
-import hero3 from '@/assets/hero 3.png';
-import hero4 from '@/assets/hero 4.webp';
+import hero2 from '@/assets/hero4.jpg';
+import hero3 from '@/assets/hero3.jpg';
+import hero4 from '@/assets/hero4.jpg';
 import hero1 from '@/assets/hero5.png';
 import { motion } from 'framer-motion';
 import { 

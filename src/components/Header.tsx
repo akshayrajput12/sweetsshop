@@ -77,14 +77,14 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             <img 
               src={logoImage} 
               alt="SuperSweets Logo" 
-              className="w-24 h-24 md:w-20 md:h-20 object-contain hidden xs:block"
+              className="w-32 h-32 md:w-28 md:h-28 object-contain hidden xs:block"
             />
             <div className="xs:hidden flex items-center">
-              <span className="text-2xl font-bold text-primary">SuperSweets</span>
+              <span className="text-2xl font-bold text-primary M-body-font-400">SuperSweets</span>
             </div>
             <div className="hidden xs:block">
-              <span className="text-2xl md:text-3xl font-bold text-primary">SuperSweets</span>
-              <div className="text-xs md:text-sm text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
+              <span className="text-3xl md:text-4xl font-bold text-primary M-body-font-400">SuperSweets</span>
+              <div className="text-sm md:text-base text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
             </div>
           </Link>
 
@@ -220,10 +220,10 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                       <img 
                         src={logoImage} 
                         alt="SuperSweets Logo" 
-                        className="w-12 h-12 object-contain"
+                        className="w-16 h-16 object-contain"
                       />
                       <div className="hidden xs:block">
-                        <span className="text-xl font-bold text-primary">SuperSweets</span>
+                        <span className="text-xl font-bold text-primary M-body-font-400">SuperSweets</span>
                       </div>
                     </Link>
 
