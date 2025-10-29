@@ -20,9 +20,10 @@ const Home = () => {
   <div className="space-y-4">
     <CategoriesCarousel />   {/* let users explore sweet categories early */}
     <BestSellers />          {/* showcase our most popular sweets */}
+    <GujarPakShowcase />     {/* showcase our signature sweet - Gujar Pak */}
     <PromotionalBanner />    {/* promotional banner with special offers */}
     <NewArrivals />          {/* highlight fresh and exciting treats */}
-    <GujarPakShowcase />     {/* showcase our signature sweet - Gujar Pak */}
+    
     <MithaiSpecials />       {/* showcase our delicious mithai collection */}
     <FestivalSpecials />     {/* showcase our festive special collection */}
     <SpecialOffers />        {/* sweet deals and discounts */}

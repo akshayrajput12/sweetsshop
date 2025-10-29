@@ -55,7 +55,7 @@ const GujarPakShowcase = () => {
               
               {/* Title */}
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 font-serif mb-4">
-                gajar <span className="text-amber-600">Pak</span>
+                Gajar <span className="text-amber-600">Pak</span>
               </h2>
               
               {/* Rating */}

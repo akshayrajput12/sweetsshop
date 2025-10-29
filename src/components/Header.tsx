@@ -77,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
             <img 
               src={logoImage} 
               alt="SuperSweets Logo" 
-              className="w-16 h-16 md:w-20 md:h-20 object-contain hidden xs:block"
+              className="w-24 h-24 md:w-20 md:h-20 object-contain hidden xs:block"
             />
             <div className="xs:hidden flex items-center">
               <span className="text-2xl font-bold text-primary">SuperSweets</span>
