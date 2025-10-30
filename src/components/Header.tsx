@@ -97,7 +97,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                     transition: { duration: 0.3 }
                   }}
                 >
-                  Sweet Delights
+                  SuperSweets
                 </motion.span>
               </div>
               <div className="hidden xs:block">
