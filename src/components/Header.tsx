@@ -73,20 +73,63 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-24 md:h-32">
           {/* Logo - Increased size */}
-          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
-            <img 
-              src={logoImage} 
-              alt="SuperSweets Logo" 
-              className="w-32 h-32 md:w-28 md:h-28 object-contain hidden xs:block"
-            />
-            <div className="xs:hidden flex items-center">
-              <span className="text-2xl  text-primary lobster-font">SuperSweets</span>
-            </div>
-            <div className="hidden xs:block">
-              <span className="text-3xl md:text-4xl font-bold text-primary lobster-font">SuperSweets</span>
-              <div className="text-sm md:text-base text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
-            </div>
-          </Link>
+          <motion.div
+            className="flex items-center space-x-2 flex-shrink-0"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
+              <img 
+                src={logoImage} 
+                alt="Sweet Delights Logo" 
+                className="w-32 h-32 md:w-28 md:h-28 object-contain hidden xs:block"
+              />
+              <div className="xs:hidden flex items-center">
+                <motion.span 
+                  className="text-2xl text-primary lobster-font logo-glow"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  whileHover={{ 
+                    scale: 1.05,
+                    textShadow: "0 0 8px rgba(153, 146, 74, 0.8)",
+                    transition: { duration: 0.3 }
+                  }}
+                >
+                  Sweet Delights
+                </motion.span>
+              </div>
+              <div className="hidden xs:block">
+                <motion.span 
+                  className="text-3xl md:text-4xl font-bold text-primary lobster-font logo-glow"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ 
+                    duration: 0.6,
+                    delay: 0.1,
+                    type: "spring",
+                    stiffness: 200
+                  }}
+                  whileHover={{ 
+                    scale: 1.05,
+                    textShadow: "0 0 15px rgba(74, 74, 153, 0.9)",
+                    transition: { duration: 0.3 }
+                  }}
+                >
+                  Sweet Delights
+                </motion.span>
+                <motion.div 
+                  className="text-sm md:text-base text-muted-foreground -mt-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                  Premium Sweets & Desserts
+                </motion.div>
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Spacer for layout */}
           <div className="hidden sm:flex flex-1 justify-center">
@@ -219,11 +262,23 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                     <Link to="/" className="flex items-center space-x-2 flex-shrink-0" onClick={closeMobileMenu}>
                       <img 
                         src={logoImage} 
-                        alt="SuperSweets Logo" 
+                        alt="Sweet Delights Logo" 
                         className="w-16 h-16 object-contain"
                       />
                       <div className="hidden xs:block">
-                        <span className="text-xl font-bold text-primary lobster-font">SuperSweets</span>
+                        <motion.span 
+                          className="text-xl font-bold text-primary lobster-font logo-glow"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.4 }}
+                          whileHover={{ 
+                            scale: 1.05,
+                            textShadow: "0 0 8px rgba(74, 74, 153, 0.8)",
+                            transition: { duration: 0.3 }
+                          }}
+                        >
+                          Sweet Delights
+                        </motion.span>
                       </div>
                     </Link>
 
