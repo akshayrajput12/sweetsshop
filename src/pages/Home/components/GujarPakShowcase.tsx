@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Star, Award, Leaf, Clock, Users } from 'lucide-react';
-import gujarpak from "../../../assets/gujarpak.webp"
+import gujarpak from "../../../assets/gajarpak.jpg"
 
 const GujarPakShowcase = () => {
   return (

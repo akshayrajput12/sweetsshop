@@ -80,10 +80,10 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
               className="w-32 h-32 md:w-28 md:h-28 object-contain hidden xs:block"
             />
             <div className="xs:hidden flex items-center">
-              <span className="text-2xl font-bold text-primary M-body-font-400">SuperSweets</span>
+              <span className="text-2xl  text-primary lobster-font">SuperSweets</span>
             </div>
             <div className="hidden xs:block">
-              <span className="text-3xl md:text-4xl font-bold text-primary M-body-font-400">SuperSweets</span>
+              <span className="text-3xl md:text-4xl font-bold text-primary lobster-font">SuperSweets</span>
               <div className="text-sm md:text-base text-muted-foreground -mt-1">Premium Sweets & Desserts</div>
             </div>
           </Link>
@@ -223,7 +223,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                         className="w-16 h-16 object-contain"
                       />
                       <div className="hidden xs:block">
-                        <span className="text-xl font-bold text-primary M-body-font-400">SuperSweets</span>
+                        <span className="text-xl font-bold text-primary lobster-font">SuperSweets</span>
                       </div>
                     </Link>
 

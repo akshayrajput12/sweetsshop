@@ -29,6 +29,7 @@ export default {
 			fontFamily: {
 				'inter': ['Inter', 'sans-serif'],
 				'merriweather': ['Merriweather', 'serif'],
+				'lobster': ['Lobster Two', 'cursive'],
 				'sans': ['Inter', 'sans-serif'],
 				'serif': ['Merriweather', 'serif'],
 			},
