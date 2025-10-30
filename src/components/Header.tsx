@@ -117,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                     transition: { duration: 0.3 }
                   }}
                 >
-                  Sweet Delights
+SuperSweets
                 </motion.span>
                 <motion.div 
                   className="text-sm md:text-base text-muted-foreground -mt-1"
@@ -277,7 +277,7 @@ const Header: React.FC<HeaderProps> = ({ isAdminRoute = false }) => {
                             transition: { duration: 0.3 }
                           }}
                         >
-                          Sweet Delights
+                          SuperSweets
                         </motion.span>
                       </div>
                     </Link>
