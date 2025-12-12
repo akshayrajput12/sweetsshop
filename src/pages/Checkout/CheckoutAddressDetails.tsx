@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MapPin, Clock, Shield } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { validateAddressDetails } from '@/utils/validation';
 import { formatCurrency, meetsThreshold, toNumber } from '@/utils/settingsHelpers';
-import { delhiveryService, PICKUP_LOCATION } from '@/utils/delhivery';
 
 interface AddressDetails {
   plotNumber: string;
@@ -72,92 +71,9 @@ const CheckoutAddressDetails = ({
   subtotal,
   currentUser,
   onNext,
-  onPrev,
-  estimatedDeliveryFee,
-  setEstimatedDeliveryFee,
-  estimatedDeliveryTime,
-  setEstimatedDeliveryTime,
-  cartItems,
-  isPincodeServiceable,
-  setIsPincodeServiceable
+  onPrev
 }: CheckoutAddressDetailsProps) => {
   const [addressErrors, setAddressErrors] = useState<string[]>([]);
-  
-  // Test Delhivery service on component mount
-  useEffect(() => {
-    const testDelhiveryService = async () => {
-      console.log('Testing Delhivery service availability...');
-      try {
-        // Simple test to see if the service is working
-        console.log('Delhivery service:', delhiveryService);
-        if (delhiveryService && typeof delhiveryService.estimateDeliveryPricing === 'function') {
-          console.log('Delhivery service is available and has estimateDeliveryPricing method');
-        } else {
-          console.error('Delhivery service is not properly initialized');
-        }
-      } catch (error) {
-        console.error('Error testing Delhivery service:', error);
-      }
-    };
-    
-    testDelhiveryService();
-  }, []);
-
-  // Simple pincode to coordinates mapping for major cities in India
-  const PINCODE_COORDINATES: Record<string, { lat: number; lng: number; city: string; state: string }> = {
-    // Delhi NCR
-    '110001': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    '110002': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    '110003': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    '110021': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    '110022': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    
-    // Mumbai
-    '400001': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
-    '400002': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
-    '400003': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
-    
-    // Bangalore
-    '560001': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
-    '560002': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
-    '560003': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
-    
-    // Chennai
-    '600001': { lat: 13.0827, lng: 80.2707, city: 'Chennai', state: 'Tamil Nadu' },
-    '600002': { lat: 13.0827, lng: 80.2707, city: 'Chennai', state: 'Tamil Nadu' },
-    
-    // Kolkata
-    '700001': { lat: 22.5726, lng: 88.3639, city: 'Kolkata', state: 'West Bengal' },
-    '700002': { lat: 22.5726, lng: 88.3639, city: 'Kolkata', state: 'West Bengal' },
-    
-    // Hyderabad
-    '500001': { lat: 17.3850, lng: 78.4867, city: 'Hyderabad', state: 'Telangana' },
-    '500002': { lat: 17.3850, lng: 78.4867, city: 'Hyderabad', state: 'Telangana' },
-    
-    // Pune
-    '411001': { lat: 18.5204, lng: 73.8567, city: 'Pune', state: 'Maharashtra' },
-    '411002': { lat: 18.5204, lng: 73.8567, city: 'Pune', state: 'Maharashtra' },
-    
-    // Ahmedabad
-    '380001': { lat: 23.0225, lng: 72.5714, city: 'Ahmedabad', state: 'Gujarat' },
-    '380002': { lat: 23.0225, lng: 72.5714, city: 'Ahmedabad', state: 'Gujarat' },
-    
-    // Jaipur
-    '302001': { lat: 26.9124, lng: 75.7873, city: 'Jaipur', state: 'Rajasthan' },
-    '302002': { lat: 26.9124, lng: 75.7873, city: 'Jaipur', state: 'Rajasthan' },
-    
-    // Default fallback (Delhi coordinates)
-    'default': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' }
-  };
-
-  // Get approximate coordinates for a pincode
-  const getCoordinatesForPincode = (pincode: string): { lat: number; lng: number; city: string; state: string } => {
-    // Clean the pincode
-    const cleanPincode = pincode.replace(/\D/g, '').slice(0, 6);
-    
-    // Return coordinates if found, otherwise return default
-    return PINCODE_COORDINATES[cleanPincode] || PINCODE_COORDINATES['default'];
-  };
 
   const handleSavedAddressSelect = (address: SavedAddress) => {
     setSelectedAddress(address);
@@ -177,150 +93,13 @@ const CheckoutAddressDetails = ({
     });
   };
 
-  // Estimate delivery fee when address details change
-  useEffect(() => {
-    const estimateDeliveryFee = async () => {
-      console.log('Checking if we should estimate delivery fee:', { 
-        hasPincode: !!addressDetails.pincode, 
-        hasCity: !!addressDetails.city, 
-        hasState: !!addressDetails.state,
-        addressDetails 
-      });
-      
-      // Only estimate if we have a pincode and city/state
-      if (addressDetails.pincode && addressDetails.city && addressDetails.state) {
-        console.log('Starting delivery fee estimation for:', { 
-          pickupPincode: PICKUP_LOCATION.pincode || '110001',
-          deliveryPincode: addressDetails.pincode,
-          subtotal,
-          cartItemsCount: cartItems.length
-        });
-        
-        try {
-          // Test if delhiveryService is available
-          console.log('Delhivery service object:', delhiveryService);
-          console.log('Delhivery service methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(delhiveryService)));
-          
-          // Get customer coordinates from pincode
-          const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
-          console.log('Customer coordinates:', customerCoords);
-          
-          // Calculate total weight of items in cart (considering quantity)
-          let totalWeight = 0;
-          cartItems.forEach(item => {
-            // Extract numeric weight from string (e.g., "500g" -> 0.5kg, "1kg" -> 1kg)
-            const weightMatch = item.weight?.match(/(\d+(?:\.\d+)?)\s*(g|kg)/i);
-            if (weightMatch) {
-              const value = parseFloat(weightMatch[1]);
-              const unit = weightMatch[2].toLowerCase();
-              // Convert to kg and multiply by quantity
-              const weightInKg = unit === 'g' ? value / 1000 : value;
-              totalWeight += weightInKg * item.quantity;
-            }
-          });
-          
-          console.log('Calculated cart weight:', totalWeight);
-          
-          // Use actual calculated weight with a reasonable minimum for very light items
-          // Instead of forcing 1kg minimum, use a more flexible approach:
-          // - For items under 0.5kg, use the actual weight (no artificial minimum)
-          // - For items between 0.5kg and 1kg, use actual weight
-          // - For items over 1kg, use actual weight with 20% buffer
-          let bufferedWeight;
-          console.log('Total weight condition check:', { totalWeight, condition1: totalWeight <= 0.5, condition2: totalWeight <= 1 });
-          if (totalWeight <= 0.5) {
-            // For very light items, use actual weight without artificial minimum
-            bufferedWeight = Math.max(0.1, totalWeight); // Minimum 100g to avoid issues
-            console.log('Using light item calculation:', { bufferedWeight, max: Math.max(0.1, totalWeight) });
-          } else if (totalWeight <= 1) {
-            // For moderately light items, use actual weight
-            bufferedWeight = totalWeight;
-            console.log('Using medium item calculation:', bufferedWeight);
-          } else {
-            // For heavier items, apply 20% buffer
-            bufferedWeight = totalWeight * 1.2;
-            console.log('Using heavy item calculation:', bufferedWeight);
-          }
-          
-          console.log('Calling delhiveryService.estimateDeliveryPricing with:', {
-            pickupPincode: PICKUP_LOCATION.pincode || '110001',
-            deliveryPincode: addressDetails.pincode,
-            orderValue: subtotal,
-            weight: bufferedWeight
-          });
-          
-          // Estimate delivery pricing using Delhivery API
-          const estimate = await delhiveryService.estimateDeliveryPricing(
-            PICKUP_LOCATION.pincode || '110001',
-            addressDetails.pincode,
-            subtotal,
-            bufferedWeight // weight in kg with 20% buffer for API
-          );
-          
-          console.log('Delhivery API estimate result:', estimate);
-          
-          // Set serviceability status
-          setIsPincodeServiceable(estimate.serviceability);
-          
-          // Set estimated delivery time
-          setEstimatedDeliveryTime(estimate.estimated_delivery_time);
-          
-          // Check if order qualifies for free delivery
-          const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
-          if (subtotal >= freeDeliveryThreshold && estimate.serviceability) {
-            console.log('Order qualifies for free delivery');
-            setEstimatedDeliveryFee(0);
-          } else if (estimate.serviceability) {
-            console.log('Setting delivery fee to:', estimate.shipping_charges);
-            setEstimatedDeliveryFee(estimate.shipping_charges);
-          } else {
-            console.log('Delivery not serviceable, setting fee to 0 and showing message');
-            setEstimatedDeliveryFee(0);
-            setEstimatedDeliveryTime('Delivery not available to this pincode');
-          }
-        } catch (error) {
-          console.error('Error estimating delivery fee:', error);
-          // Mark as serviceable by default on error to avoid blocking checkout
-          setIsPincodeServiceable(true);
-          // Fallback to standard delivery charge
-          setEstimatedDeliveryTime('2-5 business days');
-          const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
-          if (subtotal >= freeDeliveryThreshold) {
-            setEstimatedDeliveryFee(0);
-          } else {
-            setEstimatedDeliveryFee(toNumber(settings.delivery_charge));
-          }
-        }
-      } else {
-        console.log('Not enough address information to estimate delivery fee');
-        // Reset estimated delivery fee if we don't have complete address
-        setEstimatedDeliveryFee(null);
-        // Reset serviceability when pincode is not entered
-        setIsPincodeServiceable(true);
-      }
-    };
-    
-    console.log('Delivery fee estimation useEffect triggered');
-    console.log('Current address details:', addressDetails);
-    console.log('Cart items count:', cartItems.length);
-    console.log('Subtotal:', subtotal);
-    console.log('Settings:', settings);
-    
-    // Add a small delay to ensure all data is loaded
-    const timer = setTimeout(() => {
-      estimateDeliveryFee();
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [addressDetails.pincode, addressDetails.city, addressDetails.state, subtotal, settings, cartItems, setIsPincodeServiceable]);
-
   const handleNext = () => {
     // Validate city, state, and pincode first
     if (!addressDetails.city || !addressDetails.state || !addressDetails.pincode) {
-      // Show error message
+      setAddressErrors(['Please complete all address fields.']);
       return;
     }
-    
+
     if (!useExistingAddress) {
       const validation = validateAddressDetails(addressDetails);
       if (!validation.isValid) {
@@ -333,27 +112,27 @@ const CheckoutAddressDetails = ({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <MapPin className="h-5 w-5 mr-2" />
+    <Card className="border-[#E6D5B8] bg-[#FFFDF7] shadow-sm">
+      <CardHeader className="border-b border-[#E6D5B8]">
+        <CardTitle className="flex items-center text-[#2C1810] font-serif tracking-wide">
+          <MapPin className="h-5 w-5 mr-2 text-[#8B2131]" />
           Complete Address Details
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        
+      <CardContent className="space-y-6 pt-6">
+
         {/* Delivery Information */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+        <div className="bg-[#FFF0DE] border border-[#E6D5B8] rounded-sm p-4">
           <div className="flex items-start space-x-3">
-            <Clock className="h-5 w-5 text-orange-600 mt-0.5" />
+            <Clock className="h-5 w-5 text-[#8B2131] mt-0.5" />
             <div>
-              <h4 className="font-medium text-orange-900 text-sm">
-                Fast Delivery Available
+              <h4 className="font-medium text-[#2C1810] text-sm">
+                Nationwide Delivery
               </h4>
-              <p className="text-orange-700 text-sm mt-1">
-                Get your bulk orders delivered within 2-3 business days nationwide.
+              <p className="text-[#5D4037] text-sm mt-1">
+                We deliver our royal delicacies across the country within 3-5 business days.
                 {!meetsThreshold(subtotal, settings.free_delivery_threshold) && (
-                  <span className="block mt-1 font-medium">
+                  <span className="block mt-1 font-medium text-[#8B2131]">
                     Add {formatCurrency(toNumber(settings.free_delivery_threshold) - subtotal, settings.currency_symbol)} more for FREE delivery!
                   </span>
                 )}
@@ -366,61 +145,58 @@ const CheckoutAddressDetails = ({
         {savedAddresses.length > 0 && !useExistingAddress && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-gray-900">Use Saved Address</h4>
+              <h4 className="font-medium text-[#2C1810]">Use Saved Address</h4>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowAddressForm(true)}
+                className="border-[#8B2131] text-[#8B2131] hover:bg-[#8B2131] hover:text-white"
               >
                 Add New Address
               </Button>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-3">
               {savedAddresses.map((address) => (
                 <div
                   key={address.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    selectedAddress?.id === address.id 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`p-4 border rounded-sm cursor-pointer transition-all ${selectedAddress?.id === address.id
+                      ? 'border-[#8B2131] bg-[#FFF0DE]'
+                      : 'border-[#E6D5B8] hover:border-[#8B2131]/50'
+                    }`}
                   onClick={() => handleSavedAddressSelect(address)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-medium text-sm">{address.name}</span>
-                        <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                          {address.type.charAt(0).toUpperCase() + address.type.slice(1)}
+                        <span className="font-medium text-sm text-[#2C1810]">{address.name}</span>
+                        <span className="text-xs bg-[#E6D5B8]/30 text-[#5D4037] px-2 py-1 rounded-sm uppercase tracking-wide">
+                          {address.type}
                         </span>
                         {address.is_default && (
-                          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+                          <span className="text-xs bg-[#8B2131] text-white px-2 py-1 rounded-sm uppercase tracking-wide">
                             Default
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-[#5D4037]">
                         {address.address_line_1}
                         {address.address_line_2 && `, ${address.address_line_2}`}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-[#5D4037]">
                         {address.city}, {address.state} - {address.pincode}
                       </p>
-                      {address.landmark && (
-                        <p className="text-xs text-gray-500">Near {address.landmark}</p>
-                      )}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            
+
             <div className="text-center">
               <Button
                 variant="ghost"
                 onClick={() => setShowAddressForm(true)}
-                className="text-primary"
+                className="text-[#8B2131] hover:text-[#701a26] hover:bg-[#FFF8F0]"
               >
                 + Add New Address Instead
               </Button>
@@ -432,10 +208,10 @@ const CheckoutAddressDetails = ({
         {(savedAddresses.length === 0 || showAddressForm || useExistingAddress) && (
           <>
             {useExistingAddress && (
-              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-[#F0FFF4] border border-[#C6F6D5] rounded-sm">
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-800">
+                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                  <span className="text-sm font-medium text-[#22543D]">
                     Using saved address: {selectedAddress?.name}
                   </span>
                 </div>
@@ -447,62 +223,34 @@ const CheckoutAddressDetails = ({
                     setSelectedAddress(null);
                     setShowAddressForm(true);
                   }}
-                  className="text-green-700 hover:text-green-800"
+                  className="text-green-700 hover:text-green-800 hover:bg-[#C6F6D5]"
                 >
                   Change
                 </Button>
               </div>
             )}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+
+            {/* Current Address Display */}
+            <div className="bg-[#F0F4FF] border border-[#C3DAFE] rounded-sm p-4">
               <div className="flex items-start space-x-3">
-                <MapPin className="h-5 w-5 text-blue-600 mt-0.5" />
+                <MapPin className="h-5 w-5 text-[#3182CE] mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-blue-900 text-sm">
+                  <h4 className="font-medium text-[#2A4365] text-sm">
                     Delivery Address
                   </h4>
-                  <p className="text-blue-700 text-sm mt-1">
-                    {addressDetails.city && addressDetails.state && addressDetails.pincode 
+                  <p className="text-[#2C5282] text-sm mt-1">
+                    {addressDetails.city && addressDetails.state && addressDetails.pincode
                       ? `${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`
-                      : 'Please fill in your city, state, and pincode above'
+                      : 'Please fill in your city, state, and pincode below'
                     }
                   </p>
-                  {estimatedDeliveryFee !== null && estimatedDeliveryTime && (
-                    <div className="text-blue-700 text-sm mt-2">
-                      <span className="font-medium">Estimated Delivery:</span> {estimatedDeliveryTime} 
-                      {estimatedDeliveryFee > 0 && (
-                        <span className="font-medium"> ({formatCurrency(estimatedDeliveryFee, settings.currency_symbol)})</span>
-                      )}
-                      {estimatedDeliveryFee === 0 && !meetsThreshold(subtotal, settings.free_delivery_threshold) && (
-                        <span className="font-medium"> (FREE)</span>
-                      )}
-                    </div>
-                  )}
-                  {estimatedDeliveryFee === null && addressDetails.pincode && (
-                    <div className="text-blue-700 text-sm mt-2 flex items-center">
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
-                      Calculating delivery charges...
-                    </div>
-                  )}
-                  {/* Show message when delivery is not serviceable */}
-                  {estimatedDeliveryFee === 0 && estimatedDeliveryTime && estimatedDeliveryTime.includes('not available') && (
-                    <div className="text-orange-600 text-sm mt-2 flex items-center">
-                      <span className="font-medium">⚠️ Delivery not available to this pincode</span>
-                    </div>
-                  )}
-                  {/* Show serviceability status */}
-                  {!isPincodeServiceable && addressDetails.pincode && (
-                    <div className="text-orange-600 text-sm mt-2 flex items-center">
-                      <span className="font-medium">⚠️ Delivery not available to pincode {addressDetails.pincode}. For placing order, contact owner.</span>
-                    </div>
-                  )}
-
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="plotNumber" className="text-sm font-medium">
+                <Label htmlFor="plotNumber" className="text-sm font-medium text-[#2C1810]">
                   Plot/House Number *
                 </Label>
                 <Input
@@ -510,14 +258,14 @@ const CheckoutAddressDetails = ({
                   type="text"
                   placeholder="e.g., 123, A-45"
                   value={addressDetails.plotNumber}
-                  onChange={(e) => setAddressDetails({...addressDetails, plotNumber: e.target.value})}
-                  className="h-12"
+                  onChange={(e) => setAddressDetails({ ...addressDetails, plotNumber: e.target.value })}
+                  className="h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="buildingName" className="text-sm font-medium">
+                <Label htmlFor="buildingName" className="text-sm font-medium text-[#2C1810]">
                   Building/Society Name
                 </Label>
                 <Input
@@ -525,14 +273,14 @@ const CheckoutAddressDetails = ({
                   type="text"
                   placeholder="e.g., Green Valley Apartments"
                   value={addressDetails.buildingName}
-                  onChange={(e) => setAddressDetails({...addressDetails, buildingName: e.target.value})}
-                  className="h-12"
+                  onChange={(e) => setAddressDetails({ ...addressDetails, buildingName: e.target.value })}
+                  className="h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="street" className="text-sm font-medium">
+              <Label htmlFor="street" className="text-sm font-medium text-[#2C1810]">
                 Street/Area *
               </Label>
               <Input
@@ -540,8 +288,8 @@ const CheckoutAddressDetails = ({
                 type="text"
                 placeholder="e.g., MG Road, Sector 15"
                 value={addressDetails.street}
-                onChange={(e) => setAddressDetails({...addressDetails, street: e.target.value})}
-                className="h-12"
+                onChange={(e) => setAddressDetails({ ...addressDetails, street: e.target.value })}
+                className="h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white"
                 required
               />
             </div>
@@ -549,7 +297,7 @@ const CheckoutAddressDetails = ({
             {/* City, State, and Pincode */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city" className="text-sm font-medium">
+                <Label htmlFor="city" className="text-sm font-medium text-[#2C1810]">
                   City *
                 </Label>
                 <Input
@@ -557,14 +305,14 @@ const CheckoutAddressDetails = ({
                   type="text"
                   placeholder="Enter your city"
                   value={addressDetails.city}
-                  onChange={(e) => setAddressDetails({...addressDetails, city: e.target.value})}
-                  className="h-12"
+                  onChange={(e) => setAddressDetails({ ...addressDetails, city: e.target.value })}
+                  className="h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="state" className="text-sm font-medium">
+                <Label htmlFor="state" className="text-sm font-medium text-[#2C1810]">
                   State *
                 </Label>
                 <Input
@@ -572,14 +320,14 @@ const CheckoutAddressDetails = ({
                   type="text"
                   placeholder="Enter your state"
                   value={addressDetails.state}
-                  onChange={(e) => setAddressDetails({...addressDetails, state: e.target.value})}
-                  className="h-12"
+                  onChange={(e) => setAddressDetails({ ...addressDetails, state: e.target.value })}
+                  className="h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="pincode" className="text-sm font-medium">
+                <Label htmlFor="pincode" className="text-sm font-medium text-[#2C1810]">
                   Pincode *
                 </Label>
                 <Input
@@ -587,8 +335,8 @@ const CheckoutAddressDetails = ({
                   type="text"
                   placeholder="Enter 6-digit pincode"
                   value={addressDetails.pincode}
-                  onChange={(e) => setAddressDetails({...addressDetails, pincode: e.target.value})}
-                  className="h-12"
+                  onChange={(e) => setAddressDetails({ ...addressDetails, pincode: e.target.value })}
+                  className="h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white"
                   maxLength={6}
                   required
                 />
@@ -596,7 +344,7 @@ const CheckoutAddressDetails = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="landmark" className="text-sm font-medium">
+              <Label htmlFor="landmark" className="text-sm font-medium text-[#2C1810]">
                 Nearby Landmark
               </Label>
               <Input
@@ -604,33 +352,33 @@ const CheckoutAddressDetails = ({
                 type="text"
                 placeholder="e.g., Near Metro Station"
                 value={addressDetails.landmark}
-                onChange={(e) => setAddressDetails({...addressDetails, landmark: e.target.value})}
-                className="h-12"
+                onChange={(e) => setAddressDetails({ ...addressDetails, landmark: e.target.value })}
+                className="h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white"
               />
             </div>
 
             {/* Address saving options - only show for authenticated users */}
             {currentUser && (
               <div className="space-y-3">
-                <Label className="text-sm font-medium">Save this address as</Label>
+                <Label className="text-sm font-medium text-[#2C1810]">Save this address as</Label>
                 <RadioGroup
                   value={addressDetails.addressType}
                   onValueChange={(value: 'home' | 'work' | 'other') =>
-                    setAddressDetails({...addressDetails, addressType: value})
+                    setAddressDetails({ ...addressDetails, addressType: value })
                   }
                   className="flex space-x-6"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="home" id="home" />
-                    <Label htmlFor="home" className="cursor-pointer">🏠 Home</Label>
+                    <RadioGroupItem value="home" id="home" className="text-[#8B2131]" />
+                    <Label htmlFor="home" className="cursor-pointer text-[#5D4037]">Home</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="work" id="work" />
-                    <Label htmlFor="work" className="cursor-pointer">🏢 Work</Label>
+                    <RadioGroupItem value="work" id="work" className="text-[#8B2131]" />
+                    <Label htmlFor="work" className="cursor-pointer text-[#5D4037]">Work</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="other" id="other" />
-                    <Label htmlFor="other" className="cursor-pointer">📍 Other</Label>
+                    <RadioGroupItem value="other" id="other" className="text-[#8B2131]" />
+                    <Label htmlFor="other" className="cursor-pointer text-[#5D4037]">Other</Label>
                   </div>
                 </RadioGroup>
 
@@ -638,8 +386,8 @@ const CheckoutAddressDetails = ({
                   <Input
                     placeholder="Enter custom name (e.g., Friend's Place)"
                     value={addressDetails.saveAs}
-                    onChange={(e) => setAddressDetails({...addressDetails, saveAs: e.target.value})}
-                    className="h-12 mt-2"
+                    onChange={(e) => setAddressDetails({ ...addressDetails, saveAs: e.target.value })}
+                    className="h-12 mt-2 border-[#E6D5B8] focus:ring-[#8B2131]"
                   />
                 )}
               </div>
@@ -647,15 +395,15 @@ const CheckoutAddressDetails = ({
 
             {/* Save Address Option - only show for authenticated users */}
             {currentUser && !useExistingAddress && (
-              <div className="flex items-center space-x-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center space-x-2 p-4 bg-[#F0F4FF] border border-[#C3DAFE] rounded-sm">
                 <input
                   type="checkbox"
                   id="saveAddress"
                   checked={true}
                   readOnly
-                  className="rounded"
+                  className="rounded text-[#3182CE] focus:ring-[#3182CE]"
                 />
-                <Label htmlFor="saveAddress" className="text-sm text-blue-800">
+                <Label htmlFor="saveAddress" className="text-sm text-[#2A4365]">
                   Save this address to your profile for future orders
                   {savedAddresses.length >= 3 && (
                     <span className="block text-xs text-orange-600 mt-1">
@@ -665,23 +413,30 @@ const CheckoutAddressDetails = ({
                 </Label>
               </div>
             )}
-          </> // Close the fragment here
+          </>
+        )}
+
+        {addressErrors.length > 0 && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-sm text-sm">
+            {addressErrors.map((error, i) => (
+              <p key={i}>{error}</p>
+            ))}
+          </div>
         )}
 
         <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={onPrev} size="lg" className="px-8">
-            Back to Contact
+          <Button variant="outline" onClick={onPrev} size="lg" className="px-8 border-[#E6D5B8] text-[#5D4037] hover:bg-[#FFF8F0]">
+            Back
           </Button>
           <Button
             onClick={handleNext}
             disabled={
-              useExistingAddress 
+              useExistingAddress
                 ? !selectedAddress || !addressDetails.city || !addressDetails.state || !addressDetails.pincode
-                : !addressDetails.plotNumber || !addressDetails.street || !addressDetails.city || !addressDetails.state || !addressDetails.pincode ||
-                  !isPincodeServiceable
+                : !addressDetails.plotNumber || !addressDetails.street || !addressDetails.city || !addressDetails.state || !addressDetails.pincode
             }
             size="lg"
-            className="px-8"
+            className="px-8 bg-[#8B2131] hover:bg-[#701a26] text-white"
           >
             Continue to Payment
           </Button>

@@ -29,10 +29,10 @@ const Stepper = ({ steps, currentStep, className }: StepperProps) => {
               <div className="flex flex-col items-center">
                 <div
                   className={cn(
-                    "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors",
+                    "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all font-serif",
                     {
-                      "bg-primary border-primary text-white": isActive || isCompleted,
-                      "border-muted-foreground text-muted-foreground": !isActive && !isCompleted,
+                      "bg-[#8B2131] border-[#8B2131] text-white shadow-md": isActive || isCompleted,
+                      "bg-white border-[#E6D5B8] text-[#5D4037]": !isActive && !isCompleted,
                     }
                   )}
                 >
@@ -42,22 +42,25 @@ const Stepper = ({ steps, currentStep, className }: StepperProps) => {
                     <span className="text-sm font-medium">{stepNumber}</span>
                   )}
                 </div>
-                
+
                 {/* Step Label */}
                 <div className="text-center mt-2 max-w-[120px]">
                   <div
                     className={cn(
-                      "text-sm font-medium",
+                      "text-sm font-medium tracking-wide font-serif",
                       {
-                        "text-primary": isActive || isCompleted,
-                        "text-muted-foreground": !isActive && !isCompleted,
+                        "text-[#8B2131]": isActive || isCompleted,
+                        "text-[#5D4037]": !isActive && !isCompleted,
                       }
                     )}
                   >
                     {step.title}
                   </div>
                   {step.description && (
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className={cn("text-xs mt-1", {
+                      "text-[#8B2131]/80": isActive,
+                      "text-[#5D4037]/70": !isActive
+                    })}>
                       {step.description}
                     </div>
                   )}
@@ -70,8 +73,8 @@ const Stepper = ({ steps, currentStep, className }: StepperProps) => {
                   className={cn(
                     "flex-1 h-0.5 mx-4 transition-colors",
                     {
-                      "bg-primary": stepNumber < currentStep,
-                      "bg-muted": stepNumber >= currentStep,
+                      "bg-[#8B2131]": stepNumber < currentStep,
+                      "bg-[#E6D5B8]": stepNumber >= currentStep,
                     }
                   )}
                 />

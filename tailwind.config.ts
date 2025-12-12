@@ -27,10 +27,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'inter': ['Inter', 'sans-serif'],
-				'merriweather': ['Merriweather', 'serif'],
-				'sans': ['Inter', 'sans-serif'],
-				'serif': ['Merriweather', 'serif'],
+				'sans': ['Avenir', 'Avenir Next', 'Futura PT', 'Gotham', 'Inter', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -38,6 +35,8 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				"hero-bg": 'hsl(var(--hero-bg))',
+				"footer-bg": 'hsl(var(--footer-bg))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
@@ -102,6 +101,10 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			fontWeight: {
+				bold: '600',
+				semibold: '500',
 			},
 			keyframes: {
 				'accordion-down': {

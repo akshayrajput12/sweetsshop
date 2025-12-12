@@ -1,10 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Tenor+Sans&display=swap');
-
-/* Add M-body-font-400 font */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-
-/* Lobster Two font for SuperSweets logo */
-@import url('https://fonts.googleapis.com/css2?family=Lobster+Two:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two:ital,wght@0,400;0,700;1,400;1,700&family=Tenor+Sans&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -28,13 +22,15 @@
 /* Marquee Animation */
 .animate-marquee {
   display: inline-block;
-  animation: marquee 25s linear infinite; /* Slower speed - changed from 15s to 25s */
+  animation: marquee 25s linear infinite;
+  /* Slower speed - changed from 15s to 25s */
 }
 
 @keyframes marquee {
   0% {
     transform: translateX(100%);
   }
+
   100% {
     transform: translateX(-100%);
   }
@@ -43,114 +39,136 @@
 /* Responsive header adjustments */
 @media (max-width: 640px) {
   .mobile-header-spacing {
-    height: 6rem; /* Adjust for larger header on mobile */
+    height: 6rem;
+    /* Adjust for larger header on mobile */
   }
 }
 
 @layer base {
   :root {
-    /* Premium Sweet Shop Palette - Navy, Ivory, Gold, Light Grey */
-    --background: 48 33% 97%;       /* Ivory */
-    --foreground: 218 28% 15%;      /* Deep Navy Text */
+    /* Rajalakshmi Royal Theme Palette 
+       Primary: #783838 (0 36% 35%)
+       Secondary: #9B4E4E (0 33% 46%)
+       Accent: #BF6A6A (0 37% 58%)
+       Hero BG: #421B1B (0 42% 18%)
+       Footer BG: #190808 (0 52% 6%)
+       Text Primary: #2E1212 (0 44% 13%)
+       Text On Dark: #FFEBE8 (8 100% 95%) 
+       Muted: #EDE3E2 (6 24% 91%)
+    */
+
+    --background: 8 100% 99%;
+    /* Very light cream/white */
+    --foreground: 0 44% 13%;
+    /* Text Primary #2E1212 */
 
     --card: 0 0% 100%;
-    --card-foreground: 218 28% 15%;
+    --card-foreground: 0 44% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 218 28% 15%;
+    --popover-foreground: 0 44% 13%;
 
-    /* Primary - Navy Blue */
-    --primary: 218 28% 15%;         /* Navy */
-    --primary-foreground: 0 0% 100%; /* White text on navy */
-    --primary-hover: 218 28% 20%;   /* Slightly lighter navy */
+    /* Primary - Royal Red */
+    --primary: 0 36% 35%;
+    /* #783838 */
+    --primary-foreground: 8 100% 95%;
+    /* #FFEBE8 */
+    --primary-hover: 0 36% 30%;
 
-    /* Secondary - Gold */
-    --secondary: 46 85% 55%;        /* Gold */
-    --secondary-foreground: 218 28% 15%;
+    /* Secondary - Muted Red/Rose */
+    --secondary: 0 33% 46%;
+    /* #9B4E4E */
+    --secondary-foreground: 8 100% 95%;
 
-    /* Accent - Light Grey */
-    --accent: 0 0% 90%;
-    --accent-foreground: 218 28% 15%;
+    /* Accent - Soft Red */
+    --accent: 0 37% 58%;
+    /* #BF6A6A */
+    --accent-foreground: 8 100% 95%;
+
+    /* Custom Theme Colors */
+    --hero-bg: 0 42% 18%;
+    /* #421B1B */
+    --footer-bg: 0 52% 6%;
+    /* #190808 */
 
     /* Support Colors */
-    --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 6 24% 91%;
+    /* #EDE3E2 */
+    --muted-foreground: 0 20% 40%;
 
-    --success: 142 76% 36%;
+    --success: 142 70% 30%;
     --success-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     /* UI Elements */
-    --border: 0 0% 88%;
+    --border: 6 24% 85%;
     --input: 0 0% 100%;
-    --ring: 46 85% 55%; /* Gold ring highlight */
+    --ring: 0 36% 35%;
+    /* Primary matches ring */
 
     /* Admin Theme Colors */
-    --admin-primary: 218 28% 15%;   /* Navy */
-    --admin-secondary: 46 85% 55%;  /* Gold */
-    --admin-accent: 0 0% 90%;       /* Light Grey */
-    --admin-background: 48 33% 97%; /* Ivory */
+    --admin-primary: 0 36% 35%;
+    --admin-secondary: 0 33% 46%;
+    --admin-accent: 0 37% 58%;
+    --admin-background: 8 100% 99%;
     --admin-card: 0 0% 100%;
 
     /* Shadows */
-    --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.1),
-      0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-medium: 0 4px 6px -1px hsl(0 0% 0% / 0.1),
-      0 2px 4px -2px hsl(0 0% 0% / 0.1);
-    --shadow-large: 0 10px 15px -3px hsl(0 0% 0% / 0.1),
-      0 4px 6px -4px hsl(0 0% 0% / 0.1);
+    --shadow-soft: 0 8px 18px rgba(46, 18, 18, 0.06);
+    --shadow-medium: 0 12px 24px rgba(46, 18, 18, 0.1);
+    --shadow-large: 0 16px 40px rgba(46, 18, 18, 0.12);
 
-    --radius: 0.75rem;
+    --radius: 12px;
 
     /* Sidebar */
-    --sidebar-background: 48 33% 97%;
-    --sidebar-foreground: 218 28% 15%;
-    --sidebar-primary: 218 28% 15%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 90%;
-    --sidebar-accent-foreground: 218 28% 15%;
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 46 85% 55%;
+    --sidebar-background: 8 100% 99%;
+    --sidebar-foreground: 0 44% 13%;
+    --sidebar-primary: 0 36% 35%;
+    --sidebar-primary-foreground: 8 100% 95%;
+    --sidebar-accent: 6 24% 91%;
+    --sidebar-accent-foreground: 0 44% 13%;
+    --sidebar-border: 6 24% 85%;
+    --sidebar-ring: 0 36% 35%;
   }
 
   .dark {
-    --background: 218 28% 12%;
-    --foreground: 210 40% 98%;
+    --background: 0 44% 13%;
+    --foreground: 8 100% 95%;
 
-    --card: 218 28% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 44% 13%;
+    --card-foreground: 8 100% 95%;
 
-    --popover: 218 28% 12%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 44% 13%;
+    --popover-foreground: 8 100% 95%;
 
-    --primary: 46 85% 55%;        /* Gold */
-    --primary-foreground: 218 28% 12%;
+    --primary: 0 36% 35%;
+    --primary-foreground: 8 100% 95%;
 
-    --secondary: 218 28% 20%;     /* Dark Navy */
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 33% 46%;
+    --secondary-foreground: 8 100% 95%;
 
-    --muted: 218 28% 20%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 0 42% 18%;
+    --muted-foreground: 6 24% 80%;
 
-    --accent: 218 28% 20%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 42% 18%;
+    --accent-foreground: 8 100% 95%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 218 28% 20%;
-    --input: 218 28% 20%;
-    --ring: 46 85% 55%;  /* Gold highlight */
+    --border: 0 42% 25%;
+    --input: 0 42% 25%;
+    --ring: 0 36% 35%;
 
-    --sidebar-background: 218 28% 15%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 46 85% 55%;
-    --sidebar-primary-foreground: 218 28% 15%;
-    --sidebar-accent: 218 28% 20%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 218 28% 20%;
-    --sidebar-ring: 46 85% 55%;
+    --sidebar-background: 0 42% 18%;
+    --sidebar-foreground: 8 100% 95%;
+    --sidebar-primary: 0 36% 35%;
+    --sidebar-primary-foreground: 8 100% 95%;
+    --sidebar-accent: 0 42% 25%;
+    --sidebar-accent-foreground: 8 100% 95%;
+    --sidebar-border: 0 42% 25%;
+    --sidebar-ring: 0 36% 35%;
   }
 }
 
@@ -162,27 +180,40 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Tenor Sans', sans-serif;
+    letter-spacing: 0.03em;
   }
-  
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-normal;
+    font-family: 'Tenor Sans', sans-serif;
+    letter-spacing: 0.03em;
+  }
+
   .M-body-font-400 {
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
   }
-  
+
   .lobster-font {
     font-family: 'Lobster Two', cursive;
     font-weight: 700;
   }
-  
+
   .logo-glow {
     text-shadow: 0 0 10px rgba(74, 74, 153, 0.5), 0 0 20px rgba(74, 74, 153, 0.3);
     animation: glow 2s ease-in-out infinite alternate;
   }
-  
+
   @keyframes glow {
     from {
       text-shadow: 0 0 5px rgba(74, 74, 153, 0.5), 0 0 10px rgba(74, 74, 153, 0.3);
     }
+
     to {
       text-shadow: 0 0 15px rgba(74, 74, 153, 0.7), 0 0 25px rgba(74, 74, 153, 0.5);
     }

@@ -66,7 +66,7 @@ const WhyChooseUs = () => {
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
           className="absolute top-10 left-10 w-96 h-96 bg-primary/3 rounded-full blur-3xl"
-          animate={{ 
+          animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.5, 0.3]
           }}
@@ -74,7 +74,7 @@ const WhyChooseUs = () => {
         />
         <motion.div
           className="absolute bottom-10 right-10 w-80 h-80 bg-red-500/3 rounded-full blur-3xl"
-          animate={{ 
+          animate={{
             scale: [1, 1.1, 1],
             opacity: [0.2, 0.4, 0.2]
           }}
@@ -84,7 +84,7 @@ const WhyChooseUs = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Enhanced Section Header */}
-        <motion.div 
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -95,23 +95,23 @@ const WhyChooseUs = () => {
             <CheckCircle className="w-4 h-4 mr-2" />
             Why Choose Us
           </div>
-          
+
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6 font-raleway">
             Why{' '}
             <span className="bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] bg-clip-text text-transparent">
-              SuperSweets
+              Raj Luxmi
             </span>
             ?
           </h2>
-          
+
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-raleway">
-            We're committed to delivering the finest sweets with premium quality, 
+            We're committed to delivering the finest sweets with premium quality,
             exceptional service, and guaranteed satisfaction that you can trust.
           </p>
         </motion.div>
 
         {/* Enhanced Features Grid */}
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20"
           variants={containerVariants}
           initial="hidden"
@@ -128,19 +128,19 @@ const WhyChooseUs = () => {
               <div className="bg-white rounded-3xl p-8 text-center shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 group-hover:border-gray-200 relative overflow-hidden h-full">
                 {/* Hover Gradient Overlay */}
                 <div className={`absolute inset-0 ${feature.bgColor} opacity-0 group-hover:opacity-50 transition-opacity duration-300 rounded-3xl`} />
-                
+
                 <div className="relative z-10">
-                  <motion.div 
+                  <motion.div
                     className={`w-20 h-20 mx-auto mb-6 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}
                     whileHover={{ scale: 1.1, rotate: 5 }}
                   >
                     <feature.icon className="w-10 h-10 text-white" />
                   </motion.div>
-                  
+
                   <h3 className={`text-xl font-bold mb-4 group-hover:${feature.textColor} transition-colors font-raleway`}>
                     {feature.title}
                   </h3>
-                  
+
                   <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors font-raleway">
                     {feature.description}
                   </p>
@@ -154,7 +154,7 @@ const WhyChooseUs = () => {
         </motion.div>
 
         {/* Enhanced CTA Section */}
-        <motion.div 
+        <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -176,16 +176,16 @@ const WhyChooseUs = () => {
               </div>
 
               <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 font-raleway">
-                Ready to Indulge in SuperSweets?
+                Ready to Indulge in Raj Luxmi?
               </h3>
-              
+
               <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed font-raleway">
-                Join thousands of satisfied customers who trust SuperSweets for their sweet cravings 
+                Join thousands of satisfied customers who trust Raj Luxmi for their sweet cravings
                 and enjoy premium quality treats with guaranteed satisfaction.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                <motion.button 
+                <motion.button
                   onClick={() => navigate('/products')}
                   className="group bg-gradient-to-r from-primary to-[hsl(0_84%_60%)] hover:from-[hsl(25_95%_48%)] hover:to-[hsl(0_80%_55%)] text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl font-raleway"
                   whileHover={{ scale: 1.02, y: -2 }}
@@ -197,8 +197,8 @@ const WhyChooseUs = () => {
                     <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </motion.button>
-                
-                <motion.button 
+
+                <motion.button
                   onClick={() => navigate('/about')}
                   className="bg-white text-gray-700 px-10 py-5 rounded-2xl font-bold text-lg border-2 border-gray-200 hover:border-gray-300 shadow-lg transition-all duration-300 font-raleway"
                   whileHover={{ scale: 1.02, y: -2 }}

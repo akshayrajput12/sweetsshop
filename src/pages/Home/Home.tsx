@@ -9,32 +9,26 @@ import Testimonials from '@/components/ui/testimonials';
 import PromotionalBanner from './components/PromotionalBanner';
 import MithaiSpecials from './components/MithaiSpecials';
 import FestivalSpecials from './components/FestivalSpecials';
-import BrandStory from './components/BrandStory';
-import VideoTestimonial from './components/VideoTestimonial';
-import GujarPakShowcase from './components/GujarPakShowcase';
 
 const Home = () => {
   return (
-   <main className="min-h-screen">
-  <CuratedGiftingHero />
-  <div className="space-y-4">
-    <GujarPakShowcase />     {/* showcase our signature sweet - Gujar Pak */}
-    <CategoriesCarousel />   {/* let users explore sweet categories early */}
-    <BestSellers />          {/* showcase our most popular sweets */}
-  
-    <PromotionalBanner />    {/* promotional banner with special offers */}
-    <NewArrivals />          {/* highlight fresh and exciting treats */}
-    
-    <MithaiSpecials />       {/* showcase our delicious mithai collection */}
-    <FestivalSpecials />     {/* showcase our festive special collection */}
-    <SpecialOffers />        {/* sweet deals and discounts */}
-    <VideoTestimonial />     {/* customer video testimonial */}
-    <Testimonials />         {/* build trust with customer reviews */}
-    <InstagramCarousel />    {/* showcase our sweet lifestyle */}
-    <BrandStory />           {/* our brand story and journey */}
-  </div>
-</main>
+    <main className="min-h-screen">
+      <CuratedGiftingHero />
+      <div className="flex flex-col">
+        <CategoriesCarousel />   {/* Light */}
+        <BestSellers />          {/* Darker */}
 
+        <PromotionalBanner />    {/* Full width image */}
+
+        <NewArrivals />          {/* Light */}
+        <MithaiSpecials />       {/* Darker */}
+        <FestivalSpecials />     {/* Light */}
+
+        <SpecialOffers />        {/* Should check this one's bg */}
+        <Testimonials />         {/* Should check bg */}
+        <InstagramCarousel />    {/* Should check bg */}
+      </div>
+    </main>
   );
 };
 

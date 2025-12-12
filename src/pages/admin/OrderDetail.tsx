@@ -81,9 +81,9 @@ const AdminOrderDetail = () => {
         const customerInfo = data.customer_info as any;
         const addressDetails = data.address_details as any;
         const orderItems = data.items as any;
-        
+
         const deliveryLocation = data.delivery_location as any;
-        
+
         const orderDetail: OrderDetail = {
           id: data.order_number,
           customerName: customerInfo?.name || 'Unknown Customer',
@@ -201,7 +201,7 @@ const AdminOrderDetail = () => {
     try {
       // Skip the database function call since generate_invoice_data doesn't exist
       // Directly generate invoice data from current order
-      
+
       // Fetch store settings
       const { data: settings, error: settingsError } = await supabase
         .from('settings')
@@ -224,10 +224,10 @@ const AdminOrderDetail = () => {
         due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN'),
         order_date: formatDate(order.orderDate),
         store_info: {
-          store_name: storeSettings.store_name || 'SuperSweets',
+          store_name: storeSettings.store_name || 'Raj Luxmi',
           store_address: storeSettings.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
           store_phone: storeSettings.store_phone || '+91 9996616153',
-          store_email: storeSettings.store_email || 'contact@supersweets.fit',
+          store_email: storeSettings.store_email || 'contact@rajluxmi.com',
           currency_symbol: storeSettings.currency_symbol || '₹'
         },
         customer_info: {
@@ -261,7 +261,7 @@ const AdminOrderDetail = () => {
 
       // Download the invoice
       await downloadInvoice(invoiceData);
-      
+
       toast({
         title: "Success",
         description: "Invoice downloaded successfully",
@@ -310,7 +310,7 @@ const AdminOrderDetail = () => {
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <Button
             onClick={handleDownloadInvoice}
@@ -322,7 +322,7 @@ const AdminOrderDetail = () => {
             <span className="hidden sm:inline">Download Invoice</span>
             <span className="sm:hidden">Invoice</span>
           </Button>
-          
+
           <Badge className={getStatusColor(currentStatus)}>
             {currentStatus}
           </Badge>
@@ -372,7 +372,7 @@ const AdminOrderDetail = () => {
                       <span>Item Total ({order.items.length} items)</span>
                       <span>₹{order.subtotal.toLocaleString('en-IN')}</span>
                     </div>
-                    
+
                     <div className="flex justify-between text-sm">
                       <span>Delivery Fee</span>
                       <span>
@@ -414,7 +414,7 @@ const AdminOrderDetail = () => {
                     )}
 
                     <Separator className="my-2" />
-                    
+
                     <div className="flex justify-between font-bold text-base">
                       <span>Total Amount</span>
                       <span className="text-primary">₹{order.total.toLocaleString('en-IN')}</span>
@@ -432,7 +432,7 @@ const AdminOrderDetail = () => {
                         {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod}
                       </span>
                     </div>
-                    
+
                     <div className="flex justify-between text-sm">
                       <span>Payment Status</span>
                       <Badge className={getPaymentStatusColor(order.paymentStatus)}>
@@ -484,7 +484,7 @@ const AdminOrderDetail = () => {
                     <p className="text-sm text-muted-foreground">{formatDate(order.orderDate)}</p>
                   </div>
                 </div>
-                
+
                 {currentStatus !== 'pending' && (
                   <div className="flex items-center space-x-3">
                     <Package className="w-5 h-5 text-blue-500" />
@@ -559,7 +559,7 @@ const AdminOrderDetail = () => {
                   <p className="text-sm text-muted-foreground">Customer</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-muted-foreground" />
                 <div>
@@ -600,7 +600,7 @@ const AdminOrderDetail = () => {
                   )}
                 </div>
               </div>
-              
+
               {/* Map Address Section */}
               {order.shippingAddress.mapAddress && (
                 <div className="border-t pt-4">
@@ -643,14 +643,14 @@ const AdminOrderDetail = () => {
                     {order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod}
                   </span>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-sm">Payment Status</span>
                   <Badge className={getPaymentStatusColor(order.paymentStatus)}>
                     {order.paymentStatus}
                   </Badge>
                 </div>
-                
+
                 <div className="flex justify-between">
                   <span className="text-sm">Total Amount</span>
                   <span className="text-sm font-bold">₹{order.total.toLocaleString('en-IN')}</span>

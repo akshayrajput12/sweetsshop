@@ -112,7 +112,7 @@ export const products: Product[] = [
       protein: '2 g'
     },
     marketingInfo: {
-      marketedBy: 'SuperSweets Pvt Ltd.',
+      marketedBy: 'Raj Luxmi Pvt Ltd.',
       address: 'Manjusha Infotech Center No 11/1,12/1 Tower A, Ground Floor, Amarjyothi Layout,',
       city: 'Intermediate Ring Road, Domlur,',
       state: 'Bengaluru-560071, Karnataka.',

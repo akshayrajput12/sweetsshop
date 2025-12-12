@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, TrendingUp, Star, Candy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, Shirt, ArrowRight } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,12 +30,12 @@ const BestSellers = () => {
       const interval = setInterval(() => {
         // Pause auto-scroll for 10 seconds after manual action
         if (Date.now() - lastManualAction < 10000) return;
-        
+
         setCurrentIndex(prev => {
           const maxIndex = bestSellers.length - itemsPerView;
           return prev >= maxIndex ? 0 : prev + 1;
         });
-      }, 4000);
+      }, 5000); // Slower for luxury feel
 
       return () => clearInterval(interval);
     }
@@ -43,11 +43,9 @@ const BestSellers = () => {
 
   const handleResize = () => {
     if (window.innerWidth < 640) {
-      setItemsPerView(1);
-    } else if (window.innerWidth < 768) {
-      setItemsPerView(2);
+      setItemsPerView(1.2); // Mobile: 1.2 cards to show "one card and half" equivalent hint
     } else if (window.innerWidth < 1024) {
-      setItemsPerView(3);
+      setItemsPerView(2.5);
     } else {
       setItemsPerView(4);
     }
@@ -99,7 +97,7 @@ const BestSellers = () => {
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
@@ -112,7 +110,8 @@ const BestSellers = () => {
     }
   };
 
-  const canGoNext = currentIndex < bestSellers.length - itemsPerView;
+  // Since itemsPerView can be float (1.2), comparison needs to be careful or just allow logic to work
+  const canGoNext = currentIndex < bestSellers.length - Math.floor(itemsPerView);
   const canGoPrev = currentIndex > 0;
 
   const handleQuickView = (product: any) => {
@@ -136,126 +135,84 @@ const BestSellers = () => {
   };
 
   return (
-    <section className="py-12 bg-gradient-to-br from-white via-gray-50 to-[hsl(25_95%_90%)] relative overflow-hidden">
-      {/* Background Decorations */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-10 left-10 w-48 h-48 bg-red-500/5 rounded-full blur-3xl opacity-20"></div>
-      </div>
+    <section className="py-24 bg-[#F9F3EA] relative overflow-hidden">
+      {/* Background accent - Rajluxmi Theme */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[#F9F3EA] -z-10"></div>
 
-      {/* Added max-width container with proper padding and margins */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Enhanced Section Header */}
-        {/* Improved responsive font sizing */}
-        <div className="text-center mb-10">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-4 font-raleway">
-            Top{' '}
-            <span className="text-primary">
-              Selling Sweets
-            </span>
-          </h2>
-        </div>
+      <div className="max-w-[1600px] mx-auto px-6 relative z-10">
+        {/* Header Area */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 border-b border-[#D4C3A3]/30 pb-6">
+          <div>
+            <span className="text-xs font-medium uppercase tracking-[0.3em] text-[#8B2131] mb-4 block">Shop The Icons</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#2C1810] leading-tight">
+              Most Coveted
+            </h2>
+          </div>
 
-        {/* Enhanced Carousel Controls */}
-        {!loading && bestSellers.length > itemsPerView && (
-          <div className="flex items-center justify-between mb-12">
+          {/* Carousel Controls */}
+          {!loading && bestSellers.length > itemsPerView && (
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100 font-raleway">
-                <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                <span className="text-xs sm:text-sm font-medium text-gray-700 font-raleway">
-                  {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, bestSellers.length)} of {bestSellers.length} products
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3">
               <button
                 onClick={prevSlide}
                 disabled={!canGoPrev}
-                className={`p-2 rounded-full border-2 transition-all duration-200 font-raleway ${
-                  canGoPrev 
-                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
-                    : 'border-gray-200 text-gray-300 cursor-not-allowed'
-                }`}
+                className={`w-12 h-12 flex items-center justify-center border border-[#D4C3A3] transition-all duration-300 rounded-full ${canGoPrev
+                  ? 'bg-transparent text-[#2C1810] hover:bg-[#8B2131] hover:text-white hover:border-[#8B2131]'
+                  : 'bg-transparent text-gray-300 cursor-not-allowed'
+                  }`}
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={nextSlide}
                 disabled={!canGoNext}
-                className={`p-2 rounded-full border-2 transition-all duration-200 font-raleway ${
-                  canGoNext 
-                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
-                    : 'border-gray-200 text-gray-300 cursor-not-allowed'
-                }`}
+                className={`w-12 h-12 flex items-center justify-center border border-[#D4C3A3] transition-all duration-300 rounded-full ${canGoNext
+                  ? 'bg-transparent text-[#2C1810] hover:bg-[#8B2131] hover:text-white hover:border-[#8B2131]'
+                  : 'bg-transparent text-gray-300 cursor-not-allowed'
+                  }`}
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
-          </div>
-        )}
-
-        {/* Carousel Indicators */}
-        {!loading && bestSellers.length > itemsPerView && (
-          <div className="flex justify-center mb-8 space-x-2">
-            {Array.from({ length: Math.ceil(bestSellers.length / itemsPerView) }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentIndex(index * itemsPerView);
-                  setLastManualAction(Date.now());
-                }}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 font-raleway ${
-                  Math.floor(currentIndex / itemsPerView) === index
-                    ? 'bg-primary w-6 sm:w-8'
-                    : 'bg-gray-300 hover:bg-gray-400'
-                }`}
-              />
-            ))}
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Product Carousel */}
-        <div 
+        <div
           className="relative"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="animate-pulse">
-                  <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100">
-                    <div className="h-64 bg-gray-200 rounded-t-3xl"></div>
-                    <div className="p-6">
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                      <div className="h-10 bg-gray-200 rounded-lg"></div>
-                    </div>
-                  </div>
+                  <div className="bg-[#D4C3A3]/20 aspect-[4/5] w-full mb-4"></div>
+                  <div className="h-4 bg-[#D4C3A3]/20 w-3/4 mb-2"></div>
+                  <div className="h-4 bg-[#D4C3A3]/20 w-1/2"></div>
                 </div>
               ))}
             </div>
           ) : bestSellers.length > 0 ? (
             <div className="overflow-hidden">
-              <div 
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ 
+              <div
+                className="flex transition-transform duration-700 ease-out"
+                style={{
                   transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
                 }}
               >
                 {bestSellers.map((product) => (
-                  <div 
-                    key={product.id} 
-                    className="flex-shrink-0 px-2 w-full sm:w-1/2 lg:w-1/4"
+                  <div
+                    key={product.id}
+                    className="flex-shrink-0 px-2 md:px-4"
+                    style={{ width: `${100 / itemsPerView}%` }}
                   >
-                    <ProductCard 
+                    <ProductCard
                       product={{
                         ...product,
                         image: product.images?.[0] || '/placeholder.svg',
                         slug: product.sku || product.id
-                      }} 
+                      }}
                       onQuickView={(product) => handleQuickView(product)}
                       onViewDetail={() => handleViewDetail(product)}
                     />
@@ -264,10 +221,10 @@ const BestSellers = () => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-16">
-              <Candy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-500 mb-2 font-raleway">No bestsellers available</h3>
-              <p className="text-gray-400 font-raleway">Check back later for our top-selling products</p>
+            <div className="text-center py-20 border border-[#D4C3A3]/20 p-8">
+              <Star className="w-12 h-12 text-[#D4C3A3] mx-auto mb-4" />
+              <h3 className="text-xl font-serif text-[#2C1810] mb-2">No bestsellers available</h3>
+              <p className="text-[#5D4037] font-light">Check back later for our top-selling sweets.</p>
             </div>
           )}
         </div>
@@ -275,19 +232,19 @@ const BestSellers = () => {
         <div className="text-center mt-12">
           <button
             onClick={() => navigate('/products')}
-            className="bg-primary hover:bg-[hsl(218_28%_20%)] text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
+            className="group inline-flex items-center gap-3 bg-[#2C1810] text-white px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#8B2131] transition-all duration-300"
           >
-            View All Sweets
+            View Full Collection <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>
 
       {/* Quick View Modal */}
       {isQuickViewOpen && quickViewProduct && (
-        <QuickViewModal 
-          product={quickViewProduct} 
-          isOpen={isQuickViewOpen} 
-          onClose={closeQuickView} 
+        <QuickViewModal
+          product={quickViewProduct}
+          isOpen={isQuickViewOpen}
+          onClose={closeQuickView}
         />
       )}
     </section>

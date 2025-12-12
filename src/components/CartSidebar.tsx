@@ -16,14 +16,14 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
     return null;
   }
 
-  const { 
-    cartItems, 
-    isCartOpen, 
-    toggleCart, 
-    updateQuantity, 
-    removeFromCart 
+  const {
+    cartItems,
+    isCartOpen,
+    toggleCart,
+    updateQuantity,
+    removeFromCart
   } = useStore();
-  
+
   const navigate = useNavigate();
   const { settings, loading: settingsLoading } = useSettings();
 
@@ -62,9 +62,9 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
     const quantity = toNumber(item.quantity);
     return total + (price * quantity);
   }, 0);
-  
+
   const tax = calculatePercentage(subtotal, settings.tax_rate);
-  
+
   // For the cart sidebar, we don't have pincode information, so we use standard delivery charge
   // In a real implementation, you might store the pincode in localStorage or get it from user profile
   const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
@@ -81,7 +81,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -90,83 +90,98 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
 
           {/* Sidebar */}
           <motion.div
-            className="fixed right-0 top-0 h-full w-full max-w-md bg-background shadow-large z-50 flex flex-col"
+            className="fixed right-0 top-0 h-full w-full max-w-md bg-[#FFFDF7] shadow-2xl z-50 flex flex-col border-l border-[#E6D5B8]"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="heading-lg">Your Cart</h2>
+            <div className="flex items-center justify-between p-6 border-b border-[#E6D5B8] bg-[#FFF0DE]">
+              <h2 className="text-2xl font-serif text-[#8B2131]">Shopping Bag</h2>
               <button
                 onClick={toggleCart}
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
+                className="p-2 hover:bg-[#E6D5B8]/50 rounded-full transition-colors text-[#8B2131]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6 bg-[#FFFDF7]">
               {cartItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
-                  <ShoppingBag className="w-16 h-16 text-muted-foreground mb-4" />
-                  <h3 className="heading-md mb-2">Your cart is empty</h3>
-                  <p className="body-text text-muted-foreground">
-                    Add some delicious items to get started!
+                  <div className="p-6 bg-[#FFF0DE] rounded-full mb-6">
+                    <ShoppingBag className="w-12 h-12 text-[#8B2131]" />
+                  </div>
+                  <h3 className="text-xl font-serif text-[#8B2131] mb-2">Your Bag is Empty</h3>
+                  <p className="text-[#5D4037]">
+                    Explore our royal collection of sweets.
                   </p>
+                  <button
+                    onClick={() => { toggleCart(); navigate('/products'); }}
+                    className="mt-6 px-6 py-2 border border-[#8B2131] text-[#8B2131] hover:bg-[#8B2131] hover:text-[#F9F5EB] transition-colors rounded-none uppercase tracking-widest text-sm"
+                  >
+                    Start Shopping
+                  </button>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {cartItems.map((item) => (
                     <motion.div
                       key={item.id}
-                      className="flex items-center space-x-4 p-4 bg-muted/50 rounded-lg"
+                      className="flex space-x-4 pb-6 border-b border-[#E6D5B8] last:border-0"
                       layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                     >
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-16 h-16 object-cover rounded-lg"
+                        className="w-24 h-24 object-cover rounded-sm shadow-md border border-[#E6D5B8]"
                       />
-                      
-                      <div className="flex-1">
-                        <h4 className="font-medium text-foreground line-clamp-1">
-                          {item.name}
-                        </h4>
-                        <p className="caption text-muted-foreground">
-                          {item.weight} • {formatCurrency(item.price, settings.currency_symbol)}
-                        </p>
-                        
-                        <div className="flex items-center space-x-2 mt-2">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="p-1 hover:bg-background rounded transition-colors"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          
-                          <span className="body-text font-medium min-w-[2rem] text-center">
-                            {item.quantity}
-                          </span>
-                          
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="p-1 hover:bg-background rounded transition-colors"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                          
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            className="ml-auto p-1 hover:bg-destructive/20 hover:text-destructive rounded transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
+
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <h4 className="font-serif text-lg text-[#2C1810] line-clamp-2 leading-tight">
+                            {item.name}
+                          </h4>
+                          <p className="text-sm text-[#5D4037] mt-1">
+                            {item.weight}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center border border-[#E6D5B8] rounded-sm">
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="p-1.5 hover:bg-[#FFF0DE] text-[#8B2131] transition-colors"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="w-8 text-center text-sm font-medium text-[#2C1810]">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="p-1.5 hover:bg-[#FFF0DE] text-[#8B2131] transition-colors"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium text-[#8B2131]">
+                              {formatCurrency(item.price * item.quantity, settings.currency_symbol)}
+                            </span>
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-[#5D4037]/60 hover:text-[#8B2131] transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -177,44 +192,29 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isAdminRoute = false }) => {
 
             {/* Footer */}
             {cartItems.length > 0 && (
-              <div className="border-t p-6 space-y-4">
+              <div className="border-t border-[#E6D5B8] bg-[#FFF8F0] p-6 space-y-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
                 <div className="space-y-2">
-                  <div className="flex justify-between body-text">
-                    <span>Subtotal ({cartItems.reduce((sum, item) => sum + toNumber(item.quantity), 0)} items)</span>
+                  <div className="flex justify-between text-[#5D4037] font-medium">
+                    <span>Subtotal</span>
                     <span>{formatCurrency(subtotal, settings.currency_symbol)}</span>
                   </div>
-                  <div className="flex justify-between body-text">
-                    <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
-                    <span>{formatCurrency(tax, settings.currency_symbol)}</span>
-                  </div>
-                  <div className="flex justify-between body-text">
-                    <span>Delivery Fee</span>
-                    <span>
-                      {deliveryFee === 0 ? (
-                        <span className="text-green-600 font-medium">Will be calculated</span>
-                      ) : (
-                        formatCurrency(deliveryFee, settings.currency_symbol)
-                      )}
-                    </span>
-                  </div>
-                  {deliveryFee > 0 && toNumber(settings.free_delivery_threshold) > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      Add {formatCurrency(toNumber(settings.free_delivery_threshold) - subtotal, settings.currency_symbol)} more for free delivery
-                    </div>
-                  )}
-                  <div className="flex justify-between heading-md font-semibold pt-2 border-t">
+
+                  <div className="flex justify-between text-[#2C1810] font-serif text-xl pt-2 border-t border-[#E6D5B8]">
                     <span>Total</span>
                     <span>{formatCurrency(total, settings.currency_symbol)}</span>
                   </div>
+                  <p className="text-xs text-[#5D4037]/80 text-center pt-1">
+                    Shipping & Taxes calculated at checkout
+                  </p>
                 </div>
 
                 <motion.button
                   onClick={handleCheckout}
-                  className="w-full btn-primary"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-[#8B2131] text-[#F9F5EB] py-4 rounded-sm uppercase tracking-[0.1em] font-medium hover:bg-[#701a26] transition-all shadow-lg hover:shadow-xl"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                 >
-                  Proceed to Checkout
+                  Checkout
                 </motion.button>
               </div>
             )}

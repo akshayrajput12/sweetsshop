@@ -32,57 +32,57 @@ const CheckoutContactInfo = ({ customerInfo, setCustomerInfo, onNext }: Checkout
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <User className="h-5 w-5 mr-2" />
+    <Card className="border-[#E6D5B8] bg-[#FFFDF7] shadow-sm">
+      <CardHeader className="border-b border-[#E6D5B8]">
+        <CardTitle className="flex items-center text-[#2C1810] font-serif tracking-wide">
+          <User className="h-5 w-5 mr-2 text-[#8B2131]" />
           Contact Information
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 pt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium">
+            <Label htmlFor="name" className="text-sm font-medium text-[#2C1810]">
               Full Name *
             </Label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8B2131]/50 h-4 w-4" />
               <Input
                 id="name"
                 type="text"
                 placeholder="Enter your full name"
                 value={customerInfo.name}
                 onChange={(e) => {
-                  setCustomerInfo({...customerInfo, name: e.target.value});
+                  setCustomerInfo({ ...customerInfo, name: e.target.value });
                   // Clear errors when user starts typing
                   if (contactErrors.length > 0) {
                     setContactErrors([]);
                   }
                 }}
-                className={`pl-10 h-12 ${contactErrors.some(e => e.includes('name') || e.includes('Name')) ? 'border-red-500' : ''}`}
+                className={`pl-10 h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white text-[#2C1810] placeholder:text-[#5D4037]/50 ${contactErrors.some(e => e.includes('name') || e.includes('Name')) ? 'border-red-500' : ''}`}
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-sm font-medium">
+            <Label htmlFor="phone" className="text-sm font-medium text-[#2C1810]">
               Phone Number *
             </Label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8B2131]/50 h-4 w-4" />
               <Input
                 id="phone"
                 type="tel"
                 placeholder="Enter your phone number"
                 value={customerInfo.phone}
                 onChange={(e) => {
-                  setCustomerInfo({...customerInfo, phone: e.target.value});
+                  setCustomerInfo({ ...customerInfo, phone: e.target.value });
                   if (contactErrors.length > 0) {
                     setContactErrors([]);
                   }
                 }}
-                className={`pl-10 h-12 ${contactErrors.some(e => e.includes('phone') || e.includes('Phone')) ? 'border-red-500' : ''}`}
+                className={`pl-10 h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white text-[#2C1810] placeholder:text-[#5D4037]/50 ${contactErrors.some(e => e.includes('phone') || e.includes('Phone')) ? 'border-red-500' : ''}`}
                 required
               />
             </div>
@@ -90,23 +90,23 @@ const CheckoutContactInfo = ({ customerInfo, setCustomerInfo, onNext }: Checkout
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium">
+          <Label htmlFor="email" className="text-sm font-medium text-[#2C1810]">
             Email Address *
           </Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8B2131]/50 h-4 w-4" />
             <Input
               id="email"
               type="email"
               placeholder="Enter your email address"
               value={customerInfo.email}
               onChange={(e) => {
-                setCustomerInfo({...customerInfo, email: e.target.value});
+                setCustomerInfo({ ...customerInfo, email: e.target.value });
                 if (contactErrors.length > 0) {
                   setContactErrors([]);
                 }
               }}
-              className={`pl-10 h-12 ${contactErrors.some(e => e.includes('email') || e.includes('Email')) ? 'border-red-500' : ''}`}
+              className={`pl-10 h-12 border-[#E6D5B8] focus:ring-[#8B2131] bg-white text-[#2C1810] placeholder:text-[#5D4037]/50 ${contactErrors.some(e => e.includes('email') || e.includes('Email')) ? 'border-red-500' : ''}`}
               required
             />
           </div>
@@ -114,7 +114,7 @@ const CheckoutContactInfo = ({ customerInfo, setCustomerInfo, onNext }: Checkout
 
         {/* Validation Errors */}
         {contactErrors.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-50 border border-red-200 rounded-sm p-4">
             <div className="flex items-start space-x-3">
               <div className="h-5 w-5 text-red-600 mt-0.5">⚠️</div>
               <div>
@@ -131,14 +131,14 @@ const CheckoutContactInfo = ({ customerInfo, setCustomerInfo, onNext }: Checkout
           </div>
         )}
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-[#EBF8FF] border border-[#BEE3F8] rounded-sm p-4">
           <div className="flex items-start space-x-3">
-            <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+            <Shield className="h-5 w-5 text-[#2B6CB0] mt-0.5" />
             <div>
-              <h4 className="font-medium text-blue-900 text-sm">
+              <h4 className="font-medium text-[#2C5282] text-sm">
                 Your information is secure
               </h4>
-              <p className="text-blue-700 text-sm mt-1">
+              <p className="text-[#3182CE] text-sm mt-1">
                 We use your contact details only for order updates and delivery coordination.
               </p>
             </div>
@@ -146,7 +146,7 @@ const CheckoutContactInfo = ({ customerInfo, setCustomerInfo, onNext }: Checkout
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button onClick={handleNext} size="lg" className="px-8">
+          <Button onClick={handleNext} size="lg" className="px-8 bg-[#8B2131] hover:bg-[#701a26] text-white">
             Continue to Location
           </Button>
         </div>

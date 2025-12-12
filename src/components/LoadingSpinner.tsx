@@ -42,22 +42,22 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 };
 
 // Specialized loading components
-export const PageLoader: React.FC<{ text?: string }> = ({ text = 'Supersweets' }) => (
+export const PageLoader: React.FC<{ text?: string }> = ({ text = 'Loading...' }) => (
   <div className="min-h-screen flex items-center justify-center">
     <LoadingSpinner size="lg" text={text} />
   </div>
 );
 
-export const ComponentLoader: React.FC<{ text?: string; className?: string }> = ({ 
-  text = 'Supersweets', 
-  className = 'py-8' 
+export const ComponentLoader: React.FC<{ text?: string; className?: string }> = ({
+  text = 'Loading...',
+  className = 'py-8'
 }) => (
   <div className={`flex items-center justify-center ${className}`}>
     <LoadingSpinner size="md" text={text} />
   </div>
 );
 
-export const ButtonLoader: React.FC<{ text?: string }> = ({ text = 'Supersweets' }) => (
+export const ButtonLoader: React.FC<{ text?: string }> = ({ text = 'Loading...' }) => (
   <div className="flex items-center gap-2">
     <Loader2 className="h-4 w-4 animate-spin" />
     <span>{text}</span>
@@ -92,16 +92,16 @@ export const OrderCardSkeleton: React.FC = () => (
   </div>
 );
 
-export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({ 
-  rows = 5, 
-  cols = 4 
+export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({
+  rows = 5,
+  cols = 4
 }) => (
   <div className="space-y-3">
     {Array.from({ length: rows }).map((_, rowIndex) => (
       <div key={rowIndex} className="flex gap-4 animate-pulse">
         {Array.from({ length: cols }).map((_, colIndex) => (
-          <div 
-            key={colIndex} 
+          <div
+            key={colIndex}
             className="h-4 bg-gray-200 rounded flex-1"
           ></div>
         ))}
@@ -111,9 +111,9 @@ export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({
 );
 
 // Loading overlay for forms
-export const FormLoadingOverlay: React.FC<{ isLoading: boolean; text?: string }> = ({ 
-  isLoading, 
-  text = 'Saving...' 
+export const FormLoadingOverlay: React.FC<{ isLoading: boolean; text?: string }> = ({
+  isLoading,
+  text = 'Saving...'
 }) => {
   if (!isLoading) return null;
 

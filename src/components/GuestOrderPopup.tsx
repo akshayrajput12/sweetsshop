@@ -82,22 +82,22 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
   const generatePDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
-    
+
     // Header
     doc.setFontSize(20);
     doc.setTextColor(40, 40, 40);
-    doc.text('SuperSweets', 20, 25);
-    
+    doc.text('Raj Luxmi', 20, 25);
+
     doc.setFontSize(16);
     doc.text('Order Receipt', 20, 40);
-    
+
     // Order Info
     doc.setFontSize(12);
     doc.setTextColor(80, 80, 80);
     doc.text(`Order #: ${orderData.orderNumber}`, 20, 55);
     doc.text(`Date: ${formatDate(orderData.orderDate)}`, 20, 65);
     doc.text(`Payment: ${orderData.paymentMethod.toUpperCase()}`, 20, 75);
-    
+
     // Customer Info
     doc.setFontSize(14);
     doc.setTextColor(40, 40, 40);
@@ -107,7 +107,7 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
     doc.text(`Name: ${orderData.customerInfo.name}`, 20, 105);
     doc.text(`Email: ${orderData.customerInfo.email}`, 20, 115);
     doc.text(`Phone: ${orderData.customerInfo.phone}`, 20, 125);
-    
+
     // Delivery Address
     doc.setFontSize(14);
     doc.setTextColor(40, 40, 40);
@@ -117,7 +117,7 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
     const address = `${orderData.deliveryAddress.plotNumber}${orderData.deliveryAddress.buildingName ? ', ' + orderData.deliveryAddress.buildingName : ''}, ${orderData.deliveryAddress.street}${orderData.deliveryAddress.landmark ? ', Near ' + orderData.deliveryAddress.landmark : ''}, ${orderData.deliveryAddress.city}, ${orderData.deliveryAddress.state} - ${orderData.deliveryAddress.pincode}`;
     const splitAddress = doc.splitTextToSize(address, pageWidth - 40);
     doc.text(splitAddress, 20, 155);
-    
+
     // Items Table
     const tableData = orderData.items.map(item => [
       item.name,
@@ -126,7 +126,7 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
       `₹${item.price.toFixed(2)}`,
       `₹${(item.price * item.quantity).toFixed(2)}`
     ]);
-    
+
     (doc as any).autoTable({
       head: [['Item', 'Weight', 'Qty', 'Price', 'Total']],
       body: tableData,
@@ -135,13 +135,13 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
       headStyles: { fillColor: [66, 139, 202] },
       styles: { fontSize: 9 }
     });
-    
+
     // Bill Summary
     const finalY = (doc as any).lastAutoTable.finalY + 20;
     doc.setFontSize(12);
     doc.setTextColor(40, 40, 40);
     doc.text('Bill Summary', 20, finalY);
-    
+
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
     let summaryY = finalY + 15;
@@ -150,30 +150,30 @@ const GuestOrderPopup: React.FC<GuestOrderPopupProps> = ({ isOpen, onClose, orde
     doc.text(`Tax: ₹${orderData.tax.toFixed(2)}`, 20, summaryY);
     summaryY += 10;
     doc.text(`Delivery Fee: ${orderData.deliveryFee === 0 ? 'FREE' : '₹' + orderData.deliveryFee.toFixed(2)}`, 20, summaryY);
-    
+
     if (orderData.codFee > 0) {
       summaryY += 10;
       doc.text(`COD Fee: ₹${orderData.codFee.toFixed(2)}`, 20, summaryY);
     }
-    
+
     if (orderData.discount > 0) {
       summaryY += 10;
       doc.setTextColor(0, 150, 0);
       doc.text(`Discount: -₹${orderData.discount.toFixed(2)}`, 20, summaryY);
       doc.setTextColor(80, 80, 80);
     }
-    
+
     summaryY += 15;
     doc.setFontSize(12);
     doc.setTextColor(40, 40, 40);
     doc.text(`Total Amount: ₹${orderData.total.toFixed(2)}`, 20, summaryY);
-    
+
     // Footer
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
-    doc.text('Thank you for shopping with SuperSweets!', 20, doc.internal.pageSize.height - 20);
-    doc.text('For support, contact us at support@daretodiet.fit', 20, doc.internal.pageSize.height - 10);
-    
+    doc.text('Thank you for shopping with Raj Luxmi!', 20, doc.internal.pageSize.height - 20);
+    doc.text('For support, contact us at support@rajluxmi.com', 20, doc.internal.pageSize.height - 10);
+
     // Save PDF
     doc.save(`Order_${orderData.orderNumber}.pdf`);
   };

@@ -24,9 +24,9 @@ const Contact = () => {
   // Dynamic contact information from database
   const contactInfo = {
     phone: settings?.store_phone || '+91 9996616153',
-    email: settings?.store_email || 'contact@supersweets.fit',
+    email: settings?.store_email || 'contact@rajluxmi.com',
     address: settings?.store_address || 'Shop number 5, Patel Nagar, Hansi road, Patiala chowk, JIND (Haryana) 126102',
-    storeName: settings?.store_name || 'SuperSweets',
+    storeName: settings?.store_name || 'Raj Luxmi',
     businessHoursStart: settings?.business_hours_start || '09:00',
     businessHoursEnd: settings?.business_hours_end || '20:00'
   };
@@ -43,7 +43,7 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email || !formData.subject || !formData.message) {
       toast({
         title: "Missing Information",
@@ -54,7 +54,7 @@ const Contact = () => {
     }
 
     setSubmitting(true);
-    
+
     try {
       const { error } = await supabase
         .from('contact_messages')
@@ -73,7 +73,7 @@ const Contact = () => {
         title: "Message sent successfully!",
         description: "We'll get back to you within 24 hours. Thank you for contacting us!",
       });
-      
+
       // Reset form
       setFormData({
         name: '',
@@ -273,15 +273,15 @@ const Contact = () => {
           </CardHeader>
           <CardContent>
             <div className="aspect-video rounded-lg overflow-hidden">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3465.046698160929!2d75.90044067605358!3d29.718406533943902!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3911977ef5c7c397%3A0xd93c1bbd1ea25041!2sSuper%20Sweets%20-%20A%20sweets%20shop!5e0!3m2!1sen!2sin!4v1760083220231!5m2!1sen!2sin" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen 
-                loading="lazy" 
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3465.046698160929!2d75.90044067605358!3d29.718406533943902!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3911977ef5c7c397%3A0xd93c1bbd1ea25041!2sSuper%20Sweets%20-%20A%20sweets%20shop!5e0!3m2!1sen!2sin!4v1760083220231!5m2!1sen!2sin"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Super Sweets Location"
+                title="Raj Luxmi Location"
               />
             </div>
           </CardContent>

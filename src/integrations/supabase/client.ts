@@ -1,4 +1,4 @@
-// supersweets Supabase Client Configuration
+// Raj Luxmi Supabase Client Configuration
 // Uses environment variables for secure configuration
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
@@ -30,7 +30,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
   },
   global: {
     headers: {
-      'X-Client-Info': 'supersweets-web-app'
+      'X-Client-Info': 'rajluxmi-web-app'
     }
   }
 });

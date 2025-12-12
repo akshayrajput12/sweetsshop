@@ -1,35 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, Candy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
 import ProductCard from '../../../components/ProductCard';
 import QuickViewModal from '../../../components/QuickViewModal';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image?: string;
-  images?: string[];
-  category: string;
-  weight?: string;
-  pieces?: string;
-  description?: string;
-  stock_quantity?: number;
-  slug: string;
-  inStock: boolean;
-  isBestSeller: boolean;
-  [key: string]: any;
-}
-
 const NewArrivals = () => {
   const navigate = useNavigate();
-  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [newArrivals, setNewArrivals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(4);
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<any | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   useEffect(() => {
@@ -39,21 +21,19 @@ const NewArrivals = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto-scroll carousel with manual override
   const [autoScroll, setAutoScroll] = useState(true);
   const [lastManualAction, setLastManualAction] = useState(0);
 
   useEffect(() => {
     if (newArrivals.length > itemsPerView && autoScroll) {
       const interval = setInterval(() => {
-        // Pause auto-scroll for 10 seconds after manual action
         if (Date.now() - lastManualAction < 10000) return;
-        
+
         setCurrentIndex(prev => {
           const maxIndex = newArrivals.length - itemsPerView;
           return prev >= maxIndex ? 0 : prev + 1;
         });
-      }, 4500);
+      }, 5000);
 
       return () => clearInterval(interval);
     }
@@ -61,11 +41,9 @@ const NewArrivals = () => {
 
   const handleResize = () => {
     if (window.innerWidth < 640) {
-      setItemsPerView(1);
-    } else if (window.innerWidth < 768) {
-      setItemsPerView(2);
+      setItemsPerView(1.2);
     } else if (window.innerWidth < 1024) {
-      setItemsPerView(3);
+      setItemsPerView(2.5);
     } else {
       setItemsPerView(4);
     }
@@ -73,38 +51,20 @@ const NewArrivals = () => {
 
   const fetchNewArrivals = async () => {
     try {
-      // First, get all products and then filter for new arrivals on the client side
-      // This avoids the type issue with the missing new_arrival field in generated types
       const result = await supabase
         .from('products')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false })
-        .limit(20); // Get more products to filter from
+        .limit(20);
 
       if (result.error) throw result.error;
-      
-      // Filter for new arrivals on the client side and transform to Product interface
+
+      // Filter for new arrivals specifically or just take latest
       const filteredProducts = (result.data || [])
-        .filter((product: any) => product.new_arrival === true) // Filter for new arrivals
-        .slice(0, 12) // Limit to 12 new arrivals
-        .map((product: any) => ({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.original_price,
-          image: product.images?.[0] || '/placeholder.svg',
-          images: product.images,
-          category: product.category_id || 'Uncategorized',
-          weight: product.weight,
-          pieces: product.pieces,
-          description: product.description,
-          stock_quantity: product.stock_quantity,
-          slug: product.id, // Use id as slug since sku might not exist
-          inStock: product.stock_quantity !== undefined ? product.stock_quantity > 0 : true,
-          isBestSeller: product.is_bestseller || false
-        } as Product));
-      
+        .filter((product: any) => product.new_arrival === true)
+        .slice(0, 12);
+
       setNewArrivals(filteredProducts);
     } catch (error) {
       console.error('Error fetching new arrivals:', error);
@@ -127,41 +87,27 @@ const NewArrivals = () => {
     }
   };
 
-  // Touch/swipe support for mobile
+  // Touch/swipe support
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX);
+  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && canGoNext) {
-      nextSlide();
-    }
-    if (isRightSwipe && canGoPrev) {
-      prevSlide();
-    }
+    if (distance > 50 && canGoNext) nextSlide();
+    if (distance < -50 && canGoPrev) prevSlide();
   };
 
-  const canGoNext = currentIndex < newArrivals.length - itemsPerView;
+  const canGoNext = currentIndex < newArrivals.length - Math.floor(itemsPerView);
   const canGoPrev = currentIndex > 0;
 
   const handleQuickView = (product: any) => {
     setQuickViewProduct({
       ...product,
       image: product.images?.[0] || '/placeholder.svg',
-      slug: product.id
+      slug: product.sku || product.id
     });
     setIsQuickViewOpen(true);
   };
@@ -171,143 +117,91 @@ const NewArrivals = () => {
     setQuickViewProduct(null);
   };
 
-  // Function to handle navigation to product detail page
   const handleViewDetail = (product: any) => {
     const slug = product.sku || product.id;
     navigate(`/product/${slug}`);
   };
 
-  if (newArrivals.length === 0 && !loading) {
-    return null; // Don't show section if no new arrivals
-  }
-
   return (
-    <section className="py-12 bg-white relative overflow-hidden">
-      {/* Background Decorations */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 right-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl opacity-30"></div>
-        <div className="absolute bottom-10 left-10 w-48 h-48 bg-red-500/5 rounded-full blur-3xl opacity-20"></div>
-      </div>
+    <section className="py-24 bg-[#FFFDF7] relative overflow-hidden">
+      {/* Background accent - Rajluxmi Theme */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[#FFF8F0] rounded-full filter blur-[100px] opacity-60 pointer-events-none"></div>
 
-      {/* Added max-width container with proper padding and margins */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Enhanced Section Header */}
-        {/* Improved responsive font sizing */}
-        <div className="text-center mb-10">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary mb-4 font-raleway">
-            New{' '}
-            <span className="text-primary">
-              Sweet Arrivals
-            </span>
-          </h2>
-        
-          <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto font-raleway">
-            Discover the latest additions to our sweet collection! Fresh treats, new flavors, and exciting sweets that have just arrived.
-          </p>
-        </div>
+      <div className="max-w-[1600px] mx-auto px-6 relative z-10">
+        {/* Header Area */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 border-b border-[#E6D5B8] pb-6">
+          <div>
+            <span className="text-xs font-medium uppercase tracking-[0.3em] text-[#8B2131] mb-4 block">Fresh from Kitchen</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#2C1810] leading-tight">
+              New Arrivals
+            </h2>
+          </div>
 
-        {/* Enhanced Carousel Controls */}
-        {!loading && newArrivals.length > itemsPerView && (
-          <div className="flex items-center justify-between mb-12">
+          {/* Carousel Controls */}
+          {!loading && newArrivals.length > itemsPerView && (
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100 font-raleway">
-                <Sparkles className="w-4 h-4 text-primary fill-current" />
-                {/* Improved responsive font sizing */}
-                <span className="text-xs sm:text-sm font-medium text-gray-700 font-raleway">
-                  {currentIndex + 1}-{Math.min(currentIndex + itemsPerView, newArrivals.length)} of {newArrivals.length} new products
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-3">
               <button
                 onClick={prevSlide}
                 disabled={!canGoPrev}
-                className={`p-2 rounded-full border-2 transition-all duration-200 ${
-                  canGoPrev 
-                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
-                    : 'border-gray-200 text-gray-300 cursor-not-allowed'
-                }`}
+                className={`w-12 h-12 flex items-center justify-center border border-[#E6D5B8] transition-all duration-300 rounded-full ${canGoPrev
+                  ? 'bg-transparent text-[#2C1810] hover:bg-[#8B2131] hover:text-white hover:border-[#8B2131]'
+                  : 'bg-transparent text-gray-300 cursor-not-allowed'
+                  }`}
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={nextSlide}
                 disabled={!canGoNext}
-                className={`p-2 rounded-full border-2 transition-all duration-200 ${
-                  canGoNext 
-                    ? 'border-primary text-primary hover:bg-primary hover:text-white shadow-lg hover:shadow-xl hover:scale-105' 
-                    : 'border-gray-200 text-gray-300 cursor-not-allowed'
-                }`}
+                className={`w-12 h-12 flex items-center justify-center border border-[#E6D5B8] transition-all duration-300 rounded-full ${canGoNext
+                  ? 'bg-transparent text-[#2C1810] hover:bg-[#8B2131] hover:text-white hover:border-[#8B2131]'
+                  : 'bg-transparent text-gray-300 cursor-not-allowed'
+                  }`}
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
-          </div>
-        )}
-
-        {/* Carousel Indicators */}
-        {!loading && newArrivals.length > itemsPerView && (
-          <div className="flex justify-center mb-8 space-x-2">
-            {Array.from({ length: Math.ceil(newArrivals.length / itemsPerView) }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentIndex(index * itemsPerView);
-                  setLastManualAction(Date.now());
-                }}
-                className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${
-                  Math.floor(currentIndex / itemsPerView) === index
-                    ? 'bg-primary w-6 sm:w-8'
-                    : 'bg-gray-300 hover:bg-gray-400'
-                }`}
-              />
-            ))}
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Product Carousel */}
-        <div 
+        <div
           className="relative"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="animate-pulse">
-                  <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100">
-                    <div className="h-64 bg-gray-200 rounded-t-3xl"></div>
-                    <div className="p-6">
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                      <div className="h-10 bg-gray-200 rounded-lg"></div>
-                    </div>
-                  </div>
+                  <div className="bg-[#E6D5B8]/20 aspect-[4/5] w-full mb-4"></div>
+                  <div className="h-4 bg-[#E6D5B8]/20 w-3/4 mb-2"></div>
+                  <div className="h-4 bg-[#E6D5B8]/20 w-1/2"></div>
                 </div>
               ))}
             </div>
           ) : newArrivals.length > 0 ? (
             <div className="overflow-hidden">
-              <div 
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ 
+              <div
+                className="flex transition-transform duration-700 ease-out"
+                style={{
                   transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
                 }}
               >
                 {newArrivals.map((product) => (
-                  <div 
-                    key={product.id} 
-                    className="flex-shrink-0 px-2 w-full sm:w-1/2 lg:w-1/4"
+                  <div
+                    key={product.id}
+                    className="flex-shrink-0 px-2 md:px-4"
+                    style={{ width: `${100 / itemsPerView}%` }}
                   >
-                    <ProductCard 
+                    <ProductCard
                       product={{
                         ...product,
                         image: product.images?.[0] || '/placeholder.svg',
-                        slug: product.id
-                      }} 
-                      onQuickView={handleQuickView}
+                        slug: product.sku || product.id
+                      }}
+                      onQuickView={(product) => handleQuickView(product)}
                       onViewDetail={() => handleViewDetail(product)}
                     />
                   </div>
@@ -315,10 +209,10 @@ const NewArrivals = () => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-16">
-              <Candy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-500 mb-2 font-raleway">No new arrivals available</h3>
-              <p className="text-gray-400 font-raleway">Check back later for new sweet arrivals</p>
+            <div className="text-center py-20 border border-[#E6D5B8]/20 p-8">
+              <Sparkles className="w-12 h-12 text-[#E6D5B8] mx-auto mb-4" />
+              <h3 className="text-xl font-serif text-[#2C1810] mb-2">No new arrivals yet</h3>
+              <p className="text-[#5D4037] font-light">Check back soon for latest additions.</p>
             </div>
           )}
         </div>
@@ -326,19 +220,19 @@ const NewArrivals = () => {
         <div className="text-center mt-12">
           <button
             onClick={() => navigate('/products')}
-            className="bg-primary hover:bg-[hsl(218_28%_20%)] text-white px-6 py-3 rounded-full font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-300 font-raleway"
+            className="group inline-flex items-center gap-3 bg-[#2C1810] text-white px-10 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#8B2131] transition-all duration-300"
           >
-            View All New Products
+            View All Arrivals <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>
 
       {/* Quick View Modal */}
       {isQuickViewOpen && quickViewProduct && (
-        <QuickViewModal 
-          product={quickViewProduct} 
-          isOpen={isQuickViewOpen} 
-          onClose={closeQuickView} 
+        <QuickViewModal
+          product={quickViewProduct}
+          isOpen={isQuickViewOpen}
+          onClose={closeQuickView}
         />
       )}
     </section>

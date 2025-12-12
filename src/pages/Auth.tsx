@@ -42,7 +42,7 @@ export default function Auth() {
     setIsLoading(true);
     try {
       const { error } = await signIn(formData.email, formData.password);
-      
+
       if (error) {
         toast({
           title: "Sign In Failed",
@@ -99,7 +99,7 @@ export default function Auth() {
     setIsLoading(true);
     try {
       const { error } = await signUp(formData.email, formData.password, formData.fullName);
-      
+
       if (error) {
         if (error.message.includes('already registered')) {
           toast({
@@ -136,8 +136,8 @@ export default function Auth() {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="mb-8">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -148,7 +148,7 @@ export default function Auth() {
         <Card className="shadow-xl border-0 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-2xl font-bold text-foreground">
-              Welcome to SuperSweets
+              Welcome to Raj Luxmi
             </CardTitle>
             <CardDescription>
               Sign in to your account or create a new one
@@ -189,9 +189,9 @@ export default function Auth() {
                       required
                     />
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full"
                     disabled={isLoading}
                   >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -254,7 +254,7 @@ export default function Auth() {
                       required
                     />
                   </div>
-                  
+
                   {/* Spam folder notice */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <div className="flex items-start space-x-2">
@@ -270,9 +270,9 @@ export default function Auth() {
                     </div>
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full"
                     disabled={isLoading}
                   >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

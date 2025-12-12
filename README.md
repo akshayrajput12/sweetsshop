@@ -1,4 +1,4 @@
-# Sweetsshop - Delhivery API Integration
+# Raj Luxmi - Delhivery API Integration
 
 This e-commerce application integrates with Delhivery's API to calculate accurate delivery fees based on the distance between the customer's location and the shop location. The integration provides real-time pricing estimates and order tracking capabilities.
 

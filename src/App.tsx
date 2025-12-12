@@ -64,7 +64,7 @@ const AppContent = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   if (loading) {
-    return <PageLoader text="Loading supersweets..." />;
+    return <PageLoader text="Loading Raj Luxmi..." />;
   }
 
   return (
@@ -81,37 +81,37 @@ const AppContent = () => {
             <Route path="/cart" element={<Cart />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/about" element={<About />} />
-            
+
             {/* Auth routes */}
-            <Route 
-              path="/auth" 
-              element={user ? <Navigate to="/" replace /> : <Auth />} 
+            <Route
+              path="/auth"
+              element={user ? <Navigate to="/" replace /> : <Auth />}
             />
-            
+
             {/* Checkout route - accessible to both guests and authenticated users */}
             <Route path="/checkout" element={<Checkout />} />
-            
+
             {/* Protected routes */}
-            <Route 
-              path="/profile" 
+            <Route
+              path="/profile"
               element={
                 <ProtectedRoute>
                   <Profile />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/order-detail/:id" 
+            <Route
+              path="/order-detail/:id"
               element={
                 <ProtectedRoute>
                   <UserOrderDetail />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
+
             {/* Admin routes */}
-            <Route 
-              path="/admin" 
+            <Route
+              path="/admin"
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminLayout />
@@ -138,7 +138,7 @@ const AppContent = () => {
               <Route path="analytics" element={<Analytics />} />
               <Route path="settings" element={<Settings />} />
             </Route>
-            
+
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer isAdminRoute={isAdminRoute} />

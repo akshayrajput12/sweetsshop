@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, CreditCard, Truck, Tag, User, Phone, Mail, Clock, Shield } from 'lucide-react';
+import { ArrowLeft, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { useStore } from '@/store/useStore';
 import { formatPrice } from '@/utils/currency';
@@ -16,10 +15,9 @@ import GuestOrderPopup from '@/components/GuestOrderPopup';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { validateContactInfo, validateAddressDetails, validatePaymentMethod, formatPhoneNumber } from '@/utils/validation';
+import { validateContactInfo, validateAddressDetails, validatePaymentMethod } from '@/utils/validation';
 import { useSettings } from '@/hooks/useSettings';
-import { toNumber, formatCurrency, calculatePercentage, meetsThreshold, toBoolean } from '@/utils/settingsHelpers';
-import { delhiveryService, PICKUP_LOCATION } from '@/utils/delhivery';
+import { toNumber, formatCurrency, calculatePercentage, meetsThreshold } from '@/utils/settingsHelpers';
 
 // Import the new components
 import CheckoutContactInfo from './Checkout/CheckoutContactInfo';
@@ -46,10 +44,10 @@ const Checkout = () => {
   const [showGuestOrderPopup, setShowGuestOrderPopup] = useState(false);
   const [guestOrderData, setGuestOrderData] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [estimatedDeliveryFee, setEstimatedDeliveryFee] = useState<number | null>(null);
-  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<string | null>(null);
-  const [isPincodeServiceable, setIsPincodeServiceable] = useState(true); // Add this state
-  
+
+  // Pincode serviceability is now always true since we removed the API check
+  const [isPincodeServiceable, setIsPincodeServiceable] = useState(true);
+
   // Form validation states
   const [contactErrors, setContactErrors] = useState<string[]>([]);
   const [addressErrors, setAddressErrors] = useState<string[]>([]);
@@ -60,8 +58,6 @@ const Checkout = () => {
     email: '',
     phone: ''
   });
-
-  // Delivery Location - removed location picker functionality
 
   // Address Details
   const [addressDetails, setAddressDetails] = useState({
@@ -83,63 +79,6 @@ const Checkout = () => {
     { id: 'summary', title: 'Order Summary', description: 'Review & confirm' }
   ];
 
-  // Simple pincode to coordinates mapping for major cities in India
-  // This is just a sample - a real implementation would have a comprehensive database
-  const PINCODE_COORDINATES: Record<string, { lat: number; lng: number; city: string; state: string }> = {
-    // Delhi NCR
-    '110001': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    '110002': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    '110003': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    '110021': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    '110022': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' },
-    
-    // Mumbai
-    '400001': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
-    '400002': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
-    '400003': { lat: 19.0760, lng: 72.8777, city: 'Mumbai', state: 'Maharashtra' },
-    
-    // Bangalore
-    '560001': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
-    '560002': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
-    '560003': { lat: 12.9716, lng: 77.5946, city: 'Bangalore', state: 'Karnataka' },
-    
-    // Chennai
-    '600001': { lat: 13.0827, lng: 80.2707, city: 'Chennai', state: 'Tamil Nadu' },
-    '600002': { lat: 13.0827, lng: 80.2707, city: 'Chennai', state: 'Tamil Nadu' },
-    
-    // Kolkata
-    '700001': { lat: 22.5726, lng: 88.3639, city: 'Kolkata', state: 'West Bengal' },
-    '700002': { lat: 22.5726, lng: 88.3639, city: 'Kolkata', state: 'West Bengal' },
-    
-    // Hyderabad
-    '500001': { lat: 17.3850, lng: 78.4867, city: 'Hyderabad', state: 'Telangana' },
-    '500002': { lat: 17.3850, lng: 78.4867, city: 'Hyderabad', state: 'Telangana' },
-    
-    // Pune
-    '411001': { lat: 18.5204, lng: 73.8567, city: 'Pune', state: 'Maharashtra' },
-    '411002': { lat: 18.5204, lng: 73.8567, city: 'Pune', state: 'Maharashtra' },
-    
-    // Ahmedabad
-    '380001': { lat: 23.0225, lng: 72.5714, city: 'Ahmedabad', state: 'Gujarat' },
-    '380002': { lat: 23.0225, lng: 72.5714, city: 'Ahmedabad', state: 'Gujarat' },
-    
-    // Jaipur
-    '302001': { lat: 26.9124, lng: 75.7873, city: 'Jaipur', state: 'Rajasthan' },
-    '302002': { lat: 26.9124, lng: 75.7873, city: 'Jaipur', state: 'Rajasthan' },
-    
-    // Default fallback (Delhi coordinates)
-    'default': { lat: 28.6139, lng: 77.2090, city: 'Delhi', state: 'Delhi' }
-  };
-
-  // Get approximate coordinates for a pincode
-  const getCoordinatesForPincode = (pincode: string): { lat: number; lng: number; city: string; state: string } => {
-    // Clean the pincode
-    const cleanPincode = pincode.replace(/\D/g, '').slice(0, 6);
-    
-    // Return coordinates if found, otherwise return default
-    return PINCODE_COORDINATES[cleanPincode] || PINCODE_COORDINATES['default'];
-  };
-
   useEffect(() => {
     fetchProductCoupons();
     fetchSavedAddresses();
@@ -156,14 +95,11 @@ const Checkout = () => {
     }
   };
 
-  // Remove fetchSettings since we're using static settings now
-
   const fetchSavedAddresses = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
-        // For guest users, no saved addresses
         setSavedAddresses([]);
         return;
       }
@@ -181,13 +117,10 @@ const Checkout = () => {
     }
   };
 
-  // Removed location extraction functions - users will manually enter address details
-
   const handleSavedAddressSelect = (address: any) => {
     setSelectedAddress(address);
     setUseExistingAddress(true);
 
-    // Pre-fill address details from saved address
     setAddressDetails({
       plotNumber: address.address_line_1.split(',')[0] || '',
       buildingName: '',
@@ -204,13 +137,9 @@ const Checkout = () => {
   const saveAddressToProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        // For guest users, we don't save addresses
-        return;
-      }
 
-      // Check if user already has 3 addresses
+      if (!user) return;
+
       if (savedAddresses.length >= 3) {
         toast({
           title: "Address Limit Reached",
@@ -232,7 +161,7 @@ const Checkout = () => {
         type: addressDetails.addressType,
         latitude: null,
         longitude: null,
-        is_default: savedAddresses.length === 0 // Make first address default
+        is_default: savedAddresses.length === 0
       };
 
       const { error } = await supabase
@@ -246,7 +175,6 @@ const Checkout = () => {
         description: "Your address has been saved to your profile for future use.",
       });
 
-      // Refresh saved addresses
       fetchSavedAddresses();
     } catch (error) {
       console.error('Error saving address:', error);
@@ -261,10 +189,9 @@ const Checkout = () => {
   const fetchProductCoupons = async () => {
     try {
       const productIds = cartItems.map(item => item.id);
-      
+
       if (productIds.length === 0) return;
 
-      // Fetch product-specific coupons
       const { data: productCoupons, error: pcError } = await supabase
         .from('product_coupons')
         .select(`
@@ -286,15 +213,13 @@ const Checkout = () => {
 
       if (pcError) throw pcError;
 
-      // Filter and process only product-specific coupons for items in cart
       const productSpecificCoupons = productCoupons
         ?.map(pc => pc.coupons)
         .filter(c => c !== null && c.is_active && new Date(c.valid_until) > new Date())
-        .filter((coupon, index, self) => 
+        .filter((coupon, index, self) =>
           index === self.findIndex(c => c.id === coupon.id)
         ) || [];
 
-      // Only show coupons that are specifically assigned to products in the cart
       setAvailableCoupons(productSpecificCoupons);
     } catch (error) {
       console.error('Error fetching product coupons:', error);
@@ -303,160 +228,15 @@ const Checkout = () => {
 
   const subtotal = cartItems.reduce((sum, item) => sum + (toNumber(item.price) * toNumber(item.quantity)), 0);
   const tax = calculatePercentage(subtotal, settings.tax_rate);
-  
-  // Calculate delivery fee using Delhivery API
-  let deliveryFee = estimatedDeliveryFee !== null ? estimatedDeliveryFee : (
-    meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge)
-  );
-  
+
+  const deliveryFee = meetsThreshold(subtotal, settings.free_delivery_threshold) ? 0 : toNumber(settings.delivery_charge);
+  const estimatedDeliveryTime = `${settings.delivery_time_estimate || '3-5 business days'}`;
+
   const codFee = paymentMethod === 'cod' ? toNumber(settings.cod_charge) : 0;
   const total = subtotal + tax + deliveryFee + codFee - discount;
-  
-  // Check if minimum order amount is met
+
   const isMinOrderMet = subtotal >= toNumber(settings.min_order_amount);
   const minOrderShortfall = Math.max(0, toNumber(settings.min_order_amount) - subtotal);
-
-  // Estimate delivery fee when address details change
-  useEffect(() => {
-    const estimateDeliveryFee = async () => {
-      console.log('Main Checkout - Checking if we should estimate delivery fee:', { 
-        currentStep,
-        hasPincode: !!addressDetails.pincode, 
-        hasCity: !!addressDetails.city, 
-        hasState: !!addressDetails.state,
-        addressDetails 
-      });
-      
-      // Only estimate if we have a pincode and city/state
-      if (addressDetails.pincode && addressDetails.city && addressDetails.state) {
-        console.log('Main Checkout - Starting delivery fee estimation for:', { 
-          pickupPincode: PICKUP_LOCATION.pincode || '201016',
-          deliveryPincode: addressDetails.pincode,
-          subtotal,
-          cartItemsCount: cartItems.length
-        });
-        
-        try {
-          // Test if delhiveryService is available
-          console.log('Main Checkout - Delhivery service object:', delhiveryService);
-          
-          // Get customer coordinates from pincode
-          const customerCoords = getCoordinatesForPincode(addressDetails.pincode);
-          console.log('Main Checkout - Customer coordinates:', customerCoords);
-          
-          // Calculate total weight of items in cart (considering quantity)
-          let totalWeight = 0;
-          cartItems.forEach(item => {
-            // Extract numeric weight from string (e.g., "500g" -> 0.5kg, "1kg" -> 1kg)
-            const weightMatch = item.weight?.match(/(\d+(?:\.\d+)?)\s*(g|kg)/i);
-            if (weightMatch) {
-              const value = parseFloat(weightMatch[1]);
-              const unit = weightMatch[2].toLowerCase();
-              // Convert to kg and multiply by quantity
-              const weightInKg = unit === 'g' ? value / 1000 : value;
-              totalWeight += weightInKg * item.quantity;
-            }
-          });
-          
-          console.log('Main Checkout - Calculated cart weight:', totalWeight);
-          
-          // Use actual calculated weight with a reasonable minimum for very light items
-          // Instead of forcing 1kg minimum, use a more flexible approach:
-          // - For items under 0.5kg, use the actual weight (no artificial minimum)
-          // - For items between 0.5kg and 1kg, use actual weight
-          // - For items over 1kg, use actual weight with 20% buffer
-          let bufferedWeight;
-          console.log('Main Checkout - Total weight condition check:', { totalWeight, condition1: totalWeight <= 0.5, condition2: totalWeight <= 1 });
-          if (totalWeight <= 0.5) {
-            // For very light items, use actual weight without artificial minimum
-            bufferedWeight = Math.max(0.1, totalWeight); // Minimum 100g to avoid issues
-            console.log('Main Checkout - Using light item calculation:', { bufferedWeight, max: Math.max(0.1, totalWeight) });
-          } else if (totalWeight <= 1) {
-            // For moderately light items, use actual weight
-            bufferedWeight = totalWeight;
-            console.log('Main Checkout - Using medium item calculation:', bufferedWeight);
-          } else {
-            // For heavier items, apply 20% buffer
-            bufferedWeight = totalWeight * 1.2;
-            console.log('Main Checkout - Using heavy item calculation:', bufferedWeight);
-          }
-          
-          console.log('Main Checkout - Using buffered weight:', bufferedWeight);
-          
-          console.log('Main Checkout - Calling delhiveryService.estimateDeliveryPricing with:', {
-            pickupPincode: PICKUP_LOCATION.pincode || '201016',
-            deliveryPincode: addressDetails.pincode,
-            orderValue: subtotal,
-            weight: bufferedWeight
-          });
-          
-          // Estimate delivery pricing using Delhivery API
-          const estimate = await delhiveryService.estimateDeliveryPricing(
-            PICKUP_LOCATION.pincode || '201016',
-            addressDetails.pincode,
-            subtotal,
-            bufferedWeight // Use calculated weight with buffer instead of fixed 2.5kg
-          );
-          
-          console.log('Main Checkout - Delhivery API estimate result:', estimate);
-          
-          // Set serviceability status
-          setIsPincodeServiceable(estimate.serviceability);
-          
-          // Set estimated delivery time
-          setEstimatedDeliveryTime(estimate.estimated_delivery_time);
-          
-          // Check if order qualifies for free delivery
-          const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
-          if (subtotal >= freeDeliveryThreshold && estimate.serviceability) {
-            console.log('Main Checkout - Order qualifies for free delivery');
-            setEstimatedDeliveryFee(0);
-          } else if (estimate.serviceability) {
-            console.log('Main Checkout - Setting delivery fee to:', estimate.shipping_charges);
-            setEstimatedDeliveryFee(estimate.shipping_charges);
-          } else {
-            console.log('Main Checkout - Delivery not serviceable, setting fee to 0 and showing message');
-            setEstimatedDeliveryFee(0);
-            setEstimatedDeliveryTime('Delivery not available to this pincode');
-          }
-        } catch (error) {
-          console.error('Main Checkout - Error estimating delivery fee:', error);
-          // Mark as serviceable by default on error to avoid blocking checkout
-          setIsPincodeServiceable(true);
-          // Fallback to standard delivery charge
-          setEstimatedDeliveryTime('2-5 business days');
-          const freeDeliveryThreshold = toNumber(settings.free_delivery_threshold);
-          if (subtotal >= freeDeliveryThreshold) {
-            setEstimatedDeliveryFee(0);
-          } else {
-            setEstimatedDeliveryFee(toNumber(settings.delivery_charge));
-          }
-        }
-      } else {
-        console.log('Main Checkout - Not enough address information to estimate delivery fee');
-        // Reset estimated delivery fee if we don't have complete address
-        setEstimatedDeliveryFee(null);
-        // Reset serviceability when pincode is not entered
-        setIsPincodeServiceable(true);
-      }
-    };
-    
-    // Only estimate if we're past the contact info step
-    if (currentStep >= 2) {
-      console.log('Main Checkout - Delivery fee estimation useEffect triggered for step:', currentStep);
-      console.log('Main Checkout - Current address details:', addressDetails);
-      console.log('Main Checkout - Cart items count:', cartItems.length);
-      console.log('Main Checkout - Subtotal:', subtotal);
-      console.log('Main Checkout - Settings:', settings);
-      
-      // Add a small delay to ensure all data is loaded
-      const timer = setTimeout(() => {
-        estimateDeliveryFee();
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [addressDetails.pincode, addressDetails.city, addressDetails.state, currentStep, subtotal, settings, cartItems, customerInfo, setIsPincodeServiceable]);
 
   const applyCoupon = async () => {
     try {
@@ -476,7 +256,6 @@ const Checkout = () => {
         return;
       }
 
-      // Check minimum order amount
       if (data.min_order_amount && subtotal < data.min_order_amount) {
         toast({
           title: "Minimum order not met",
@@ -486,7 +265,6 @@ const Checkout = () => {
         return;
       }
 
-      // Check usage limit
       if (data.usage_limit && data.used_count >= data.usage_limit) {
         toast({
           title: "Coupon expired",
@@ -533,7 +311,6 @@ const Checkout = () => {
   };
 
   const handleNextStep = () => {
-    // Check minimum order amount before any step
     if (subtotal < toNumber(settings.min_order_amount)) {
       toast({
         title: "Minimum Order Not Met",
@@ -543,7 +320,6 @@ const Checkout = () => {
       return;
     }
 
-    // Validation for each step
     if (currentStep === 1) {
       const validation = validateContactInfo(customerInfo);
       if (!validation.isValid) {
@@ -557,7 +333,6 @@ const Checkout = () => {
       }
       setContactErrors([]);
     } else if (currentStep === 2) {
-      // Validate city, state, and pincode first
       if (!addressDetails.city || !addressDetails.state || !addressDetails.pincode) {
         toast({
           title: "Missing Location Information",
@@ -566,7 +341,7 @@ const Checkout = () => {
         });
         return;
       }
-      
+
       if (!useExistingAddress) {
         const validation = validateAddressDetails(addressDetails);
         if (!validation.isValid) {
@@ -630,15 +405,6 @@ const Checkout = () => {
       });
       return;
     }
-    
-    if (!addressDetails.pincode) {
-      toast({
-        title: "Missing Pincode",
-        description: "Please enter your area pincode.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     // Validate minimum order amount
     if (subtotal < Number(settings.min_order_amount)) {
@@ -660,7 +426,7 @@ const Checkout = () => {
         });
         return;
       }
-      
+
       if (total > Number(settings.cod_threshold)) {
         toast({
           title: "COD Limit Exceeded",
@@ -674,20 +440,17 @@ const Checkout = () => {
     setIsProcessingPayment(true);
 
     try {
-      // Generate unique order number
       const orderNumber = `SS${Date.now()}${Math.floor(Math.random() * 1000)}`;
-      
+
       const completeAddress = `${addressDetails.plotNumber}, ${addressDetails.buildingName ? addressDetails.buildingName + ', ' : ''}${addressDetails.street}, ${addressDetails.landmark ? 'Near ' + addressDetails.landmark + ', ' : ''}${addressDetails.city}, ${addressDetails.state} - ${addressDetails.pincode}`;
-      
-      // Get current user
+
       const { data: { user } } = await supabase.auth.getUser();
-      
-      // Prepare order data
+
       const orderData = {
-        user_id: user?.id || null, // Add user_id to link order to user
+        user_id: user?.id || null,
         order_number: orderNumber,
         customer_info: customerInfo as any,
-        delivery_location: { address: completeAddress } as any, // Manual address only
+        delivery_location: { address: completeAddress } as any,
         address_details: {
           ...addressDetails,
           complete_address: completeAddress,
@@ -715,30 +478,24 @@ const Checkout = () => {
       };
 
       if (paymentMethod === 'cod') {
-        // Handle Cash on Delivery - Direct order placement
         const codOrderData = {
           ...orderData,
           payment_status: 'pending',
           order_status: 'placed'
         };
 
-        // Save order to database
         const { data: savedOrder, error: dbError } = await supabase
           .from('orders')
           .insert([codOrderData])
           .select()
           .single();
 
-        if (dbError) {
-          throw new Error(`Database error: ${dbError.message}`);
-        }
+        if (dbError) throw new Error(`Database error: ${dbError.message}`);
 
-        // Save address to profile if it's a new address and user is authenticated
         if (!useExistingAddress && currentUser) {
           await saveAddressToProfile();
         }
 
-        // Update coupon usage if applied
         if (appliedCoupon) {
           await supabase
             .from('coupons')
@@ -746,9 +503,7 @@ const Checkout = () => {
             .eq('id', appliedCoupon.id);
         }
 
-        // Check if user is authenticated
         if (!currentUser) {
-          // Guest user - show popup with order details
           const guestOrder = {
             orderNumber: orderNumber,
             customerInfo: customerInfo,
@@ -782,27 +537,25 @@ const Checkout = () => {
             orderDate: new Date().toISOString(),
             couponCode: appliedCoupon?.code
           };
-          
+
           setGuestOrderData(guestOrder);
           setShowGuestOrderPopup(true);
-          
+
           toast({
             title: "Order Placed Successfully!",
             description: `Your COD order #${orderNumber} has been placed. Please save the order details as you won't be able to view them again.`,
           });
         } else {
-          // Authenticated user - redirect to profile
           toast({
             title: "Order Placed Successfully!",
             description: `Your COD order #${orderNumber} has been placed. You'll pay ${settings.currency_symbol}${total.toFixed(2)} on delivery.`,
           });
-          
+
           navigate('/profile?tab=orders');
         }
-        
+
         clearCart();
       } else {
-        // Handle online payment with Razorpay
         const razorpayOrderData: OrderData = {
           orderId: orderNumber,
           amount: Math.round(total),
@@ -820,7 +573,6 @@ const Checkout = () => {
           razorpayOrderData,
           async (response) => {
             try {
-              // Payment successful - Save order to database
               const onlineOrderData = {
                 ...orderData,
                 payment_status: 'paid',
@@ -829,23 +581,18 @@ const Checkout = () => {
                 razorpay_payment_id: response.razorpay_payment_id
               };
 
-              // Save order to database
               const { data: savedOrder, error: dbError } = await supabase
                 .from('orders')
                 .insert([onlineOrderData])
                 .select()
                 .single();
 
-              if (dbError) {
-                throw new Error(`Database error: ${dbError.message}`);
-              }
+              if (dbError) throw new Error(`Database error: ${dbError.message}`);
 
-              // Save address to profile if it's a new address and user is authenticated
               if (!useExistingAddress && currentUser) {
                 await saveAddressToProfile();
               }
 
-              // Update coupon usage if applied
               if (appliedCoupon) {
                 await supabase
                   .from('coupons')
@@ -853,9 +600,7 @@ const Checkout = () => {
                   .eq('id', appliedCoupon.id);
               }
 
-              // Check if user is authenticated
               if (!currentUser) {
-                // Guest user - show popup with order details
                 const guestOrder = {
                   orderNumber: orderNumber,
                   customerInfo: customerInfo,
@@ -889,24 +634,23 @@ const Checkout = () => {
                   orderDate: new Date().toISOString(),
                   couponCode: appliedCoupon?.code
                 };
-                
+
                 setGuestOrderData(guestOrder);
                 setShowGuestOrderPopup(true);
-                
+
                 toast({
                   title: "Payment Successful!",
                   description: `Order #${orderNumber} confirmed and paid. Please save the order details as you won't be able to view them again.`,
                 });
               } else {
-                // Authenticated user - redirect to profile
                 toast({
                   title: "Payment Successful!",
-                  description: `Order #${orderNumber} confirmed and paid. Your bulk order is being processed.`,
+                  description: `Order #${orderNumber} confirmed and paid. Your order is being processed.`,
                 });
-                
+
                 navigate('/profile?tab=orders');
               }
-              
+
               clearCart();
             } catch (error) {
               console.error('Post-payment processing error:', error);
@@ -918,7 +662,6 @@ const Checkout = () => {
             }
           },
           (error) => {
-            // Payment failed or cancelled
             console.error('Payment error:', error);
             toast({
               title: "Payment Failed",
@@ -942,9 +685,9 @@ const Checkout = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
-        <Button onClick={() => navigate('/products')}>
+      <div className="container mx-auto px-4 py-16 text-center min-h-[60vh] flex flex-col items-center justify-center bg-[#FFFDF7]">
+        <h1 className="text-3xl font-serif text-[#2C1810] mb-4">Your cart is empty</h1>
+        <Button onClick={() => navigate('/products')} className="bg-[#8B2131] hover:bg-[#701a26] text-white">
           Continue Shopping
         </Button>
       </div>
@@ -953,19 +696,19 @@ const Checkout = () => {
 
   if (settingsLoading) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-        <p className="mt-4 text-muted-foreground">Loading checkout...</p>
+      <div className="container mx-auto px-4 py-16 text-center bg-[#FFFDF7] min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B2131] mx-auto"></div>
+        <p className="mt-4 text-[#5D4037]">Loading checkout...</p>
       </div>
     );
   }
 
   if (settingsError) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <div className="text-red-500 mb-4">⚠️ Error loading settings</div>
-        <p className="text-muted-foreground">Please refresh the page to try again.</p>
-        <Button onClick={() => window.location.reload()} className="mt-4">
+      <div className="container mx-auto px-4 py-16 text-center bg-[#FFFDF7] min-h-screen">
+        <div className="text-[#C53030] mb-4">⚠️ Error loading settings</div>
+        <p className="text-[#5D4037]">Please refresh the page to try again.</p>
+        <Button onClick={() => window.location.reload()} className="mt-4 bg-[#8B2131] hover:bg-[#701a26]">
           Refresh Page
         </Button>
       </div>
@@ -973,568 +716,348 @@ const Checkout = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 sm:mb-8">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => navigate(-1)} size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-2xl sm:text-3xl font-bold">Checkout</h1>
-        </div>
-        
-        {/* Mobile Total Display */}
-        <div className="xl:hidden">
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Total</p>
-            <p className="text-lg font-bold">{formatPrice(total)}</p>
+    <div className="min-h-screen bg-[#FFFDF7] pb-10">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" onClick={() => navigate(-1)} size="sm" className="text-[#5D4037] hover:text-[#8B2131] hover:bg-[#FFF8F0]">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold font-serif text-[#2C1810]">Checkout</h1>
           </div>
-        </div>
-      </div>
 
-      {/* Mobile Progress Bar */}
-      <div className="xl:hidden mb-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Step {currentStep} of {steps.length}</span>
-            <span className="text-sm text-muted-foreground">{Math.round((currentStep / steps.length) * 100)}% Complete</span>
+          {/* Mobile Total Display */}
+          <div className="xl:hidden">
+            <div className="text-right">
+              <p className="text-sm text-[#5D4037]">Total</p>
+              <p className="text-lg font-bold text-[#8B2131]">{formatPrice(total)}</p>
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300 ease-in-out"
-              style={{ width: `${(currentStep / steps.length) * 100}%` }}
-            ></div>
-          </div>
-          <p className="text-sm text-muted-foreground mt-2">{steps[currentStep - 1]?.description}</p>
         </div>
-      </div>
 
-      {/* Mobile Price Breakdown - Always Visible */}
-      <div className="xl:hidden mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-medium">Order Total</span>
-              <span className="font-bold text-lg">{formatPrice(total)}</span>
-            </div>
-            <div className="space-y-1 text-sm text-muted-foreground">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
-                <span>{formatPrice(tax)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery</span>
-                <span>
-                  {estimatedDeliveryFee === null && addressDetails.pincode ? (
-                    <span className="flex items-center">
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-400 mr-1"></div>
-                      Calculating...
-                    </span>
-                  ) : deliveryFee === 0 ? 'FREE' : formatPrice(deliveryFee)}
-                </span>
-              </div>
-              {estimatedDeliveryTime && (
-                <div className="flex justify-between text-xs">
-                  <span>Est. Delivery Time</span>
-                  <span>{estimatedDeliveryTime}</span>
-                </div>
-              )}
-              {paymentMethod === 'cod' && toNumber(settings.cod_charge) > 0 && (
-                <div className="flex justify-between">
-                  <span>COD Fee</span>
-                  <span>{formatPrice(codFee)}</span>
-                </div>
-              )}
-              {discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount</span>
-                  <span>-{formatPrice(discount)}</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Mobile Minimum Order Warning */}
-            {!isMinOrderMet && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-orange-600">⚠️</span>
-                  <div>
-                    <p className="text-sm text-orange-700 font-medium">
-                      Minimum Order: {formatCurrency(settings.min_order_amount, settings.currency_symbol)}
-                    </p>
-                    <p className="text-xs text-orange-600">
-                      Add {formatCurrency(minOrderShortfall, settings.currency_symbol)} more to proceed
-                    </p>
-                  </div>
-                </div>
-              </div>
+        {/* Stepper */}
+        <div className="mb-8">
+          <Stepper steps={steps} currentStep={currentStep} />
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+          {/* Main Content */}
+          <div className="xl:col-span-2 order-2 xl:order-1">
+            {/* Step 1: Contact Information */}
+            {currentStep === 1 && (
+              <CheckoutContactInfo
+                customerInfo={customerInfo}
+                setCustomerInfo={setCustomerInfo}
+                onNext={handleNextStep}
+              />
             )}
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Stepper */}
-      <div className="mb-8">
-        <Stepper steps={steps} currentStep={currentStep} />
-      </div>
+            {/* Step 2: Address Details */}
+            {currentStep === 2 && (
+              <CheckoutAddressDetails
+                addressDetails={addressDetails}
+                setAddressDetails={setAddressDetails}
+                savedAddresses={savedAddresses}
+                selectedAddress={selectedAddress}
+                setSelectedAddress={setSelectedAddress}
+                useExistingAddress={useExistingAddress}
+                setUseExistingAddress={setUseExistingAddress}
+                showAddressForm={showAddressForm}
+                setShowAddressForm={setShowAddressForm}
+                settings={settings}
+                subtotal={subtotal}
+                currentUser={currentUser}
+                onNext={handleNextStep}
+                onPrev={handlePrevStep}
+                estimatedDeliveryFee={deliveryFee}
+                setEstimatedDeliveryFee={() => { }}
+                estimatedDeliveryTime={estimatedDeliveryTime}
+                setEstimatedDeliveryTime={() => { }}
+                cartItems={cartItems}
+                isPincodeServiceable={isPincodeServiceable}
+                setIsPincodeServiceable={setIsPincodeServiceable}
+              />
+            )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-        {/* Main Content */}
-        <div className="xl:col-span-2 order-2 xl:order-1">
-          {/* Step 1: Contact Information */}
-          {currentStep === 1 && (
-            <CheckoutContactInfo
-              customerInfo={customerInfo}
-              setCustomerInfo={setCustomerInfo}
-              onNext={handleNextStep}
-            />
-          )}
+            {/* Step 3: Payment */}
+            {currentStep === 3 && (
+              <CheckoutPayment
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                settings={settings}
+                total={total}
+                onNext={handleNextStep}
+                onPrev={handlePrevStep}
+              />
+            )}
 
-          {/* Step 2: Address Details */}
-          {currentStep === 2 && (
-            <CheckoutAddressDetails
-              addressDetails={addressDetails}
-              setAddressDetails={setAddressDetails}
-              savedAddresses={savedAddresses}
-              selectedAddress={selectedAddress}
-              setSelectedAddress={setSelectedAddress}
-              useExistingAddress={useExistingAddress}
-              setUseExistingAddress={setUseExistingAddress}
-              showAddressForm={showAddressForm}
-              setShowAddressForm={setShowAddressForm}
-              settings={settings}
-              subtotal={subtotal}
-              currentUser={currentUser}
-              onNext={handleNextStep}
-              onPrev={handlePrevStep}
-              estimatedDeliveryFee={estimatedDeliveryFee}
-              setEstimatedDeliveryFee={setEstimatedDeliveryFee}
-              estimatedDeliveryTime={estimatedDeliveryTime}
-              setEstimatedDeliveryTime={setEstimatedDeliveryTime}
-              cartItems={cartItems}
-              isPincodeServiceable={isPincodeServiceable}
-              setIsPincodeServiceable={setIsPincodeServiceable}
-            />
-          )}
+            {/* Step 4: Order Summary */}
+            {currentStep === 4 && (
+              <CheckoutSummary
+                customerInfo={customerInfo}
+                addressDetails={addressDetails}
+                paymentMethod={paymentMethod}
+                cartItems={cartItems}
+                subtotal={subtotal}
+                tax={tax}
+                deliveryFee={deliveryFee}
+                codFee={codFee}
+                discount={discount}
+                total={total}
+                settings={settings}
+                isMinOrderMet={isMinOrderMet}
+                minOrderShortfall={minOrderShortfall}
+                isProcessingPayment={isProcessingPayment}
+                estimatedDeliveryFee={deliveryFee}
+                estimatedDeliveryTime={estimatedDeliveryTime}
+                couponCode={couponCode}
+                setCouponCode={setCouponCode}
+                appliedCoupon={appliedCoupon}
+                setAppliedCoupon={setAppliedCoupon}
+                availableCoupons={availableCoupons}
+                onPlaceOrder={handlePlaceOrder}
+                onPrev={handlePrevStep}
+                onApplyCoupon={applyCoupon}
+                onRemoveCoupon={removeCoupon}
+                isPincodeServiceable={isPincodeServiceable}
+              />
+            )}
+          </div>
 
-          {/* Step 3: Payment */}
-          {currentStep === 3 && (
-            <CheckoutPayment
-              paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              settings={settings}
-              total={total}
-              onNext={handleNextStep}
-              onPrev={handlePrevStep}
-            />
-          )}
+          {/* Order Summary Sidebar */}
+          <div className="xl:col-span-1 order-1 xl:order-2">
+            <Card className="sticky top-4 border-[#E6D5B8] bg-[#FFF8F0] shadow-sm">
+              <CardHeader className="border-b border-[#E6D5B8]">
+                <CardTitle className="text-[#2C1810] font-serif">Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                {/* Quick Items Summary */}
+                {currentStep < 4 && (
+                  <>
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm text-[#5D4037]">
+                        {cartItems.reduce((sum, item) => sum + toNumber(item.quantity), 0)} items in cart
+                      </h4>
+                      {cartItems.slice(0, 3).map((item) => (
+                        <div key={item.id} className="flex items-center space-x-3 py-2">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-10 h-10 object-cover rounded-sm border border-[#E6D5B8]"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-medium text-sm truncate text-[#2C1810]">{item.name}</h5>
+                            <p className="text-xs text-[#5D4037]">
+                              {item.weight} × {item.quantity}
+                            </p>
+                          </div>
+                          <div className="text-sm font-medium text-[#2C1810]">
+                            {formatPrice(toNumber(item.price) * toNumber(item.quantity))}
+                          </div>
+                        </div>
+                      ))}
+                      {cartItems.length > 3 && (
+                        <p className="text-xs text-[#8B2131] text-center cursor-pointer hover:underline">
+                          +{cartItems.length - 3} more items
+                        </p>
+                      )}
+                    </div>
 
-          {/* Step 4: Order Summary */}
-          {currentStep === 4 && (
-            <CheckoutSummary
-              customerInfo={customerInfo}
-              addressDetails={addressDetails}
-              paymentMethod={paymentMethod}
-              cartItems={cartItems}
-              subtotal={subtotal}
-              tax={tax}
-              deliveryFee={deliveryFee}
-              codFee={codFee}
-              discount={discount}
-              total={total}
-              settings={settings}
-              isMinOrderMet={isMinOrderMet}
-              minOrderShortfall={minOrderShortfall}
-              isProcessingPayment={isProcessingPayment}
-              estimatedDeliveryFee={estimatedDeliveryFee}
-              estimatedDeliveryTime={estimatedDeliveryTime}
-              couponCode={couponCode}
-              setCouponCode={setCouponCode}
-              appliedCoupon={appliedCoupon}
-              setAppliedCoupon={setAppliedCoupon}
-              availableCoupons={availableCoupons}
-              onPlaceOrder={handlePlaceOrder}
-              onPrev={handlePrevStep}
-              onApplyCoupon={applyCoupon}
-              onRemoveCoupon={removeCoupon}
-              isPincodeServiceable={isPincodeServiceable} // Pass serviceability to summary
-            />
-          )}
-        </div>
+                    <Separator className="bg-[#E6D5B8]" />
+                  </>
+                )}
 
-        {/* Order Summary Sidebar */}
-        <div className="xl:col-span-1 order-1 xl:order-2">
-          <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Quick Items Summary */}
-              {currentStep < 5 && (
-                <>
+                <div className="flex justify-between text-[#5D4037]">
+                  <span>Subtotal</span>
+                  <span>{formatPrice(subtotal)}</span>
+                </div>
+
+                <div className="flex justify-between text-[#5D4037]">
+                  <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
+                  <span>{formatPrice(tax)}</span>
+                </div>
+
+                <div className="flex justify-between text-[#5D4037]">
+                  <span>Delivery Fee</span>
+                  <span>
+                    {deliveryFee === 0 ? (
+                      <span className="text-[#8B2131] font-medium">
+                        FREE
+                      </span>
+                    ) : (
+                      formatPrice(deliveryFee)
+                    )}
+                  </span>
+                </div>
+
+                {paymentMethod === 'cod' && toNumber(settings.cod_charge) > 0 && (
+                  <div className="flex justify-between text-[#5D4037]">
+                    <span>COD Fee</span>
+                    <span>{formatPrice(codFee)}</span>
+                  </div>
+                )}
+
+                {discount > 0 && (
+                  <div className="flex justify-between text-[#2F855A]">
+                    <span>Discount</span>
+                    <span>-{formatPrice(discount)}</span>
+                  </div>
+                )}
+
+                <Separator className="bg-[#E6D5B8]" />
+
+                {currentStep < 4 && (
                   <div className="space-y-3">
-                    <h4 className="font-medium text-sm text-gray-700">
-                      {cartItems.reduce((sum, item) => sum + toNumber(item.quantity), 0)} items in cart
-                    </h4>
-                    {cartItems.slice(0, 3).map((item) => (
-                      <div key={item.id} className="flex items-center space-x-3 py-2">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-10 h-10 object-cover rounded-lg"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h5 className="font-medium text-sm truncate">{item.name}</h5>
-                          <p className="text-xs text-gray-500">
-                            {item.weight} × {item.quantity}
-                          </p>
+                    <Label className="flex items-center text-[#2C1810]">
+                      <Tag className="h-4 w-4 mr-2" />
+                      Apply Coupon
+                    </Label>
+
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between p-3 bg-[#F0FFF4] border border-[#C6F6D5] rounded-sm">
+                        <div className="flex items-center space-x-2">
+                          <Tag className="h-4 w-4 text-[#2F855A]" />
+                          <div>
+                            <span className="text-sm font-medium text-[#22543D]">
+                              {appliedCoupon.code} Applied
+                            </span>
+                            <p className="text-xs text-[#2F855A]">
+                              {appliedCoupon.description}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-sm font-medium">
-                          {formatPrice(toNumber(item.price) * toNumber(item.quantity))}
-                        </div>
+                        <Button variant="ghost" size="sm" onClick={removeCoupon} className="text-[#2F855A] hover:text-[#22543D] hover:bg-[#C6F6D5]">
+                          Remove
+                        </Button>
                       </div>
-                    ))}
-                    {cartItems.length > 3 && (
-                      <p className="text-xs text-gray-500 text-center">
-                        +{cartItems.length - 3} more items
-                      </p>
+                    ) : (
+                      <div className="flex space-x-2">
+                        <Input
+                          placeholder="Enter coupon code"
+                          value={couponCode}
+                          onChange={(e) => setCouponCode(e.target.value)}
+                          className="bg-white border-[#E6D5B8] focus:ring-[#8B2131]"
+                        />
+                        <Button variant="outline" onClick={applyCoupon} className="border-[#8B2131] text-[#8B2131] hover:bg-[#8B2131] hover:text-white">
+                          Apply
+                        </Button>
+                      </div>
                     )}
                   </div>
+                )}
 
-                  <Separator />
-                </>
-              )}
+                <Separator className="bg-[#E6D5B8]" />
 
-              {/* Progress Indicator */}
-              {currentStep < 5 && (
-                <>
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-sm text-gray-700">Progress</h4>
-                    <div className="space-y-2">
-                      <div className={`flex items-center space-x-2 text-sm ${currentStep >= 1 ? 'text-green-600' : 'text-gray-400'}`}>
-                        <div className={`w-4 h-4 rounded-full ${currentStep >= 1 ? 'bg-green-600' : 'bg-gray-300'} flex items-center justify-center`}>
-                          {currentStep > 1 ? <span className="text-white text-xs">✓</span> : <span className="text-white text-xs">1</span>}
-                        </div>
-                        <span>Contact Info</span>
-                      </div>
-                      <div className={`flex items-center space-x-2 text-sm ${currentStep >= 2 ? 'text-green-600' : 'text-gray-400'}`}>
-                        <div className={`w-4 h-4 rounded-full ${currentStep >= 2 ? 'bg-green-600' : 'bg-gray-300'} flex items-center justify-center`}>
-                          {currentStep > 2 ? <span className="text-white text-xs">✓</span> : <span className="text-white text-xs">2</span>}
-                        </div>
-                        <span>Location</span>
-                      </div>
-                      <div className={`flex items-center space-x-2 text-sm ${currentStep >= 3 ? 'text-green-600' : 'text-gray-400'}`}>
-                        <div className={`w-4 h-4 rounded-full ${currentStep >= 3 ? 'bg-green-600' : 'bg-gray-300'} flex items-center justify-center`}>
-                          {currentStep > 3 ? <span className="text-white text-xs">✓</span> : <span className="text-white text-xs">3</span>}
-                        </div>
-                        <span>Address Details</span>
-                      </div>
-                      <div className={`flex items-center space-x-2 text-sm ${currentStep >= 4 ? 'text-green-600' : 'text-gray-400'}`}>
-                        <div className={`w-4 h-4 rounded-full ${currentStep >= 4 ? 'bg-green-600' : 'bg-gray-300'} flex items-center justify-center`}>
-                          {currentStep > 4 ? <span className="text-white text-xs">✓</span> : <span className="text-white text-xs">4</span>}
-                        </div>
-                        <span>Payment</span>
-                      </div>
-                      <div className={`flex items-center space-x-2 text-sm ${currentStep >= 5 ? 'text-green-600' : 'text-gray-400'}`}>
-                        <div className={`w-4 h-4 rounded-full ${currentStep >= 5 ? 'bg-green-600' : 'bg-gray-300'} flex items-center justify-center`}>
-                          <span className="text-white text-xs">5</span>
-                        </div>
-                        <span>Review & Confirm</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-                </>
-              )}
-              <div className="flex justify-between">
-                <span>Subtotal ({cartItems.reduce((sum, item) => sum + toNumber(item.quantity), 0)} items)</span>
-                <span>{formatPrice(subtotal)}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Tax ({toNumber(settings.tax_rate).toFixed(0)}%)</span>
-                <span>{formatPrice(tax)}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>
-                  {deliveryFee === 0 ? (
-                    <span className="text-green-600 font-medium">
-                      FREE (Above {formatCurrency(settings.free_delivery_threshold, settings.currency_symbol)})
-                    </span>
-                  ) : (
-                    formatPrice(deliveryFee)
-                  )}
-                </span>
-              </div>
-              
-              {estimatedDeliveryTime && (
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Estimated Delivery Time</span>
-                  <span>{estimatedDeliveryTime}</span>
+                <div className="flex justify-between font-bold text-lg text-[#2C1810]">
+                  <span>Total</span>
+                  <span>{formatPrice(total)}</span>
                 </div>
-              )}
 
-              {paymentMethod === 'cod' && toNumber(settings.cod_charge) > 0 && (
-                <div className="flex justify-between">
-                  <span>COD Fee</span>
-                  <span>{formatPrice(codFee)}</span>
-                </div>
-              )}
-
-              {discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount</span>
-                  <span>-{formatPrice(discount)}</span>
-                </div>
-              )}
-
-              <Separator />
-
-              {/* Coupon Section */}
-              <div className="space-y-3">
-                <Label className="flex items-center">
-                  <Tag className="h-4 w-4 mr-2" />
-                  Apply Coupon
-                </Label>
-                
-                {appliedCoupon ? (
-                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                {/* Minimum Order Warning */}
+                {subtotal < toNumber(settings.min_order_amount) && (
+                  <div className="bg-[#FFFAF0] border border-[#FEEBC8] rounded-sm p-3 mt-3">
                     <div className="flex items-center space-x-2">
-                      <Tag className="h-4 w-4 text-green-600" />
+                      <span className="text-[#C05621]">⚠️</span>
                       <div>
-                        <span className="text-sm font-medium text-green-800">
-                          {appliedCoupon.code} Applied
-                        </span>
-                        <p className="text-xs text-green-600">
-                          {appliedCoupon.description}
+                        <p className="text-sm text-[#9C4221] font-medium">
+                          Minimum Order: {formatCurrency(settings.min_order_amount, settings.currency_symbol)}
+                        </p>
+                        <p className="text-xs text-[#C05621]">
+                          Add {formatCurrency(toNumber(settings.min_order_amount) - subtotal, settings.currency_symbol)} more to proceed
                         </p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={removeCoupon} className="text-green-700">
-                      Remove
-                    </Button>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex space-x-2">
-                      <Input
-                        placeholder="Enter coupon code"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
-                      />
-                      <Button variant="outline" onClick={applyCoupon}>
-                        Apply
-                      </Button>
-                    </div>
-                    
-                    {availableCoupons.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-xs text-gray-600 font-medium">Available Coupons:</p>
-                        <div className="space-y-1">
-                          {availableCoupons.slice(0, 3).map((coupon) => (
-                            <div
-                              key={coupon.id}
-                              className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded cursor-pointer hover:bg-blue-100"
-                              onClick={() => {
-                                setCouponCode(coupon.code);
-                                applyCoupon();
-                              }}
-                            >
-                              <div>
-                                <span className="text-xs font-medium text-blue-800">
-                                  {coupon.code}
-                                </span>
-                                <p className="text-xs text-blue-600">
-                                  {coupon.description}
-                                </p>
-                              </div>
-                              <Button variant="ghost" size="sm" className="text-xs text-blue-700">
-                                Apply
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
                 )}
-              </div>
 
-              <Separator />
-              
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>{formatPrice(total)}</span>
-              </div>
-
-              {/* Minimum Order Warning */}
-              {subtotal < toNumber(settings.min_order_amount) && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-orange-600">⚠️</span>
-                    <div>
-                      <p className="text-sm text-orange-700 font-medium">
-                        Minimum Order: {formatCurrency(settings.min_order_amount, settings.currency_symbol)}
-                      </p>
-                      <p className="text-xs text-orange-600">
-                        Add {formatCurrency(toNumber(settings.min_order_amount) - subtotal, settings.currency_symbol)} more to proceed
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Mobile Action Button */}
-              <div className="xl:hidden">
-                {currentStep < 5 && (
-                  <div className="flex gap-2">
-                    {currentStep > 1 && (
-                      <Button 
-                        variant="outline" 
-                        onClick={handlePrevStep}
-                        className="flex-1"
-                      >
-                        Back
-                      </Button>
-                    )}
-                    <Button 
-                      onClick={currentStep === 4 ? handlePlaceOrder : handleNextStep}
-                      className="flex-1"
-                      disabled={isProcessingPayment || (currentStep === 4 && !isMinOrderMet)}
+                {/* Desktop Action Button */}
+                <div className="hidden xl:block">
+                  {currentStep < 4 && (
+                    <Button
+                      className="w-full bg-[#8B2131] hover:bg-[#701a26] text-white"
+                      size="lg"
+                      onClick={handleNextStep}
+                      disabled={isProcessingPayment || !isMinOrderMet}
                     >
-                      {isProcessingPayment ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Processing...
-                        </div>
-                      ) : !isMinOrderMet && currentStep === 4 ? (
-                        `Add ${formatCurrency(minOrderShortfall, settings.currency_symbol)} More`
-                      ) : currentStep === 4 ? (
-                        `Pay ${formatPrice(total)}`
-                      ) : (
-                        'Continue'
-                      )}
+                      Continue
                     </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop Action Button */}
-              <div className="hidden xl:block">
-                {currentStep === 4 && (
-                  <Button 
-                    className="w-full" 
-                    size="lg"
-                    onClick={handlePlaceOrder}
-                    disabled={isProcessingPayment || !isMinOrderMet}
-                  >
-                    {isProcessingPayment ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Processing Payment...
-                      </div>
-                    ) : (
-                      `Pay ${formatPrice(total)}`
-                    )}
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Mobile Sticky Bottom Bar */}
-      <div className="xl:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
-        <div className="container mx-auto">
-          {currentStep < 5 ? (
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">
-                  Step {currentStep} of {steps.length}
-                </p>
-                <p className="font-medium">{steps[currentStep - 1]?.title}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right mr-4">
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="font-bold">{formatPrice(total)}</p>
-                </div>
-                {currentStep > 1 && (
-                  <Button 
-                    variant="outline" 
-                    onClick={handlePrevStep}
-                    size="sm"
-                  >
-                    Back
-                  </Button>
-                )}
-                <Button 
-                  onClick={currentStep === 4 ? handlePlaceOrder : handleNextStep}
-                  disabled={isProcessingPayment || (currentStep === 4 && !isMinOrderMet)}
-                  size="sm"
-                  className="min-w-[100px]"
-                >
-                  {isProcessingPayment ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                      <span className="text-xs">Processing...</span>
-                    </div>
-                  ) : currentStep === 4 ? (
-                    'Pay Now'
-                  ) : (
-                    'Continue'
                   )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Mobile Sticky Bottom Bar */}
+        <div className="xl:hidden fixed bottom-0 left-0 right-0 bg-[#FFFDF7] border-t border-[#E6D5B8] p-4 z-50">
+          <div className="container mx-auto">
+            {currentStep < 4 ? (
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-[#5D4037]">
+                    Step {currentStep} of {steps.length}
+                  </p>
+                  <p className="font-medium text-[#2C1810]">{steps[currentStep - 1]?.title}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-right mr-4">
+                    <p className="text-sm text-[#5D4037]">Total</p>
+                    <p className="font-bold text-[#8B2131]">{formatPrice(total)}</p>
+                  </div>
+                  {currentStep > 1 && (
+                    <Button
+                      variant="outline"
+                      onClick={handlePrevStep}
+                      size="sm"
+                      className="border-[#E6D5B8] text-[#5D4037]"
+                    >
+                      Back
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleNextStep}
+                    disabled={isProcessingPayment || (currentStep === 4 && !isMinOrderMet)}
+                    size="sm"
+                    className="min-w-[100px] bg-[#8B2131] text-white"
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              // Step 4 is handled by CheckoutSummary component's internal action button or we can show one here
+              // CheckoutSummary has its own button, but layout-wise we might want consistency.
+              // However, CheckoutSummary acts as the final confirmation.
+              // Let's hide this sticky bar for step 4 to allow CheckoutSummary's placement to take precedence OR keep it simple.
+              // The original had logic for step 4 here.
+              <div className="text-center">
+                <Button
+                  onClick={handlePlaceOrder}
+                  disabled={isProcessingPayment || !isMinOrderMet}
+                  className="w-full bg-[#8B2131] text-white"
+                  size="lg"
+                >
+                  {isProcessingPayment ? 'Processing...' : `Place Order - ${formatPrice(total)}`}
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-2">Review your order and confirm</p>
-              <Button 
-                onClick={handlePlaceOrder}
-                disabled={isProcessingPayment || !isMinOrderMet}
-                className="w-full"
-                size="lg"
-              >
-                {isProcessingPayment ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Processing Payment...
-                  </div>
-                ) : !isMinOrderMet ? (
-                  `Add ${formatCurrency(minOrderShortfall, settings.currency_symbol)} More`
-                ) : (
-                  `Confirm Order - ${formatPrice(total)}`
-                )}
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Guest Order Popup */}
+        {showGuestOrderPopup && guestOrderData && (
+          <GuestOrderPopup
+            isOpen={showGuestOrderPopup}
+            onClose={() => {
+              setShowGuestOrderPopup(false);
+              setGuestOrderData(null);
+            }}
+            orderData={guestOrderData}
+          />
+        )}
       </div>
-
-      {/* Add bottom padding to prevent content from being hidden behind sticky bar */}
-      <div className="xl:hidden h-20"></div>
-
-      {/* Guest Order Popup */}
-      {showGuestOrderPopup && guestOrderData && (
-        <GuestOrderPopup
-          isOpen={showGuestOrderPopup}
-          onClose={() => {
-            setShowGuestOrderPopup(false);
-            setGuestOrderData(null);
-          }}
-          orderData={guestOrderData}
-        />
-      )}
     </div>
   );
 };
